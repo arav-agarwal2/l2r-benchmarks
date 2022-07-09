@@ -14,7 +14,7 @@ experiment_schema = Map(
     }
 )
 
-encoder_config = Map (
+encoder_schema = Map (
     {
         "encoder_config": Map(
             {
@@ -34,7 +34,7 @@ encoder_config = Map (
     }
 )
 
-agent_config = Map (
+agent_schema = Map (
     {
         "agent_config": Map({
             "make_random_actions": Bool(),
@@ -49,7 +49,7 @@ agent_config = Map (
     }
 )
 
-runner_kwargs = Map (
+runner_schema = Map (
     {"runner_config": Map(
     {
         "model_save_dir": Str(),
@@ -64,7 +64,7 @@ runner_kwargs = Map (
     })}
 )
 
-env_kwargs = Map ({
+env_schema = Map ({
     "env_config":
     Map({
         "track_name": Str(),

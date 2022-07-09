@@ -20,11 +20,12 @@ from l2r.common.models.vae import VAE
 from l2r.common.utils import RecordExperience
 from l2r.common.utils import setup_logging
 
-from ruamel.yaml import YAML
-
 from buffers.replay_buffer import ReplayBuffer
 
 from constants import DEVICE
+
+from config.parser import read_config
+from config.schema import agent_schema
 
 from base.envwrapper import EnvContainer
 
@@ -36,11 +37,11 @@ class SACAgent(BaseAgent):
     def __init__(self):
         super(SACAgent, self).__init__()
 
-        self.cfg = self.load_model_config("models/sac/params-sac.yaml")
+        self.cfg = read_config("models/sac/params-sac.yaml",agent_schema)
         self.file_logger, self.tb_logger = self.setup_loggers()
 
-        if self.cfg["record_experience"]:
-            self.setup_experience_recorder()
+        #if self.cfg["record_experience"]:
+        #    self.setup_experience_recorder()
 
         # Action limit for clamping: critically, assumes all dimensions share the same bound!
         # self.act_limit = self.action_space.high[0]
@@ -54,7 +55,7 @@ class SACAgent(BaseAgent):
         # use the learned policy.
         if encode:
             obs = self._encode(obs)
-        if self.t > self.cfg["start_steps"]:
+        if self.t > self.cfg["steps_to_sample_randomly"]:
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
             a = a  # numpy array...
             self.record["transition_actor"] = "learner"
@@ -156,12 +157,6 @@ class SACAgent(BaseAgent):
 
         self.actor_critic_target = deepcopy(self.actor_critic)
 
-    @staticmethod
-    def load_model_config(path):
-        yaml = YAML()
-        params = yaml.load(open(path))
-        sac_kwargs = params["agent_kwargs"]
-        return sac_kwargs
 
     def setup_loggers(self):
         save_path = self.cfg["model_save_path"]
