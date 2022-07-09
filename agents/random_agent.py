@@ -5,6 +5,8 @@ from agents.base import BaseAgent
 
 
 class RandomAgent(BaseAgent):
+    """Randomly pick actions in the space. """
+    
     def __init__(self):
         super().__init__()
 

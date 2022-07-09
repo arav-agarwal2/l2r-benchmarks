@@ -22,9 +22,12 @@ from l2r.common.utils import setup_logging
 
 from ruamel.yaml import YAML
 
-from agents.replay_buffer import ReplayBuffer
+from buffers.replay_buffer import ReplayBuffer
 
-DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
+from constants import DEVICE
+
+from base.envwrapper import EnvContainer
+
 
 # seed = np.random.randint(255)
 # torch.manual_seed(seed)
@@ -256,39 +259,7 @@ class SACAgent(BaseAgent):
                 p_targ.data.mul_(self.cfg["polyak"])
                 p_targ.data.add_((1 - self.cfg["polyak"]) * p.data)
 
-    def _step(self, env, action):
-        obs, reward, done, info = env.step(action)
-        return obs[1], self._encode(obs), obs[0], reward, done, info
 
-    def _reset(self, env, random_pos=False):
-        camera = 0
-        while (np.mean(camera) == 0) | (np.mean(camera) == 255):
-            obs = env.reset(random_pos=random_pos)
-            (state, camera), _ = obs
-        return camera, self._encode((state, camera)), state
-
-    def _encode(self, o):
-        state, img = o
-
-        if self.cfg["use_encoder_type"] == "vae":
-            img_embed = self.backbone.encode_raw(np.array(img), DEVICE)[0][0]
-            speed = (
-                torch.tensor((state[4] ** 2 + state[3] ** 2 + state[5] ** 2) ** 0.5)
-                .float()
-                .reshape(1, -1)
-                .to(DEVICE)
-            )
-            out = torch.cat([img_embed.unsqueeze(0), speed], dim=-1).squeeze(
-                0
-            )  # torch.Size([33])
-            self.using_speed = 1
-        else:
-            raise NotImplementedError
-
-        assert not torch.sum(torch.isnan(out)), "found a nan value"
-        out[torch.isnan(out)] = 0
-
-        return out
 
     def eval(self, n_eps, env):
         print("Evaluation:")

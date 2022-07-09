@@ -34,10 +34,9 @@ class BaseAgent(ABC):
         """
         return self.select_action(obs)
 
-    def training(self, env):
+    def update(self, data):
         """
-        Training loop
-        - Local development OR Stage 2 'practice' phase
+        Model update, given data
         """
         pass
 
