@@ -8,9 +8,10 @@ import torch
 import itertools
 
 class SACRunner(BaseRunner):
-    def __init__(self, env, agent, encoder):
-        super().__init__()
+    def __init__(self, env, agent, encoder, replay_buffer):
+        super().__init__(env, agent, None)
         self.env = EnvContainer(self.env, encoder)
+        self.replay_buffer = replay_buffer
 
     def run(self):
         for _ in range(300):
@@ -133,7 +134,7 @@ class SACRunner(BaseRunner):
         t_start = self.t_start
         # Main loop: collect experience in env and update/log each epoch
         for t in range(self.t_start, self.cfg["total_steps"]):
-            a = self.select_action(feat, encode=False)
+            a = self.agent.select_action(feat, encode=False)
 
             # Step the env
             camera2, feat2, state2, r, d, info = self.env.step(a)
