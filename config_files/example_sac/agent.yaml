@@ -1,0 +1,9 @@
+agent_config:
+    make_random_actions: 0
+    gamma: 0.99
+    polyak: 0.995
+    lr: 0.003
+    alpha: 0.2
+    steps_to_sample_randomly: 2000 # start_steps
+    checkpoint: 'models/sac/checkpoints/best_sac_local_encoder-vae_small_seed-249_episode_480.statedict'
+    model_save_path: '${PREFIX}/l2r/results/${DIRHASH}workspaces/${USER}/results'

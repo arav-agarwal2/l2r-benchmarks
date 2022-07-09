@@ -1,0 +1,3 @@
+replay_buffer_config:
+  replay_size: 250_000
+  batch_size: 256

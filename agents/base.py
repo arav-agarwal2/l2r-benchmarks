@@ -1,4 +1,5 @@
 from abc import ABC
+from ast import Not
 import numpy as np
 import gym
 
@@ -25,7 +26,7 @@ class BaseAgent(ABC):
             action: np.array (2,)
             action should be in the form of [\delta, a], where \delta is the normalized steering angle, and a is the normalized acceleration.
         """
-        pass
+        raise NotImplementedError
 
     def register_reset(self, obs) -> np.array:
         """
@@ -38,16 +39,16 @@ class BaseAgent(ABC):
         """
         Model update, given data
         """
-        pass
+        raise NotImplementedError
 
     def load_model(self, path):
         """
         Load model checkpoints.
         """
-        pass
+        raise NotImplementedError
 
     def save_model(self, path):
         """
         Save model checkpoints.
         """
-        pass
+        raise NotImplementedError
