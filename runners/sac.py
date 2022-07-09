@@ -3,7 +3,9 @@ import time
 import numpy as np
 from runners.base import BaseRunner
 from base.envwrapper import EnvContainer
-
+from torch.optim import Adam
+import torch
+import itertools
 
 class SACRunner(BaseRunner):
     def __init__(self, env, agent, encoder):
@@ -118,8 +120,8 @@ class SACRunner(BaseRunner):
         # start_time = time.time()
         best_ret, ep_ret, ep_len = 0, 0, 0
 
-        self._reset(env, random_pos=True)
-        camera, feat, state, r, d, info = self._step(env, [0, 1])
+        self.env.reset(random_pos=True)
+        camera, feat, state, r, d, info = self.env.step([0, 1])
 
         experience = []
         speed_dim = 1 if self.using_speed else 0
@@ -134,7 +136,7 @@ class SACRunner(BaseRunner):
             a = self.select_action(feat, encode=False)
 
             # Step the env
-            camera2, feat2, state2, r, d, info = self._step(env, a)
+            camera2, feat2, state2, r, d, info = self.env.step(a)
 
             # Check that the camera is turned on
             assert (np.mean(camera2) > 0) & (np.mean(camera2) < 255)
@@ -143,10 +145,10 @@ class SACRunner(BaseRunner):
             # self.atol for SafeRandom and SPAR are set to -1 so that this condition does not activate
             if np.allclose(state2[15:16], state[15:16], atol=self.atol, rtol=0):
                 # self.file_logger("Sampling random action to get unstuck")
-                a = env.action_space.sample()
+                a = self.agent.action_space.sample()
 
                 # Step the env
-                camera2, feat2, state2, r, d, info = self._step(env, a)
+                camera2, feat2, state2, r, d, info = self.env.step(a)
                 ep_len += 1
 
             state = state2
@@ -173,7 +175,7 @@ class SACRunner(BaseRunner):
                     camera=camera,
                     next_camera=camera2,
                     done=d,
-                    env=env,
+                    env=self.env,
                     feature=feat,
                     next_feature=feat2,
                     info=info,
@@ -203,7 +205,7 @@ class SACRunner(BaseRunner):
 
             if (t + 1) % self.cfg["eval_every"] == 0:
                 # eval on test environment
-                val_returns = self.eval(t // self.cfg["eval_every"], env)
+                val_returns = self.eval()
 
                 # Reset
                 (
@@ -214,7 +216,7 @@ class SACRunner(BaseRunner):
                     feat,
                     state,
                     t_start,
-                ) = self.reset_episode(env, t)
+                ) = self.env.reset_episode(t)
 
             # End of trajectory handling
             if d or (ep_len == self.cfg["max_ep_len"]):
@@ -241,5 +243,5 @@ class SACRunner(BaseRunner):
                     feat,
                     state,
                     t_start,
-                ) = self.reset_episode(env, t)
+                ) = self.env.reset_episode(t)
 
