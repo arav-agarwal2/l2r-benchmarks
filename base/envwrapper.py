@@ -1,5 +1,7 @@
 import numpy as np
 import torch
+from torch.optim import Adam
+import itertools
 from constants import DEVICE
 
 class EnvContainer():
@@ -40,3 +42,11 @@ class EnvContainer():
         out[torch.isnan(out)] = 0
 
         return out
+    
+    def reset_episode(self, t):
+        camera, feat, state = self.reset(self.env, random_pos=True)
+        ep_ret, ep_len, self.metadata, experience = 0, 0, {}, []
+        t_start = t + 1
+        camera, feat, _, _, _, _ = self.step(self.env, [0, 1])
+        return camera, ep_len, ep_ret, experience, feat, state, t_start
+
