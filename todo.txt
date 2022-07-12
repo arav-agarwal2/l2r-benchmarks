@@ -4,3 +4,5 @@
 
 - Separate vision encoder, and move YAML stuff there.
 - Separate logging, and move YAML stuff there if there's anything.
+
+https://andyljones.com/posts/rl-debugging.html
