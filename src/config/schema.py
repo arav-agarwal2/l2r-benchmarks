@@ -19,7 +19,7 @@ encoder_schema = Map (
         "encoder_config": Map(
             {
                 "encoder_type": Enum(["vae"]), 
-                Optional("load_checkpoint_from", default=False, drop_if_none=False) : Str() | Bool(),
+                Optional("load_checkpoint_from", default=False, drop_if_none=True) : Str() | Bool(),
                 "latent_dims": Int(),
                 "hiddens": Seq(Int()),
                 "speed_hiddens": Seq(Int()),
@@ -54,7 +54,7 @@ runner_schema = Map (
     {
         "model_save_dir": Str(),
         "experience_save_dir": Str(),
-        "num_test_epsiodes": Int(),
+        "num_test_episodes": Int(),
         "save_every_nth_episode": Int(),
         "total_environment_steps": Int(),
         "update_model_after": Int(),
