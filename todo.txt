@@ -1,6 +1,6 @@
-- Add YAML parser stuff to current codebase.
 - Convert old kwargs to YAML args
 - Add docs for YAML
+- Start testing system, and making end to end checks before doing anything more.
 
 - Separate vision encoder, and move YAML stuff there.
 - Separate logging, and move YAML stuff there if there's anything.
