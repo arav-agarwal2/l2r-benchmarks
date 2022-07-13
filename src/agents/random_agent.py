@@ -1,7 +1,7 @@
 import json
 import time
 import numpy as np
-from agents.base import BaseAgent
+from src.agents.base import BaseAgent
 
 
 class RandomAgent(BaseAgent):

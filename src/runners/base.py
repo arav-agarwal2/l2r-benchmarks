@@ -15,13 +15,13 @@ class BaseRunner(ABC):
         self.agent = agent
         self.config = config
 
-    def training(self):
+    def training(self): # pragma: no cover
         """
         Training Loop
         """
         raise NotImplementedError
 
-    def evaluation(self):
+    def evaluation(self): # pragma: no cover
         """
         Eval Loop
         """

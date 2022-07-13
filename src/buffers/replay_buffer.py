@@ -27,8 +27,19 @@ class ReplayBuffer:
 
     def store(self, obs, act, rew, next_obs, done):
         # pdb.set_trace()
-        self.obs_buf[self.ptr] = obs.detach().cpu().numpy()
-        self.obs2_buf[self.ptr] = next_obs.detach().cpu().numpy()
+
+        def convert(arraylike):
+            obs = arraylike
+            if isinstance(obs,torch.Tensor):
+                if obs.requires_grad:
+                    obs = obs.detach()
+                obs = obs.cpu().numpy()
+            return obs
+
+
+        
+        self.obs_buf[self.ptr] = convert(obs)
+        self.obs2_buf[self.ptr] = convert(next_obs)
         self.act_buf[self.ptr] = act  # .detach().cpu().numpy()
         self.rew_buf[self.ptr] = rew
         self.done_buf[self.ptr] = done
