@@ -27,7 +27,7 @@ from constants import DEVICE
 from config.parser import read_config
 from config.schema import agent_schema
 
-from base.envwrapper import EnvContainer
+from src.utils.envwrapper import EnvContainer
 
 
 
