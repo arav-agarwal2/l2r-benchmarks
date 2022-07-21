@@ -38,6 +38,7 @@ class SACAgent(BaseAgent):
         super(SACAgent, self).__init__()
 
         self.cfg = read_config("models/sac/params-sac.yaml",agent_schema)
+
         self.file_logger, self.tb_logger = self.setup_loggers()
 
         #if self.cfg["record_experience"]:
@@ -79,16 +80,16 @@ class SACAgent(BaseAgent):
     def save_model(self, path):
         torch.save(self.actor_critic.state_dict(), path)
 
-    def setup_experience_recorder(self):
+    def setup_experience_recorder(self, file_logger):
         self.save_queue = queue.Queue()
         self.save_batch_size = 256
         self.record_experience = RecordExperience(
             self.cfg["record_dir"],
             self.cfg["track_name"],
             self.cfg["experiment_name"],
-            self.file_logger,
+            file_logger,
             self,
-        )
+        ) ##When called in the runner make sure to add the file logger from the logger object
         self.save_thread = threading.Thread(target=self.record_experience.save_thread)
         self.save_thread.start()
 
@@ -262,13 +263,13 @@ class SACAgent(BaseAgent):
                     self.pi_scheduler.step()
             self.best_pct = info["metrics"]["pct_complete"]
 
-    def checkpoint_model(self, ep_ret, n_eps):
+    '''def checkpoint_model(self, ep_ret, n_eps):
         # Save if best (or periodically)
         if ep_ret > self.best_ret:  # and ep_ret > 100):
             path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
             self.file_logger(
                 f"New best episode reward of {round(ep_ret, 1)}! Saving: {path_name}"
-            )
+            ) ## Hello
             self.best_ret = ep_ret
             torch.save(self.actor_critic.state_dict(), path_name)
             path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
@@ -282,14 +283,14 @@ class SACAgent(BaseAgent):
             path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
             self.file_logger(
                 f"Periodic save (save_freq of {self.cfg['save_freq']}) to {path_name}"
-            )
+            ) ## Hello
             torch.save(self.actor_critic.state_dict(), path_name)
             path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
             try:
                 # Try to save Safety Actor-Critic, if present
                 torch.save(self.safety_actor_critic.state_dict(), path_name)
             except:
-                pass
+                pass ''' 
 
 
     def add_experience(
@@ -326,7 +327,7 @@ class SACAgent(BaseAgent):
         }
         return self.recording
 
-    def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
+    '''def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
         self.tb_logger.add_scalar("val/episodic_return", ep_ret, n_eps)
         self.tb_logger.add_scalar("val/ep_n_steps", n_val_steps, n_eps)
 
@@ -411,4 +412,4 @@ class SACAgent(BaseAgent):
             self.metadata["info"]["metrics"]["movement_smoothness"],
             self.episode_num,
         )
-        self.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)
+        self.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)'''

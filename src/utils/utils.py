@@ -4,102 +4,111 @@ import numpy as np
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
+class logger():
+    def __init__(self, log_dir, exp_name, config=base_config):
+        now = datetime.now()
+        current_time = now.strftime("%m%d%H%M%S")
+        log_dir = f"{log_dir}/tblogs/{exp_name}_{current_time}"
 
-def setup_tb_logging(log_dir, exp_name, resume):
-    """Set up tensorboard logger"""
-    now = datetime.now()
-    current_time = now.strftime("%m%d%H%M%S")
-    log_dir = f"{log_dir}/tblogs/{exp_name}_{current_time}"
-    """
-    # remove previous log with the same name, if not resume
-    if not resume and os.path.exists(log_dir):
-        try:
-            shutil.rmtree(log_dir)
-        except:
-            warnings.warn('Experiment existed in TensorBoard, but failed to remove')
-    """
-    return SummaryWriter(log_dir=log_dir)
-
-
-def setup_file_logging(logdir, experiment_name):
-    # write experimental config to logfile
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler(f"{logdir}/runlogs/{experiment_name}.log"),
-            logging.StreamHandler(sys.stdout),
-        ],
-    )
-    return logging.info
-
-
-def setup_logging(logdir, experiment_name, resume):
-
-    if not os.path.exists(f"{logdir}/runlogs"):
-        os.umask(0)
-        os.makedirs(logdir, mode=0o777, exist_ok=True)
-        os.makedirs(f"{logdir}/runlogs", mode=0o777, exist_ok=True)
-        os.makedirs(f"{logdir}/tblogs", mode=0o777, exist_ok=True)
-
-    file_logger = setup_file_logging(logdir, experiment_name)
-    tb_logger = setup_tb_logging(logdir, experiment_name, resume)
-    return (file_logger, tb_logger)
-
-
-def find_envvar_patterns(config, key):
-    pattern = re.compile(".*?\${(\w+)}.*?")
-    try:
-        envvars = re.findall(pattern, config[key])
-    except:
-        envvars = []
+        self.writer = SummaryWriter(log_dir=log_dir)
+        self.config = config
         pass
-    return envvars
+
+    def setup_tb_logging(self):
+        """Set up tensorboard logger"""
+        now = datetime.now()
+        current_time = now.strftime("%m%d%H%M%S")
+        log_dir = f"{log_dir}/tblogs/{exp_name}_{current_time}"
+        """
+        # remove previous log with the same name, if not resume
+        if not resume and os.path.exists(log_dir):
+            try:
+                shutil.rmtree(log_dir)
+            except:
+                warnings.warn('Experiment existed in TensorBoard, but failed to remove')
+        """
+        return SummaryWriter(log_dir=log_dir)
 
 
-def replace_envvar_patterns(config, key, envvars, args):
-    for i, var in enumerate(envvars):
-        if var == "DIRHASH":
-            dirhash = "{}/".format(args.dirhash) if not args.runtime == "local" else ""
-            config[key] = config[key].replace("${" + var + "}", dirhash)
-        if var == "PREFIX":
-            prefix = {"local": "/data", "phoebe": "/mnt"}
-            config[key] = config[key].replace("${" + var + "}", prefix[args.runtime])
-        else:
-            config[key] = config[key].replace(
-                "${" + var + "}", os.environ.get(var, var)
-            )
+    def setup_file_logging(self, logdir, experiment_name):
+        # write experimental config to logfile
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler(f"{logdir}/runlogs/{experiment_name}.log"),
+                logging.StreamHandler(sys.stdout),
+            ],
+        )
+        return logging.info
 
 
-def resolve_envvars(config, args):
+    def setup_logging(self, logdir, experiment_name):
 
-    for key in list(config.keys()):
+        if not os.path.exists(f"{logdir}/runlogs"):
+            os.umask(0)
+            os.makedirs(logdir, mode=0o777, exist_ok=True)
+            os.makedirs(f"{logdir}/runlogs", mode=0o777, exist_ok=True)
+            os.makedirs(f"{logdir}/tblogs", mode=0o777, exist_ok=True)
 
-        if isinstance(config[key], dict):
-            # second level
-            for sub_key in list(config[key].keys()):
-                sub_envvars = find_envvar_patterns(config[key], sub_key)
-                if len(sub_envvars) > 0:
-                    for sub_var in sub_envvars:
-                        replace_envvar_patterns(config[key], sub_key, sub_envvars, args)
-
-        envvars = find_envvar_patterns(config, key)
-        if len(envvars) > 0:
-            replace_envvar_patterns(config, key, envvars, args)
-
-    return config
+        file_logger = setup_file_logging(logdir, experiment_name)
+        tb_logger = setup_tb_logging(logdir, experiment_name)
+        return (file_logger, tb_logger)
 
 
-def is_number(s):
-    """
-    Somehow, the most pythonic way to check string for float number; used for safe user input parsing
-    src: https://stackoverflow.com/questions/354038/how-do-i-check-if-a-string-is-a-number-float
-    """
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
+    def find_envvar_patterns(self, config, key):
+        pattern = re.compile(".*?\${(\w+)}.*?")
+        try:
+            envvars = re.findall(pattern, config[key])
+        except:
+            envvars = []
+            pass
+        return envvars
+
+
+    def replace_envvar_patterns(self, config, key, envvars, args):
+        for i, var in enumerate(envvars):
+            if var == "DIRHASH":
+                dirhash = "{}/".format(args.dirhash) if not args.runtime == "local" else ""
+                config[key] = config[key].replace("${" + var + "}", dirhash)
+            if var == "PREFIX":
+                prefix = {"local": "/data", "phoebe": "/mnt"}
+                config[key] = config[key].replace("${" + var + "}", prefix[args.runtime])
+            else:
+                config[key] = config[key].replace(
+                    "${" + var + "}", os.environ.get(var, var)
+                )
+
+
+    def resolve_envvars(self, config, args):
+
+        for key in list(config.keys()):
+
+            if isinstance(config[key], dict):
+                # second level
+                for sub_key in list(config[key].keys()):
+                    sub_envvars = find_envvar_patterns(config[key], sub_key)
+                    if len(sub_envvars) > 0:
+                        for sub_var in sub_envvars:
+                            replace_envvar_patterns(config[key], sub_key, sub_envvars, args)
+
+            envvars = find_envvar_patterns(config, key)
+            if len(envvars) > 0:
+                replace_envvar_patterns(config, key, envvars, args)
+
+        return config
+
+
+    def is_number(self, s):
+        """
+        Somehow, the most pythonic way to check string for float number; used for safe user input parsing
+        src: https://stackoverflow.com/questions/354038/how-do-i-check-if-a-string-is-a-number-float
+        """
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
 
 
 class RecordExperience:

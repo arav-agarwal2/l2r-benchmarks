@@ -2,7 +2,13 @@ import json
 import time
 import numpy as np
 from runners.base import BaseRunner
+from utils.utils import logger
 from src.utils.envwrapper import EnvContainer
+
+from config.parser import read_config
+from config.schema import agent_schema
+from config.schema import experiment_schema
+
 from torch.optim import Adam
 import torch
 import itertools
@@ -10,8 +16,17 @@ import itertools
 class SACRunner(BaseRunner):
     def __init__(self, env, agent, encoder, replay_buffer):
         super().__init__(env, agent, None)
+        self.agent_config = read_config("config_files/example_sac/agent.yaml",agent_schema)
+        self.exp_config = read_config("config_files/example_sac/experiment.yaml",experiment_schema)
+        self.cfg = read_config("models/sac/params-sac.yaml",agent_schema) 
+        ## Sid Remove and change to individual config yamls
         self.env = EnvContainer(self.env, encoder)
         self.replay_buffer = replay_buffer
+        ## Sid Adding Logger Object
+        self.logger_obj = logger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
+        self.logger_obj.file_logger("Using random seed: {}".format(0))
+        ## Sid Parameter's for running the logger
+        self.best_ret = 0
 
     def run(self):
         for _ in range(300):
@@ -82,7 +97,7 @@ class SACRunner(BaseRunner):
 
             val_ep_rets.append(ep_ret)
             self.agent.metadata["info"] = info
-            self.agent.log_val_metrics_to_tensorboard(info, ep_ret, ep_len, n_val_steps)
+            self.log_val_metrics_to_tensorboard(info, ep_ret, ep_len, n_val_steps)
 
             # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
@@ -90,10 +105,39 @@ class SACRunner(BaseRunner):
                 self.agent.file_logger("writing experience")
                 self.agent.save_queue.put(experience)
 
-        self.agent.checkpoint_model(ep_ret, self.cfg['max_ep_len'])
+        self.checkpoint_model(ep_ret, self.cfg['max_ep_len'])
         self.agent.update_best_pct_complete(info)
 
         return val_ep_rets
+    
+    ## Sid needs to take care of the actor_critic objects
+    def checkpoint_model(self, ep_ret, n_eps):
+        if ep_ret > self.best_ret:  # and ep_ret > 100):
+            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
+            self.logger_obj.file_logger(
+                f"New best episode reward of {round(ep_ret, 1)}! Saving: {path_name}"
+            )
+            self.best_ret = ep_ret
+            torch.save(self.actor_critic.state_dict(), path_name)
+            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
+            try:
+                # Try to save Safety Actor-Critic, if present
+                torch.save(self.safety_actor_critic.state_dict(), path_name)
+            except:
+                pass
+
+        elif self.cfg['save_freq'] > 0 and (n_eps + 1 % self.cfg["save_freq"] == 0):
+            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
+            self.logger_obj.file_logger(
+                f"Periodic save (save_freq of {self.cfg['save_freq']}) to {path_name}"
+            )
+            torch.save(self.actor_critic.state_dict(), path_name)
+            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
+            try:
+                # Try to save Safety Actor-Critic, if present
+                torch.save(self.safety_actor_critic.state_dict(), path_name)
+            except:
+                pass
 
     def training(self):
         # List of parameters for both Q-networks (save this for convenience)
@@ -245,4 +289,93 @@ class SACRunner(BaseRunner):
                     state,
                     t_start,
                 ) = self.env.reset_episode(t)
+    
+
+    ## Sid needs to change a bunch of stuff here to fix the move
+    def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
+        self.logger_obj.tb_logger.add_scalar("val/episodic_return", ep_ret, n_eps)
+        self.logger_obj.tb_logger.add_scalar("val/ep_n_steps", n_val_steps, n_eps)
+
+        try:
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_pct_complete", info["metrics"]["pct_complete"], n_eps
+            )
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_total_time", info["metrics"]["total_time"], n_eps
+            )
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_total_distance", info["metrics"]["total_distance"], n_eps
+            )
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_avg_speed", info["metrics"]["average_speed_kph"], n_eps
+            )
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_avg_disp_err",
+                info["metrics"]["average_displacement_error"],
+                n_eps,
+            )
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_traj_efficiency",
+                info["metrics"]["trajectory_efficiency"],
+                n_eps,
+            )
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_traj_admissibility",
+                info["metrics"]["trajectory_admissibility"],
+                n_eps,
+            )
+            self.logger_obj.tb_logger.add_scalar(
+                "val/movement_smoothness",
+                info["metrics"]["movement_smoothness"],
+                n_eps,
+            )
+        except:
+            pass
+
+        # TODO: Find a better way: requires knowledge of child class API :(
+        if "safety_info" in self.metadata:
+            self.logger_obj.tb_logger.add_scalar(
+                "val/ep_interventions",
+                self.metadata["safety_info"]["ep_interventions"],
+                n_eps,
+            )
+
+    def log_train_metrics_to_tensorboard(self, ep_ret, t, t_start):
+        self.logger_obj.tb_logger.add_scalar("train/episodic_return", ep_ret, self.episode_num)
+        self.logger_obj.tb_logger.add_scalar(
+            "train/ep_total_time",
+            self.metadata["info"]["metrics"]["total_time"],
+            self.episode_num,
+        )
+        self.logger_obj.tb_logger.add_scalar(
+            "train/ep_total_distance",
+            self.metadata["info"]["metrics"]["total_distance"],
+            self.episode_num,
+        )
+        self.logger_obj.tb_logger.add_scalar(
+            "train/ep_avg_speed",
+            self.metadata["info"]["metrics"]["average_speed_kph"],
+            self.episode_num,
+        )
+        self.logger_obj.tb_logger.add_scalar(
+            "train/ep_avg_disp_err",
+            self.metadata["info"]["metrics"]["average_displacement_error"],
+            self.episode_num,
+        )
+        self.logger_obj.tb_logger.add_scalar(
+            "train/ep_traj_efficiency",
+            self.metadata["info"]["metrics"]["trajectory_efficiency"],
+            self.episode_num,
+        )
+        self.logger_obj.tb_logger.add_scalar(
+            "train/ep_traj_admissibility",
+            self.metadata["info"]["metrics"]["trajectory_admissibility"],
+            self.episode_num,
+        )
+        self.logger_obj.tb_logger.add_scalar(
+            "train/movement_smoothness",
+            self.metadata["info"]["metrics"]["movement_smoothness"],
+            self.episode_num,
+        )
+        self.logger_obj.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)
 
