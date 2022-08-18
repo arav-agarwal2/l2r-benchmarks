@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-
+from typing import Tuple
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
@@ -10,7 +10,8 @@ class ReplayBuffer:
     A simple FIFO experience replay buffer for SAC agents.
     """
 
-    def __init__(self, obs_dim, act_dim, size):
+    def __init__(self, obs_dim:int, act_dim:int, size:Tuple[int, int]):
+        
         self.obs_buf = np.zeros(
             (size, obs_dim), dtype=np.float32
         )  # +1:spd #core.combined_shape(size, obs_dim)
