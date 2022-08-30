@@ -29,7 +29,7 @@ class SACRunner(BaseRunner):
         self.best_ret = 0
 
     def run(self):
-        for _ in range(1):
+        for _ in range(300):
             done = False
             obs, _ = self.env.reset()
 
