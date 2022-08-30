@@ -34,12 +34,12 @@ from src.utils.envwrapper import EnvContainer
 class SACAgent(BaseAgent):
     """Adopted from https://github.com/learn-to-race/l2r/blob/main/l2r/baselines/rl/sac.py"""
 
-    def __init__(self):
+    def __init__(self, cfg):
         super(SACAgent, self).__init__()
 
-        self.cfg = read_config("models/sac/params-sac.yaml",agent_schema)
+        self.cfg = cfg
 
-        self.file_logger, self.tb_logger = self.setup_loggers()
+        # self.file_logger, self.tb_logger = self.setup_loggers()
 
         #if self.cfg["record_experience"]:
         #    self.setup_experience_recorder()
