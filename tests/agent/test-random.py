@@ -2,7 +2,7 @@ import numpy as np
 import gym
 from src.agents.random_agent import RandomAgent
 from src.agents.sac_agent import SACAgent
-
+from src.runners.sac import SACRunner
 
 def test_random_agent():
     ra = RandomAgent()
@@ -18,3 +18,4 @@ def test_random_agent():
 
 def test_sac_agent_init():
     sa = SACAgent()
+    sr = SACRunner()

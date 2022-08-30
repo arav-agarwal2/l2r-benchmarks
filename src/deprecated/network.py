@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from baselines.core import mlp, SquashedGaussianMLPActor
-import ipdb as pdb
+from src.deprecated.network_baselines import mlp, SquashedGaussianMLPActor
 
 def resnet18(pretrained=True):
     model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet18', 

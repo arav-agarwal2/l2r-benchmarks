@@ -17,15 +17,15 @@ from torch.optim import Adam
 from src.agents.base import BaseAgent
 from src.deprecated.network import ActorCritic
 from src.deprecated.VAE import VAE
-from src.utils import RecordExperience
-from src.utils import setup_logging
+from src.utils.utils import RecordExperience
+from src.utils.utils import Logger
 
-from buffers.replay_buffer import ReplayBuffer
+from src.buffers.replay_buffer import ReplayBuffer
 
-from constants import DEVICE
+from src.constants import DEVICE
 
-from config.parser import read_config
-from config.schema import agent_schema
+from src.config.parser import read_config
+from src.config.schema import agent_schema
 
 from src.utils.envwrapper import EnvContainer
 
@@ -161,7 +161,8 @@ class SACAgent(BaseAgent):
 
     def setup_loggers(self):
         save_path = self.cfg["model_save_path"]
-        loggers = setup_logging(save_path, self.cfg["experiment_name"], True)
+        logger = Logger()
+        loggers = logger.setup_logging(save_path, self.cfg["experiment_name"], True)
         loggers[0]("Using random seed: {}".format(0))
         return loggers
 
