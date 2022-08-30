@@ -1,6 +1,8 @@
 import numpy as np
 import gym
 from src.agents.random_agent import RandomAgent
+from src.agents.sac_agent import SACAgent
+
 
 def test_random_agent():
     ra = RandomAgent()
@@ -13,3 +15,6 @@ def test_random_agent():
     assert action in [0,1]
 
     # TODO: Add some nicer test.
+
+def test_sac_agent_init():
+    sa = SACAgent()

@@ -14,11 +14,11 @@ import numpy as np
 from gym.spaces import Box
 from torch.optim import Adam
 
-from agents.base import BaseAgent
-from l2r.common.models.network import ActorCritic
-from l2r.common.models.vae import VAE
-from l2r.common.utils import RecordExperience
-from l2r.common.utils import setup_logging
+from src.agents.base import BaseAgent
+from src.deprecated.network import ActorCritic
+from src.deprecated.VAE import VAE
+from src.utils import RecordExperience
+from src.utils import setup_logging
 
 from buffers.replay_buffer import ReplayBuffer
 
