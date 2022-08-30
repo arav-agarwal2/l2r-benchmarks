@@ -17,8 +17,8 @@ class SACRunner(BaseRunner):
     def __init__(self, env, agent, encoder, replay_buffer):
         super().__init__(env, agent, None)
         self.agent_config = read_config("config_files/example_sac/agent.yaml",agent_schema)
-        self.exp_config = read_config("config_files/example_sac/experiment.yaml",experiment_schema)
-        self.cfg = read_config("models/sac/params-sac.yaml",agent_schema) 
+        self.exp_config = read_config("config_files/;example_sac/experiment.yaml",experiment_schema)
+        self.cfg = read_config("config_files/example_sac/runner.yaml",agent_schema) 
         ## Sid Remove and change to individual config yamls
         self.env = EnvContainer(self.env, encoder)
         self.replay_buffer = replay_buffer
