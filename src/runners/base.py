@@ -3,7 +3,7 @@ from abc import ABC
 class BaseRunner(ABC):
     """ABC for BaseRunner."""
 
-    def __init__(self, env, agent, config):
+    def __init__(self, env):
         """Initialize Base Runner
 
         Args:
@@ -12,8 +12,6 @@ class BaseRunner(ABC):
             config (dict): Config, generated from strictyaml parsing
         """
         self.env = env
-        self.agent = agent
-        self.config = config
 
     def training(self): # pragma: no cover
         """

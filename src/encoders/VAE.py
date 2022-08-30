@@ -60,7 +60,7 @@ class VAE(BaseEncoder):
         return z, mu, logvar
 
     def representation(self, x):
-        return self.bottleneck(self.encoder(x))[0]
+        return self.bottleneck(self.encoder.encode(x))[0]
 
     def encode_raw(self, x: np.ndarray, device) -> np.ndarray:
         # assume x is RGB image with shape (bsz, H, W, 3)
@@ -73,7 +73,7 @@ class VAE(BaseEncoder):
         return v, v.detach().cpu().numpy()
 
     def encode(self, x):
-        h = self.encoder(x)
+        h = self.encoder.encode(x)
         z, mu, logvar = self.bottleneck(h)
         return z, mu, logvar
 
