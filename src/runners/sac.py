@@ -2,7 +2,7 @@ import json
 import time
 import numpy as np
 from src.runners.base import BaseRunner
-from src.utils.utils import logger
+from src.utils.utils import Logger as logger
 from src.utils.envwrapper import EnvContainer
 
 from src.config.parser import read_config
