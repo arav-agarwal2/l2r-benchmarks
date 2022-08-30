@@ -1,13 +1,13 @@
 import json
 import time
 import numpy as np
-from runners.base import BaseRunner
-from utils.utils import logger
+from src.runners.base import BaseRunner
+from src.utils.utils import logger
 from src.utils.envwrapper import EnvContainer
 
-from config.parser import read_config
-from config.schema import agent_schema
-from config.schema import experiment_schema
+from src.config.parser import read_config
+from src.config.schema import agent_schema
+from src.config.schema import experiment_schema
 
 from torch.optim import Adam
 import torch
@@ -29,7 +29,7 @@ class SACRunner(BaseRunner):
         self.best_ret = 0
 
     def run(self):
-        for _ in range(300):
+        for _ in range(1):
             done = False
             obs, _ = self.env.reset()
 

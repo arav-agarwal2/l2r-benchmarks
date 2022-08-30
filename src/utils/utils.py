@@ -5,13 +5,13 @@ from tensorboardX import SummaryWriter
 from datetime import datetime
 
 class logger():
-    def __init__(self, log_dir, exp_name, config=base_config):
+    def __init__(self, log_dir, exp_name):#, config=base_config):
         now = datetime.now()
         current_time = now.strftime("%m%d%H%M%S")
         log_dir = f"{log_dir}/tblogs/{exp_name}_{current_time}"
 
         self.writer = SummaryWriter(log_dir=log_dir)
-        self.config = config
+        #self.config = config
         pass
 
     def setup_tb_logging(self):
