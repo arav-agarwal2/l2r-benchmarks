@@ -2,14 +2,17 @@ import json
 import time
 import numpy as np
 from src.runners.base import BaseRunner
-from src.utils.utils import Logger as logger
 from src.utils.envwrapper import EnvContainer
 from src.agents.sac_agent import SACAgent
+from src.loggers.TensorboardLogger import TensorboardLogger
+from src.loggers.FileLogger import FileLogger
+from src.encoders.VAE import VAE
 
 from src.config.parser import read_config
 from src.config.schema import agent_schema
 from src.config.schema import experiment_schema
 from src.config.schema import replay_buffer_schema
+from src.config.schema import encoder_schema
 
 from torch.optim import Adam
 import torch
@@ -17,20 +20,27 @@ import itertools
 from src.buffers.replay_buffer import ReplayBuffer
 
 class SACRunner(BaseRunner):
-    def __init__(self, env, agent, encoder):
-        super().__init__(env, agent, None)
+    def __init__(self, env):
+        super().__init__(env)
         self.agent_config = read_config("src/config_files/example_sac/agent.yaml",agent_schema)
         self.exp_config = read_config("src/config_files/example_sac/experiment.yaml",experiment_schema)
-        self.buffer_config = read_config("src/config_files/example_sac/buffer.yaml",replay_buffer_schema) 
-        ## Sid Remove and change to individual config yamls
+        self.buffer_config = read_config("src/config_files/example_sac/buffer.yaml",replay_buffer_schema)
+        self.encoder_config = read_config("src/config_files/example_sac/encoder.yaml",encoder_schema)
+
+        ## ENV Setup
         self.env = env
-        ## Buffer Initialisation
-        self.action_space = env.action_space
+
+        ## BUFFER Declaration
+        self.action_space = self.env.action_space
         self.replay_buffer = ReplayBuffer(obs_dim=33, act_dim=self.action_space.shape[0], size=self.buffer_config["replay_size"])
-        ## Sid Adding Logger Object
-        self.logger_obj = logger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
-        #self.logger_obj.file_logger("Using random seed: {}".format(0))
-        ## Sid Parameter's for running the logger
+
+        ## LOGGER Declaration
+        self.tb_logger_obj = TensorboardLogger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
+        self.file_logger = FileLogger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
+        self.file_logger.log("Using random seed: {}".format(0))
+
+        ## ENCODER Declaration
+        self.encoder = VAE()
 
         ## AGENT Declaration
         self.agent = SACAgent(self.agent_config)
@@ -40,10 +50,12 @@ class SACRunner(BaseRunner):
         for _ in range(1):
             done = False
             obs, _ = self.env.reset()
+            obs = self.encoder.encode(obs)
 
             while not done:
                 action = self.agent.select_action(obs)
                 obs, reward, done, info = self.env.step(action)
+                obs = self.encoder.encode(obs)
     
     def eval(self):
         print("Evaluation:")
@@ -54,8 +66,10 @@ class SACRunner(BaseRunner):
 
         for j in range(self.cfg["num_test_episodes"]):
             camera, features, state, _, _ = self.env.reset()
+            camera = self.encoder.encode(camera)
             d, ep_ret, ep_len, n_val_steps, self.metadata = False, 0, 0, 0, {}
             camera, features, state2, r, d, info = self.env.step([0, 1])
+            camera = self.encoder.encode(camera)
             experience, t = [], 0
 
             while (not d) & (ep_len <= self.cfg["max_ep_len"]):
@@ -67,6 +81,7 @@ class SACRunner(BaseRunner):
 
                 # Check that the camera is turned on
                 assert (np.mean(camera2) > 0) & (np.mean(camera2) < 255)
+                camera2 = self.encoder.encode(camera2)
 
                 ep_ret += r
                 ep_len += 1
@@ -74,10 +89,11 @@ class SACRunner(BaseRunner):
 
                 # Prevent the agent from being stuck
                 if np.allclose(state2[15:16], state[15:16], atol=self.agent.atol, rtol=0):
-                    # self.file_logger("Sampling random action to get unstuck")
+                    # self.file_logger.log("Sampling random action to get unstuck")
                     a = self.agent.action_space.sample()
                     # Step the env
                     camera2, features2, state2, r, d, info = self.env.step(a)
+                    camera2 = self.encoder.encode(camera)
                     ep_len += 1
 
                 if self.cfg["record_experience"]:
@@ -101,16 +117,16 @@ class SACRunner(BaseRunner):
                 state = state2
                 t += 1
 
-            self.agent.file_logger(f"[eval episode] {info}")
+            self.file_logger.log(f"[eval episode] {info}")
 
             val_ep_rets.append(ep_ret)
             self.agent.metadata["info"] = info
-            self.log_val_metrics_to_tensorboard(info, ep_ret, ep_len, n_val_steps)
+            self.tb_logger_obj.log_val_metrics(info, ep_ret, ep_len, n_val_steps, self.metadata)
 
             # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
             if self.agent.cfg["record_experience"]:  # and self.metadata['info']['success']:
-                self.agent.file_logger("writing experience")
+                self.file_logger.log("writing experience")
                 self.agent.save_queue.put(experience)
 
         self.checkpoint_model(ep_ret, self.cfg['max_ep_len'])
@@ -122,7 +138,7 @@ class SACRunner(BaseRunner):
     def checkpoint_model(self, ep_ret, n_eps):
         if ep_ret > self.best_ret:  # and ep_ret > 100):
             path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.logger_obj.file_logger(
+            self.file_logger.log(
                 f"New best episode reward of {round(ep_ret, 1)}! Saving: {path_name}"
             )
             self.best_ret = ep_ret
@@ -136,7 +152,7 @@ class SACRunner(BaseRunner):
 
         elif self.cfg['save_freq'] > 0 and (n_eps + 1 % self.cfg["save_freq"] == 0):
             path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.logger_obj.file_logger(
+            self.file_logger.log(
                 f"Periodic save (save_freq of {self.cfg['save_freq']}) to {path_name}"
             )
             torch.save(self.actor_critic.state_dict(), path_name)
@@ -175,7 +191,7 @@ class SACRunner(BaseRunner):
 
         self.env.reset(random_pos=True)
         camera, feat, state, r, d, info = self.env.step([0, 1])
-
+        camera = self.encoder.encode(camera)
         experience = []
         speed_dim = 1 if self.using_speed else 0
         assert (
@@ -190,14 +206,14 @@ class SACRunner(BaseRunner):
 
             # Step the env
             camera2, feat2, state2, r, d, info = self.env.step(a)
-
+            camera2 = self.encoder.encode(camera2)
             # Check that the camera is turned on
             assert (np.mean(camera2) > 0) & (np.mean(camera2) < 255)
 
             # Prevents the agent from getting stuck by sampling random actions
             # self.atol for SafeRandom and SPAR are set to -1 so that this condition does not activate
             if np.allclose(state2[15:16], state[15:16], atol=self.atol, rtol=0):
-                # self.file_logger("Sampling random action to get unstuck")
+                # self.file_logger.log("Sampling random action to get unstuck")
                 a = self.agent.action_space.sample()
 
                 # Step the env
@@ -276,15 +292,15 @@ class SACRunner(BaseRunner):
                 self.metadata["info"] = info
                 self.episode_num += 1
                 msg = f"[Ep {self.episode_num }] {self.metadata}"
-                self.file_logger(msg)
-                self.log_train_metrics_to_tensorboard(ep_ret, t, t_start)
+                self.file_logger.log(msg)
+                self.tb_logger_obj.log_train_metrics(ep_ret, t, t_start, self.episode_num, self.metadata)
 
                 # Quickly dump recently-completed episode's experience to the multithread queue,
                 # as long as the episode resulted in "success"
                 if self.cfg[
                     "record_experience"
                 ]:  # and self.metadata['info']['success']:
-                    self.file_logger("Writing experience")
+                    self.file_logger.log("Writing experience")
                     self.save_queue.put(experience)
 
                 # Reset
@@ -297,93 +313,3 @@ class SACRunner(BaseRunner):
                     state,
                     t_start,
                 ) = self.env.reset_episode(t)
-    
-
-    ## Sid needs to change a bunch of stuff here to fix the move
-    def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
-        self.logger_obj.tb_logger.add_scalar("val/episodic_return", ep_ret, n_eps)
-        self.logger_obj.tb_logger.add_scalar("val/ep_n_steps", n_val_steps, n_eps)
-
-        try:
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_pct_complete", info["metrics"]["pct_complete"], n_eps
-            )
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_total_time", info["metrics"]["total_time"], n_eps
-            )
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_total_distance", info["metrics"]["total_distance"], n_eps
-            )
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_avg_speed", info["metrics"]["average_speed_kph"], n_eps
-            )
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_avg_disp_err",
-                info["metrics"]["average_displacement_error"],
-                n_eps,
-            )
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_traj_efficiency",
-                info["metrics"]["trajectory_efficiency"],
-                n_eps,
-            )
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_traj_admissibility",
-                info["metrics"]["trajectory_admissibility"],
-                n_eps,
-            )
-            self.logger_obj.tb_logger.add_scalar(
-                "val/movement_smoothness",
-                info["metrics"]["movement_smoothness"],
-                n_eps,
-            )
-        except:
-            pass
-
-        # TODO: Find a better way: requires knowledge of child class API :(
-        if "safety_info" in self.metadata:
-            self.logger_obj.tb_logger.add_scalar(
-                "val/ep_interventions",
-                self.metadata["safety_info"]["ep_interventions"],
-                n_eps,
-            )
-
-    def log_train_metrics_to_tensorboard(self, ep_ret, t, t_start):
-        self.logger_obj.tb_logger.add_scalar("train/episodic_return", ep_ret, self.episode_num)
-        self.logger_obj.tb_logger.add_scalar(
-            "train/ep_total_time",
-            self.metadata["info"]["metrics"]["total_time"],
-            self.episode_num,
-        )
-        self.logger_obj.tb_logger.add_scalar(
-            "train/ep_total_distance",
-            self.metadata["info"]["metrics"]["total_distance"],
-            self.episode_num,
-        )
-        self.logger_obj.tb_logger.add_scalar(
-            "train/ep_avg_speed",
-            self.metadata["info"]["metrics"]["average_speed_kph"],
-            self.episode_num,
-        )
-        self.logger_obj.tb_logger.add_scalar(
-            "train/ep_avg_disp_err",
-            self.metadata["info"]["metrics"]["average_displacement_error"],
-            self.episode_num,
-        )
-        self.logger_obj.tb_logger.add_scalar(
-            "train/ep_traj_efficiency",
-            self.metadata["info"]["metrics"]["trajectory_efficiency"],
-            self.episode_num,
-        )
-        self.logger_obj.tb_logger.add_scalar(
-            "train/ep_traj_admissibility",
-            self.metadata["info"]["metrics"]["trajectory_admissibility"],
-            self.episode_num,
-        )
-        self.logger_obj.tb_logger.add_scalar(
-            "train/movement_smoothness",
-            self.metadata["info"]["metrics"]["movement_smoothness"],
-            self.episode_num,
-        )
-        self.logger_obj.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)
-

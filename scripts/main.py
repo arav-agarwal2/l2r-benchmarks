@@ -11,6 +11,6 @@ This script uses the subprocess module to run the simulator.
 if __name__ == "__main__":
     # Build environment
     env = build_env()
-    runner = SACRunner(env, None, None)
+    runner = SACRunner(env)
     # Race!
     runner.run()

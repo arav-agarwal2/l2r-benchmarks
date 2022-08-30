@@ -16,11 +16,8 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.deprecated.network import ActorCritic
-from src.deprecated.VAE import VAE
+from src.encoders.VAE import VAE
 from src.utils.utils import RecordExperience
-from src.utils.utils import Logger
-
-from src.buffers.replay_buffer import ReplayBuffer
 
 from src.constants import DEVICE
 
@@ -47,15 +44,12 @@ class SACAgent(BaseAgent):
         # Action limit for clamping: critically, assumes all dimensions share the same bound!
         # self.act_limit = self.action_space.high[0]
 
-        self.setup_vision_encoder()
         self.set_params()
 
-    def select_action(self, obs, encode=True):
+    def select_action(self, obs, encode=False):
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
-        if encode:
-            obs = self._encode(obs)
         if self.t > self.cfg["steps_to_sample_randomly"]:
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
             a = a  # numpy array...
@@ -93,32 +87,7 @@ class SACAgent(BaseAgent):
         self.save_thread = threading.Thread(target=self.record_experience.save_thread)
         self.save_thread.start()
 
-    def setup_vision_encoder(self):
-        assert self.cfg["use_encoder_type"] in [
-            "vae"
-        ], "Specified encoder type must be in ['vae']"
-        speed_hiddens = self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
-        self.feat_dim = self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] + 1
-        self.obs_dim = (
-            self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] + speed_hiddens[-1]
-            if self.cfg["encoder_switch"]
-            else None
-        )
 
-        if self.cfg["use_encoder_type"] == "vae":
-            self.backbone = VAE(
-                im_c=self.cfg["vae"]["im_c"],
-                im_h=self.cfg["vae"]["im_h"],
-                im_w=self.cfg["vae"]["im_w"],
-                z_dim=self.cfg["vae"]["latent_dims"],
-            )
-            self.backbone.load_state_dict(
-                torch.load(self.cfg["vae"]["vae_chkpt_statedict"], map_location=DEVICE)
-            )
-        else:
-            raise NotImplementedError
-
-        self.backbone.to(DEVICE)
 
     def set_params(self):
         self.save_episodes = True
@@ -140,11 +109,6 @@ class SACAgent(BaseAgent):
         self.action_space = Box(-1, 1, (2,))
         self.act_dim = self.action_space.shape[0]
 
-        # Experience buffer
-        self.replay_buffer = ReplayBuffer(
-            obs_dim=self.feat_dim, act_dim=self.act_dim, size=self.cfg["replay_size"]
-        )
-
         self.actor_critic = ActorCritic(
             self.obs_dim,
             self.action_space,
@@ -158,15 +122,8 @@ class SACAgent(BaseAgent):
 
         self.actor_critic_target = deepcopy(self.actor_critic)
 
-
-    def setup_loggers(self):
-        save_path = self.cfg["model_save_path"]
-        logger = Logger()
-        loggers = logger.setup_logging(save_path, self.cfg["experiment_name"], True)
-        loggers[0]("Using random seed: {}".format(0))
-        return loggers
-
     def compute_loss_q(self, data):
+      
         """Set up function for computing SAC Q-losses."""
         o, a, r, o2, d = (
             data["obs"],
@@ -193,8 +150,8 @@ class SACAgent(BaseAgent):
             )
 
         # MSE loss against Bellman backup
-        loss_q1 = (self.replay_buffer.weights * (q1 - backup) ** 2).mean()
-        loss_q2 = (self.replay_buffer.weights * (q2 - backup) ** 2).mean()
+        loss_q1 = ( (q1 - backup) ** 2).mean()
+        loss_q2 = ((q2 - backup) ** 2).mean()
         loss_q = loss_q1 + loss_q2
 
         # Useful info for logging
@@ -223,7 +180,7 @@ class SACAgent(BaseAgent):
     def update(self, data):
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
-        loss_q, q_info = self.compute_loss_q(data)
+        loss_q, q_info =(data)
         loss_q.backward()
         self.q_optimizer.step()
 
