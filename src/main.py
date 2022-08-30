@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Build environment
     env = build_env()
     
-    buffer = ReplayBuffer()
-    runner = SACRunner(env, None, None, buffer)
-    # Race!
-    runner.run()
+#     buffer = ReplayBuffer()
+#     runner = SACRunner(env, None, None, buffer)
+#     # Race!
+#     runner.run()
