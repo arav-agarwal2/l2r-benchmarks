@@ -68,13 +68,9 @@ tensorflow-estimator==2.9.0
 tensorflow-io-gcs-filesystem==0.26.0
 termcolor==1.1.0
 tomli==2.0.1
-torch==1.12.1+cu116
-torchaudio==0.12.1+cu116
-torchvision==0.13.1+cu116
 tqdm==4.64.0
 typing_extensions==4.3.0
 urllib3==1.26.12
 Werkzeug==2.2.2
 wrapt==1.14.1
 zipp==3.8.1
-zmq==0.0.0
