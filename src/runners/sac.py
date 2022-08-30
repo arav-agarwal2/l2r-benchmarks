@@ -4,6 +4,7 @@ import numpy as np
 from src.runners.base import BaseRunner
 from src.utils.utils import Logger as logger
 from src.utils.envwrapper import EnvContainer
+from src.agents.sac_agent import SACAgent
 
 from src.config.parser import read_config
 from src.config.schema import agent_schema
@@ -22,7 +23,7 @@ class SACRunner(BaseRunner):
         self.exp_config = read_config("src/config_files/example_sac/experiment.yaml",experiment_schema)
         self.buffer_config = read_config("src/config_files/example_sac/buffer.yaml",replay_buffer_schema) 
         ## Sid Remove and change to individual config yamls
-        self.env = EnvContainer(self.env, encoder)
+        self.env = env
         ## Buffer Initialisation
         self.action_space = env.action_space
         self.replay_buffer = ReplayBuffer(obs_dim=33, act_dim=self.action_space.shape[0], size=self.buffer_config["replay_size"])
@@ -30,6 +31,9 @@ class SACRunner(BaseRunner):
         self.logger_obj = logger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
         #self.logger_obj.file_logger("Using random seed: {}".format(0))
         ## Sid Parameter's for running the logger
+
+        ## AGENT Declaration
+        self.agent = SACAgent(self.agent_config)
         self.best_ret = 0
 
     def run(self):
