@@ -8,23 +8,27 @@ from src.utils.envwrapper import EnvContainer
 from src.config.parser import read_config
 from src.config.schema import agent_schema
 from src.config.schema import experiment_schema
+from src.config.schema import replay_buffer_schema
 
 from torch.optim import Adam
 import torch
 import itertools
+from src.buffers.replay_buffer import ReplayBuffer
 
 class SACRunner(BaseRunner):
-    def __init__(self, env, agent, encoder, replay_buffer):
+    def __init__(self, env, agent, encoder):
         super().__init__(env, agent, None)
-        self.agent_config = read_config("config_files/example_sac/agent.yaml",agent_schema)
-        self.exp_config = read_config("config_files/example_sac/experiment.yaml",experiment_schema)
-        self.cfg = read_config("models/sac/params-sac.yaml",agent_schema) 
+        self.agent_config = read_config("src/config_files/example_sac/agent.yaml",agent_schema)
+        self.exp_config = read_config("src/config_files/example_sac/experiment.yaml",experiment_schema)
+        self.buffer_config = read_config("src/config_files/example_sac/buffer.yaml",replay_buffer_schema) 
         ## Sid Remove and change to individual config yamls
         self.env = EnvContainer(self.env, encoder)
-        self.replay_buffer = replay_buffer
+        ## Buffer Initialisation
+        self.action_space = env.action_space
+        self.replay_buffer = ReplayBuffer(obs_dim=33, act_dim=self.action_space.shape[0], size=self.buffer_config["replay_size"])
         ## Sid Adding Logger Object
         self.logger_obj = logger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
-        self.logger_obj.file_logger("Using random seed: {}".format(0))
+        #self.logger_obj.file_logger("Using random seed: {}".format(0))
         ## Sid Parameter's for running the logger
         self.best_ret = 0
 
