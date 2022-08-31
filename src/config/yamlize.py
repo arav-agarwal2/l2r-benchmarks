@@ -47,6 +47,9 @@ def yamlize(configurable_class):
         try:
             return cls(**config_dict)
         except Exception as e:
+            import logging
+            logging.info(config_dict)
+            print(config_dict)
             raise ValueError(config_dict)
     
     configurable_class.instantiate_from_config = classmethod(init_from_config)
