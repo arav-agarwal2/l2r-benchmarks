@@ -7,3 +7,5 @@ steps_to_sample_randomly: 100 # start_steps
 checkpoint: 'models/sac/checkpoints/best_sac_local_encoder-vae_small_seed-249_episode_480.statedict'
 model_save_path: '/mnt'
 experiment_name: 'SAC_TEST_2'
+record_dir: '/mnt'
+track_name: 'Thruxton'
