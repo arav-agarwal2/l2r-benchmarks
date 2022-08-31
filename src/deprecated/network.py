@@ -82,7 +82,7 @@ class ActorCritic(nn.Module):
         # build policy and value functions
         self.speed_encoder = mlp([1] + self.cfg[self.cfg['use_encoder_type']]['speed_hiddens'])
         self.policy = SquashedGaussianMLPActor(
-            obs_dim, act_dim, cfg[cfg['use_encoder_type']]['actor_hiddens'], activation, act_limit)
+            obs_dim, act_dim, [64,64,32], activation, act_limit)
         if safety:
             self.q1 = DuelingNetwork(cfg)
         else:
@@ -94,8 +94,8 @@ class ActorCritic(nn.Module):
     def pi(self, obs_feat, deterministic = False):
         #if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
-        img_embed = obs_feat[..., :self.cfg[self.cfg['use_encoder_type']]['latent_dims']] # n x latent_dims
-        speed = obs_feat[..., self.cfg[self.cfg['use_encoder_type']]['latent_dims']:] # n x 1
+        img_embed = obs_feat[..., :32] # n x latent_dims
+        speed = obs_feat[..., 32:] # n x 1
         spd_embed = self.speed_encoder(speed) # n x 8
         feat = torch.cat([img_embed, spd_embed], dim = -1)
         return self.policy(feat, deterministic, True)
@@ -104,8 +104,8 @@ class ActorCritic(nn.Module):
         #if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         with torch.no_grad():
-            img_embed = obs_feat[..., :self.cfg[self.cfg['use_encoder_type']]['latent_dims']] # n x latent_dims
-            speed = obs_feat[..., self.cfg[self.cfg['use_encoder_type']]['latent_dims']:] # n x 1
+            img_embed = obs_feat[..., :32] # n x latent_dims
+            speed = obs_feat[..., 32:] # n x 1
             #pdb.set_trace()
             spd_embed = self.speed_encoder(speed) # n x 8
             feat = torch.cat([img_embed, spd_embed], dim = -1)
