@@ -80,7 +80,7 @@ class ActorCritic(nn.Module):
         act_limit = action_space.high[0]
 
         # build policy and value functions
-        self.speed_encoder = mlp([1] + self.cfg[self.cfg['use_encoder_type']]['speed_hiddens'])
+        self.speed_encoder = mlp([1] + [8,8])
         self.policy = SquashedGaussianMLPActor(
             obs_dim, act_dim, [64,64,32], activation, act_limit)
         if safety:
