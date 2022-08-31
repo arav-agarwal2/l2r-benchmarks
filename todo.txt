@@ -6,3 +6,10 @@
 - Separate logging, and move YAML stuff there if there's anything.
 
 https://andyljones.com/posts/rl-debugging.html
+
+Code todos:
+- Moving logs to experiment_name/....
+- Adding commit hash + git link to experiment_name/.....
+
+
+
