@@ -14,7 +14,7 @@ def yamlize(configurable_class):
         elif val == float:
             return sl.Float()
         else:
-            raise ValueError("Bruh")
+            raise ValueError(f"Type {val} could not be converted to StrictYAML type. Please add to the convert_type_to_strictyaml function.")
     
     init_types = get_type_hints(configurable_class.__init__)
     init_signature = inspect.signature(configurable_class.__init__)
