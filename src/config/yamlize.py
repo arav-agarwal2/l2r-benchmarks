@@ -27,8 +27,8 @@ def yamlize(configurable_class):
         if key in init_defaults:
             key = sl.Optional(key, default=init_defaults[key])
         schema[key] =  convert_type_to_strictyaml(val)
-    
-    configurable_class.schema = sl.Map(schema)
+    schema = sl.Map(schema)
+    configurable_class.schema = schema
     
     def init_from_config_dict(cls, config):
         config_yamlized = yaml.dump(config)
