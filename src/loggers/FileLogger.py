@@ -16,7 +16,6 @@ class FileLogger(BaseLogger):
             ],
         )
         logging.info("HALP")
-        raise ValueError(f"{self.log_dir}/runlogs/{exp_name}.log")
         self.log_obj = logging
     
     def log(self, data):
