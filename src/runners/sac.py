@@ -66,6 +66,7 @@ class SACRunner(BaseRunner):
                 obs, reward, done, info = self.env.step(action)
                 obs = obs['images']['CameraFrontRGB']
                 obs_encoded = self.encoder.encode(obs)
+                self.file_logger.log(f"reward: {reward}")
 
 
     def eval(self):
