@@ -82,7 +82,7 @@ class ActorCritic(nn.Module):
         # build policy and value functions
         self.speed_encoder = mlp([1] + [8,8])
         self.policy = SquashedGaussianMLPActor(
-            obs_dim, act_dim, cfg[cfg['use_encoder_type']]['actor_hiddens'], activation, act_limit)
+            obs_dim, act_dim, [64,64,32], activation, act_limit)
         if safety:
             self.q1 = DuelingNetwork(cfg)
         else:
