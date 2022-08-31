@@ -1,7 +1,8 @@
-from typing import get_type_hints
+from typing import get_type_hints, Enum
 import inspect
 import strictyaml as sl
 import yaml
+import importlib
 
 def yamlize(configurable_class):
     #define a new display method
@@ -55,3 +56,19 @@ def yamlize(configurable_class):
     configurable_class.instantiate_from_config = classmethod(init_from_config)
     
     return configurable_class
+
+class NameToSourcePath(Enum):
+    buffer = 'src.buffers'
+    encoder = 'src.encoders'
+    logger = 'src.loggers'
+    runner = 'src.runners'
+    agent = 'src.agents'
+
+def create_configurable(config_yaml, name_to_path):
+    schema = sl.Map({"name": sl.Str(),  "config": sl.Any()})
+    with open(config_yaml, 'r') as mf:
+        yaml_contents = mf.read()
+        config_dict = sl.load(yaml_contents, schema)
+    cls = getattr(importlib.import_module(name_to_path), config_dict['name'])
+    return cls.instantiate_from_config_dict(config_dict['config'])
+    

@@ -12,6 +12,7 @@ from src.config.parser import read_config
 from src.config.schema import agent_schema
 from src.config.schema import experiment_schema
 from src.config.schema import replay_buffer_schema
+from src.config.yamlize import create_configurable, NameToSourcePath
 from src.config.schema import encoder_schema
 from src.constants import DEVICE
 
@@ -32,7 +33,7 @@ class SACRunner(BaseRunner):
         self.env = env
 
         ## AGENT Declaration
-        self.agent = SACAgent.instantiate_from_config("src/config_files/example_sac/agent.yaml")
+        self.agent = create_configurable("src/config_files/example_sac/agent.yaml", NameToSourcePath.agent)
         self.best_ret = 0
 
 
