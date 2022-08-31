@@ -30,8 +30,7 @@ class VAE(BaseEncoder, torch.nn.Module):
         self.encoder = nn.Sequential(*encoder_list)
         sample_img = torch.zeros([1, im_c, im_h, im_w])
         em_shape = nn.Sequential(*encoder_list[:-1])(sample_img).shape[1:]
-        raise ValueError(em_shape)
-        h_dim = em_shape[0] # TODO: FIX THE ABOVE CALCULATION TO HANDLE AUTO SHAPE STUFFS.
+        h_dim = np.prod(em_shape)
 
         self.fc1 = nn.Linear(h_dim, z_dim)
         self.fc2 = nn.Linear(h_dim, z_dim)
