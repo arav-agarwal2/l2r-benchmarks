@@ -105,11 +105,11 @@ class ActorCritic(nn.Module):
         #    obs_feat = obs_feat.unsqueeze(0)
         with torch.no_grad():
             img_embed = obs_feat[..., :32] # n x latent_dims
-            speed = obs_feat[..., 32:] # n x 1
-            raise ValueError(obs_feat.shape, img_embed.shape, speed.shape)
+            #speed = obs_feat[..., 32:] # n x 1
+            #raise ValueError(obs_feat.shape, img_embed.shape, speed.shape)
             #pdb.set_trace()
-            spd_embed = self.speed_encoder(speed) # n x 8
-            feat = torch.cat([img_embed, spd_embed], dim = -1)
+            #spd_embed = self.speed_encoder(speed) # n x 8
+            feat = img_embed
             a, _ = self.policy(feat, deterministic, False)
             a = a.squeeze(0)
         return a.numpy() if self.device == 'cpu' else a.cpu().numpy()
