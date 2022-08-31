@@ -1,7 +1,8 @@
-from typing import get_type_hints, Enum
+from typing import get_type_hints
 import inspect
 import strictyaml as sl
 import yaml
+from enum import Enum
 import importlib
 
 def yamlize(configurable_class):
