@@ -13,6 +13,8 @@ def yamlize(configurable_class):
             return sl.Str()
         elif val == float:
             return sl.Float()
+        elif val == bool:
+            return sl.Bool()
         else:
             raise ValueError(f"Type {val} could not be converted to StrictYAML type. Please add to the convert_type_to_strictyaml function.")
     
