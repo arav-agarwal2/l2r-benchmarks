@@ -8,8 +8,6 @@ class FileLogger(BaseLogger):
         now = datetime.now()
         self.log_dir = log_dir
         # https://stackoverflow.com/questions/20240464/python-logging-file-is-not-working-when-using-logging-basicconfig
-        from imp import reload 
-        reload(logging)
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s [%(levelname)s] %(message)s",
