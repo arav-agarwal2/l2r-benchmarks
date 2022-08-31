@@ -74,6 +74,7 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def encode(self, x, device=DEVICE):
         x = torch.as_tensor(x, device=device, dtype=torch.float)
+        raise ValueError(x.shape, self.fc1, self.fc2, self.fc3)
         if len(x.shape) == 3:
             x = x.permute(2,0,1)
         else:
