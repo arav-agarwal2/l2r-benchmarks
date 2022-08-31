@@ -1,59 +1,7 @@
 import os, sys
 import logging, re
 import numpy as np
-from tensorboardX import SummaryWriter
 from datetime import datetime
-
-class Logger():
-    def __init__(self, log_dir, exp_name):#, config=base_config):
-        now = datetime.now()
-        current_time = now.strftime("%m%d%H%M%S")
-        log_dir = f"{log_dir}/tblogs/{exp_name}_{current_time}"
-
-        self.writer = SummaryWriter(log_dir=log_dir)
-        #self.config = config
-
-    def setup_tb_logging(self):
-        """Set up tensorboard logger"""
-        now = datetime.now()
-        current_time = now.strftime("%m%d%H%M%S")
-        exp_name = 'TODO: FIXME'
-        log_dir = f"{log_dir}/tblogs/{exp_name}_{current_time}"
-        """
-        # remove previous log with the same name, if not resume
-        if not resume and os.path.exists(log_dir):
-            try:
-                shutil.rmtree(log_dir)
-            except:
-                warnings.warn('Experiment existed in TensorBoard, but failed to remove')
-        """
-        return SummaryWriter(log_dir=log_dir)
-
-
-    def setup_file_logging(self, logdir, experiment_name):
-        # write experimental config to logfile
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] %(message)s",
-            handlers=[
-                logging.FileHandler(f"{logdir}/runlogs/{experiment_name}.log"),
-                logging.StreamHandler(sys.stdout),
-            ],
-        )
-        return logging.info
-
-
-    def setup_logging(self, logdir, experiment_name):
-
-        if not os.path.exists(f"{logdir}/runlogs"):
-            os.umask(0)
-            os.makedirs(logdir, mode=0o777, exist_ok=True)
-            os.makedirs(f"{logdir}/runlogs", mode=0o777, exist_ok=True)
-            os.makedirs(f"{logdir}/tblogs", mode=0o777, exist_ok=True)
-
-        file_logger = self.setup_file_logging(logdir, experiment_name)
-        tb_logger = self.setup_tb_logging(logdir, experiment_name)
-        return (file_logger, tb_logger)
 
 
 def find_envvar_patterns(self, config, key):
