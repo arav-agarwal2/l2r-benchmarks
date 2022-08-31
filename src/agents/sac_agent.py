@@ -32,7 +32,7 @@ from src.utils.envwrapper import EnvContainer
 class SACAgent(BaseAgent):
     """Adopted from https://github.com/learn-to-race/l2r/blob/main/l2r/baselines/rl/sac.py"""
 
-    def __init__(self, steps_to_sample_randomly: int, record_dir: str, track_name: str, experiment_name: str, gamma: float, alpha: float, polyak: float, make_random_actions: bool, checkpoint: str, model_save_path: str):
+    def __init__(self, steps_to_sample_randomly: int, record_dir: str, track_name: str, experiment_name: str, gamma: float, alpha: float, polyak: float, make_random_actions: bool, checkpoint: str, model_save_path: str, lr:float):
         super(SACAgent, self).__init__()
 
         self.steps_to_sample_randomly = steps_to_sample_randomly
@@ -45,6 +45,7 @@ class SACAgent(BaseAgent):
         self.make_random_actions = make_random_actions
         self.checkpoint = checkpoint
         self.model_save_path = model_save_path
+        self.lr = lr
 
         # self.file_logger, self.tb_logger = self.setup_loggers()
 
