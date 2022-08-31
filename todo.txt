@@ -15,3 +15,4 @@ Code todos:
 [ ] Get SAC working
 [ ] Add back config parameters and make them appropriate to the formatting style you want
 [ ] Create container for env which handles the environment nonsense, and check that it works on the server.
+[ ] Add back in speed encoder
