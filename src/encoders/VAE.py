@@ -8,7 +8,7 @@ from src.constants import DEVICE
 
 from src.encoders.base import BaseEncoder
 
-class VAE(BaseEncoder):
+class VAE(BaseEncoder, torch.nn.Module):
     """Input should be (bsz, C, H, W) where C=3, H=42, W=144"""
     def __init__(self, im_c=3, im_h=42, im_w=144, z_dim=32):
         super().__init__()

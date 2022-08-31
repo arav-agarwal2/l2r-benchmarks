@@ -42,6 +42,7 @@ class SACRunner(BaseRunner):
 
         ## ENCODER Declaration
         self.encoder = VAE()
+        self.encoder.to(DEVICE)
 
         ## AGENT Declaration
         self.agent = SACAgent(self.agent_config)
