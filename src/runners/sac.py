@@ -49,8 +49,7 @@ class SACRunner(BaseRunner):
     def run(self):
         for _ in range(1):
             done = False
-            obs, a = self.env.reset()
-            raise ValueError("AAA",obs,a)
+            obs = self.env.reset()['images']
             obs = self.encoder.encode(obs)
 
             while not done:
