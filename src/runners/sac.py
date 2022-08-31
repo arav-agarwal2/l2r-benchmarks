@@ -46,7 +46,7 @@ class SACRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
         ## AGENT Declaration
-        self.agent = SACAgent(self.agent_config)
+        self.agent = SACAgent.instantiate_from_config("src/config_files/example_sac/agent.yaml")
         self.best_ret = 0
 
     def run(self):

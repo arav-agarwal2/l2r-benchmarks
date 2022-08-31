@@ -35,7 +35,7 @@ def yamlize(configurable_class):
         config_dict = sl.load(config_yamlized, schema)
         return cls(**config_dict)
     
-    configurable_class.init_from_config_dict = classmethod(init_from_config_dict)
+    configurable_class.instantiate_from_config_dict = classmethod(init_from_config_dict)
 
     def init_from_config(cls, config_file_location):
         with open(config_file_location, 'r') as mf:
@@ -43,6 +43,6 @@ def yamlize(configurable_class):
         config_dict = sl.load(yaml_str, schema)
         return cls(**config_dict)
     
-    configurable_class.init_from_config = classmethod(init_from_config)
+    configurable_class.instantiate_from_config = classmethod(init_from_config)
     
     return configurable_class
