@@ -13,6 +13,7 @@ from src.config.schema import agent_schema
 from src.config.schema import experiment_schema
 from src.config.schema import replay_buffer_schema
 from src.config.schema import encoder_schema
+from src.constants import DEVICE
 
 from torch.optim import Adam
 import torch
@@ -50,11 +51,12 @@ class SACRunner(BaseRunner):
         for _ in range(1):
             done = False
             obs = self.env.reset()['images']['CameraFrontRGB']
-            obs = self.encoder.encode_raw(obs)
+            obs = self.encoder.encode_raw(obs, DEVICE)
 
             while not done:
                 action = self.agent.select_action(obs)
-                obs, reward, done, info = self.env.step(action)
+                stuff = self.env.step(action)
+                raise ValueError(stuff)
                 obs = self.encoder.encode(obs)
     
     def eval(self):
