@@ -56,8 +56,8 @@ class SACRunner(BaseRunner):
 
             while not done:
                 action = self.agent.select_action(obs)
-                stuff = self.env.step(action)
-                raise ValueError(len(stuff), [elem.keys() if isinstance(elem, dict) else elem for elem in stuff])
+                obs, reward, terminated, info = self.env.step(action)
+                obs = obs['images']['CameraFrontRGB']
                 obs = self.encoder.encode(obs)
     
     def eval(self):
