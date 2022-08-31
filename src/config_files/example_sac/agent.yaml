@@ -6,4 +6,4 @@ agent_config:
     alpha: 0.2
     steps_to_sample_randomly: 100 # start_steps
     checkpoint: 'models/sac/checkpoints/best_sac_local_encoder-vae_small_seed-249_episode_480.statedict'
-    model_save_path: '${PREFIX}/l2r/results/${DIRHASH}workspaces/${USER}/results'
+    model_save_path: '/mnt'
