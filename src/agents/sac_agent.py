@@ -124,7 +124,7 @@ class SACAgent(BaseAgent):
         self.actor_critic = ActorCritic(
             self.obs_dim,
             self.action_space,
-            self.cfg,
+            None,
             latent_dims=self.obs_dim,
             device=DEVICE,
         )
