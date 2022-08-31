@@ -64,7 +64,7 @@ class SACRunner(BaseRunner):
                 obs, reward, terminated, info = self.env.step(action)
                 #raise ValueError(action)
                 obs = obs['images']['CameraFrontRGB']
-                obs = self.encoder.encode(obs)
+                obs_encoded = self.encoder.encode(obs)
     
     def eval(self):
         print("Evaluation:")
