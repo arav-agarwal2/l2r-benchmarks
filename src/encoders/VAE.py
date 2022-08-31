@@ -15,7 +15,6 @@ class VAE(BaseEncoder):
         self.im_c = im_c
         self.im_h = im_h
         self.im_w = im_w
-
         encoder_list = [
             nn.Conv2d(im_c, 32, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
