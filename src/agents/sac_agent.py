@@ -59,7 +59,7 @@ class SACAgent(BaseAgent):
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
-        if self.t > self.cfg["steps_to_sample_randomly"]:
+        if self.t > self.steps_to_sample_randomly:
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
             a = a  # numpy array...
             self.record["transition_actor"] = "learner"
@@ -87,9 +87,9 @@ class SACAgent(BaseAgent):
         self.save_queue = queue.Queue()
         self.save_batch_size = 256
         self.record_experience = RecordExperience(
-            self.cfg["record_dir"],
-            self.cfg["track_name"],
-            self.cfg["experiment_name"],
+            self.record_dir,
+            self.track_name,
+            self.experiment_name,
             file_logger,
             self,
         ) ##When called in the runner make sure to add the file logger from the logger object
@@ -155,8 +155,8 @@ class SACAgent(BaseAgent):
             q1_pi_targ = self.actor_critic_target.q1(o2, a2)
             q2_pi_targ = self.actor_critic_target.q2(o2, a2)
             q_pi_targ = torch.min(q1_pi_targ, q2_pi_targ)
-            backup = r + self.cfg["gamma"] * (1 - d) * (
-                q_pi_targ - self.cfg["alpha"] * logp_a2
+            backup = r + self.gamma * (1 - d) * (
+                q_pi_targ - self.alpha * logp_a2
             )
 
         # MSE loss against Bellman backup
@@ -180,7 +180,7 @@ class SACAgent(BaseAgent):
         q_pi = torch.min(q1_pi, q2_pi)
 
         # Entropy-regularized policy loss
-        loss_pi = (self.cfg["alpha"] * logp_pi - q_pi).mean()
+        loss_pi = (self.alpha * logp_pi - q_pi).mean()
 
         # Useful info for logging
         pi_info = dict(LogPi=logp_pi.detach().cpu().numpy())
@@ -216,8 +216,8 @@ class SACAgent(BaseAgent):
             ):
                 # NB: We use an in-place operations "mul_", "add_" to update target
                 # params, as opposed to "mul" and "add", which would make new tensors.
-                p_targ.data.mul_(self.cfg["polyak"])
-                p_targ.data.add_((1 - self.cfg["polyak"]) * p.data)
+                p_targ.data.mul_(self.polyak)
+                p_targ.data.add_((1 - self.polyak) * p.data)
 
 
 ####
