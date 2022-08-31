@@ -51,7 +51,7 @@ class SACRunner(BaseRunner):
         for _ in range(1):
             done = False
             obs = self.env.reset()['images']['CameraFrontRGB']
-            obs = self.encoder.encode_raw(obs, DEVICE)
+            obs = self.encoder.encode(obs)
 
             while not done:
                 action = self.agent.select_action(obs)
