@@ -57,7 +57,7 @@ class SACRunner(BaseRunner):
             while not done:
                 action = self.agent.select_action(obs)
                 stuff = self.env.step(action)
-                raise ValueError(stuff)
+                raise ValueError(stuff.keys())
                 obs = self.encoder.encode(obs)
     
     def eval(self):
