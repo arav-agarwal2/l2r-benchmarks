@@ -31,6 +31,11 @@ class SACRunner(BaseRunner):
         ## ENV Setup
         self.env = env
 
+        ## AGENT Declaration
+        self.agent = SACAgent.instantiate_from_config("src/config_files/example_sac/agent.yaml")
+        self.best_ret = 0
+
+
         ## BUFFER Declaration
         self.action_space = self.env.action_space
         self.replay_buffer = ReplayBuffer(obs_dim=33, act_dim=self.action_space.shape[0], size=self.buffer_config["replay_size"])
@@ -45,9 +50,6 @@ class SACRunner(BaseRunner):
         self.encoder = VAE()
         self.encoder.to(DEVICE)
 
-        ## AGENT Declaration
-        self.agent = SACAgent.instantiate_from_config("src/config_files/example_sac/agent.yaml")
-        self.best_ret = 0
 
     def run(self):
         idx = 0
