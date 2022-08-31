@@ -30,7 +30,7 @@ class VAE(BaseEncoder, torch.nn.Module):
         self.encoder = nn.Sequential(*encoder_list)
         sample_img = torch.zeros([1, im_c, im_h, im_w])
         em_shape = nn.Sequential(*encoder_list[:-1])(sample_img).shape[1:]
-        h_dim = np.prod(em_shape)
+        h_dim = 768 # TODO: FIX THE ABOVE CALCULATION TO HANDLE AUTO SHAPE STUFFS.
 
         self.fc1 = nn.Linear(h_dim, z_dim)
         self.fc2 = nn.Linear(h_dim, z_dim)
@@ -55,7 +55,6 @@ class VAE(BaseEncoder, torch.nn.Module):
         return z
 
     def bottleneck(self, h):
-        raise ValueError(h.shape)
         mu, logvar = self.fc1(h), self.fc2(h)
         z = self.reparameterize(mu, logvar)
         return z, mu, logvar
