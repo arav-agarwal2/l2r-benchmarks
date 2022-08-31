@@ -50,15 +50,17 @@ class SACRunner(BaseRunner):
         self.best_ret = 0
 
     def run(self):
+        idx = 0
         for _ in range(1):
             done = False
             obs = self.env.reset()['images']['CameraFrontRGB']
             obs = self.encoder.encode(obs)
 
             while not done:
+                idx += 1
                 action = self.agent.select_action(obs)
                 if len(action) > 2:
-                    raise ValueError(action.shape)
+                    raise ValueError(action.shape, obs.shape, idx)
                 obs, reward, terminated, info = self.env.step(action)
                 #raise ValueError(action)
                 obs = obs['images']['CameraFrontRGB']
