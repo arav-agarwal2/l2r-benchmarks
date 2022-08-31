@@ -50,7 +50,7 @@ class SACRunner(BaseRunner):
         for _ in range(1):
             done = False
             obs, a = self.env.reset()
-            print("AAA",obs,a)
+            raise ValueError("AAA",obs,a)
             obs = self.encoder.encode(obs)
 
             while not done:
