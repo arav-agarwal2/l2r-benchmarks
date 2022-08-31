@@ -82,7 +82,7 @@ class VAE(BaseEncoder, torch.nn.Module):
         else:
             x = x.permute(0,3,1,2)
         h = self.encoder(x)
-        raise ValueError(x.shape,h.shape)
+        #raise ValueError(x.shape,h.shape)
         z, mu, logvar = self.bottleneck(h)
         return z #, mu, logvar
 
