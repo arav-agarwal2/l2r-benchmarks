@@ -80,7 +80,7 @@ class VAE(BaseEncoder, torch.nn.Module):
             x = x.permute(0,3,1,2)
         h = self.encoder(x)
         z, mu, logvar = self.bottleneck(h)
-        return z, mu, logvar
+        return z #, mu, logvar
 
     def decode(self, z):
         z = self.fc3(z)
