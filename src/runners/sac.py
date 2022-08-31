@@ -33,7 +33,7 @@ class SACRunner(BaseRunner):
 
         ## BUFFER Declaration
         self.action_space = self.env.action_space
-        raise ValueError(self.action_space)
+        #raise ValueError(self.action_space)
         self.replay_buffer = ReplayBuffer(obs_dim=33, act_dim=self.action_space.shape[0], size=self.buffer_config["replay_size"])
 
         ## LOGGER Declaration
