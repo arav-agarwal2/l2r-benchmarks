@@ -73,7 +73,7 @@ class VAE(BaseEncoder):
         return v, v.detach().cpu().numpy()
 
     def encode(self, x, device=DEVICE):
-        x = torch.Tensor(x, device=device, dtype=torch.float)
+        x = torch.as_tensor(x, device=device, dtype=torch.float)
         h = self.encoder(x)
         z, mu, logvar = self.bottleneck(h)
         return z, mu, logvar
