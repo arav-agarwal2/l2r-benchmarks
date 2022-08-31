@@ -35,7 +35,15 @@ class SACAgent(BaseAgent):
     def __init__(self, steps_to_sample_randomly: int, record_dir: str, track_name: str, experiment_name: str, gamma: float, alpha: float, polyak: float, make_random_actions: bool, checkpoint: str):
         super(SACAgent, self).__init__()
 
-        self.cfg = cfg
+        self.steps_to_sample_randomly = steps_to_sample_randomly
+        self.record_dir = record_dir
+        self.track_name = track_name
+        self.experiment_name = experiment_name
+        self.gamma = gamma
+        self.alpha = alpha
+        self.polyak = polyak
+        self.make_random_actions = make_random_actions
+        self.checkpoint = checkpoint
 
         # self.file_logger, self.tb_logger = self.setup_loggers()
 
