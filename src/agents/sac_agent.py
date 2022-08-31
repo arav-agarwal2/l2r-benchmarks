@@ -44,6 +44,7 @@ class SACAgent(BaseAgent):
         self.polyak = polyak
         self.make_random_actions = make_random_actions
         self.checkpoint = checkpoint
+        self.model_save_path = model_save_path
 
         # self.file_logger, self.tb_logger = self.setup_loggers()
 
