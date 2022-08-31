@@ -49,7 +49,8 @@ class SACRunner(BaseRunner):
     def run(self):
         for _ in range(1):
             done = False
-            obs, _ = self.env.reset()
+            obs, a = self.env.reset()
+            print("AAA",obs,a)
             obs = self.encoder.encode(obs)
 
             while not done:
