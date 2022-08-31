@@ -66,11 +66,12 @@ class SACRunner(BaseRunner):
                     og_action_shape = action.shape
                 if len(action) > 2:
                     raise ValueError(action.shape, obs.shape, obs_encoded.shape, original_shape,  encoded_og_shape, og_action_shape, idx)
-                obs, reward, terminated, info = self.env.step(action)
+                obs, reward, done, info = self.env.step(action)
                 #raise ValueError(action)
                 obs = obs['images']['CameraFrontRGB']
                 obs_encoded = self.encoder.encode(obs)
-    
+
+
     def eval(self):
         print("Evaluation:")
         val_ep_rets = []
