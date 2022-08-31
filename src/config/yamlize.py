@@ -42,8 +42,8 @@ def yamlize(configurable_class):
             yaml_str = mf.read()
         try:
             config_dict = sl.load(yaml_str, schema)
-        except Exception:
-            raise ValueError(yaml_str, schema)
+        except Exception as e:
+            raise ValueError(yaml_str, schema, e)
         return cls(**config_dict)
     
     configurable_class.instantiate_from_config = classmethod(init_from_config)
