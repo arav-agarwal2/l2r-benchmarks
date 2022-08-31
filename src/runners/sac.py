@@ -36,8 +36,8 @@ class SACRunner(BaseRunner):
         self.replay_buffer = ReplayBuffer(obs_dim=33, act_dim=self.action_space.shape[0], size=self.buffer_config["replay_size"])
 
         ## LOGGER Declaration
-        self.tb_logger_obj = TensorboardLogger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
-        self.file_logger = FileLogger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
+        self.tb_logger_obj = TensorboardLogger(self.agent.model_save_path, self.exp_config["experiment_name"])
+        self.file_logger = FileLogger(self.agent.model_save_path, self.exp_config["experiment_name"])
         self.file_logger.log_obj.info("Using random seed: {}".format(0))
         
 
