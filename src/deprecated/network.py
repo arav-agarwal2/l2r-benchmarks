@@ -18,15 +18,15 @@ class Qfunction(nn.Module):
         super().__init__()
         self.cfg = cfg
         #pdb.set_trace()
-        self.speed_encoder = mlp([1] + self.cfg[self.cfg['use_encoder_type']]['speed_hiddens'])
-        self.regressor = mlp([self.cfg[self.cfg['use_encoder_type']]['latent_dims'] + self.cfg[self.cfg['use_encoder_type']]['speed_hiddens'][-1] + 2] + self.cfg[self.cfg['use_encoder_type']]['hiddens'] + [1])
+        self.speed_encoder = mlp([1] + [8,8])
+        self.regressor = mlp([ + [8,8][-1] + 2] +  + [1])
         #self.lr = cfg['resnet']['LR']
 
     def forward(self, obs_feat, action):
         #if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
-        img_embed = obs_feat[..., :self.cfg[self.cfg['use_encoder_type']]['latent_dims']] # n x latent_dims
-        speed = obs_feat[..., self.cfg[self.cfg['use_encoder_type']]['latent_dims']:] # n x 1
+        img_embed = obs_feat[..., :32] # n x latent_dims
+        speed = obs_feat[..., 32:] # n x 1
         spd_embed = self.speed_encoder(speed) # n x 16 
         out = self.regressor(torch.cat([img_embed, spd_embed, action], dim = -1)) # n x 1
         #pdb.set_trace()
@@ -44,19 +44,19 @@ class DuelingNetwork(nn.Module):
         super().__init__()
         self.cfg = cfg
     
-        self.speed_encoder = mlp([1] + self.cfg[self.cfg['use_encoder_type']]['speed_hiddens'])
-        self.action_encoder = mlp([2] + self.cfg[self.cfg['use_encoder_type']]['action_hiddens'])
+        self.speed_encoder = mlp([1] + [8,8])
+        self.action_encoder = mlp([2] + [64,64,32])
         
-        n_obs = self.cfg[self.cfg['use_encoder_type']]['latent_dims'] + self.cfg[self.cfg['use_encoder_type']]['speed_hiddens'][-1]
-        #self.V_network = mlp([n_obs] + self.cfg[self.cfg['use_encoder_type']]['hiddens'] + [1])
-        self.A_network = mlp([n_obs + self.cfg[self.cfg['use_encoder_type']]['action_hiddens'][-1]] + self.cfg[self.cfg['use_encoder_type']]['hiddens'] + [1])
+        n_obs = 32 + [8,8][-1]
+        #self.V_network = mlp([n_obs] + [32,64,64,32,32] + [1])
+        self.A_network = mlp([n_obs + [64,64,32][-1]] + [32,64,64,32,32] + [1])
         #self.lr = cfg['resnet']['LR']
 
     def forward(self, obs_feat, action, advantage_only = False):
         #if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
-        img_embed = obs_feat[..., :self.cfg[self.cfg['use_encoder_type']]['latent_dims']] # n x latent_dims
-        speed = obs_feat[..., self.cfg[self.cfg['use_encoder_type']]['latent_dims']:] # n x 1
+        img_embed = obs_feat[..., :32] # n x latent_dims
+        speed = obs_feat[..., 32:] # n x 1
         spd_embed = self.speed_encoder(speed) # n x 16 
         action_embed = self.action_encoder(action)
         
