@@ -19,7 +19,7 @@ class Qfunction(nn.Module):
         self.cfg = cfg
         #pdb.set_trace()
         self.speed_encoder = mlp([1] + [8,8])
-        self.regressor = mlp([ + [8,8][-1] + 2] +  + [1])
+        self.regressor = mlp([32 + [8,8][-1] + 2] +  + [1])
         #self.lr = cfg['resnet']['LR']
 
     def forward(self, obs_feat, action):
