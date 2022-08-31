@@ -55,7 +55,7 @@ class VAE(BaseEncoder, torch.nn.Module):
         return z
 
     def bottleneck(self, h):
-        raise ValueError(h.shape)
+        #raise ValueError(h.shape)
         mu, logvar = self.fc1(h), self.fc2(h)
         z = self.reparameterize(mu, logvar)
         return z, mu, logvar
@@ -77,6 +77,7 @@ class VAE(BaseEncoder, torch.nn.Module):
         x = torch.as_tensor(x, device=device, dtype=torch.float)
         if len(x.shape) == 3:
             x = x.permute(2,0,1)
+            x = torch.unsqueeze(x,0)
         else:
             x = x.permute(0,3,1,2)
         h = self.encoder(x)
