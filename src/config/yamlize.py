@@ -11,6 +11,8 @@ def yamlize(configurable_class):
             return sl.Int()
         elif val == str:
             return sl.Str()
+        elif val == float:
+            return sl.Float()
         else:
             raise ValueError("Bruh")
     
@@ -26,11 +28,18 @@ def yamlize(configurable_class):
     
     configurable_class.schema = schema
     
-    def init_from_config(cls, config):
+    def init_from_config_dict(cls, config):
         config_yamlized = yaml.dump(config)
-        print("A",config_yamlized)
         config_dict = sl.load(config_yamlized, schema)
-        return cls(**config_yamlized)
+        return cls(**config_dict)
+    
+    configurable_class.init_from_config_dict = classmethod(init_from_config_dict)
+
+    def init_from_config(cls, config_file_location):
+        with open(config_file_location, 'r') as mf:
+            yaml_str = mf.read()
+        config_dict = sl.load(yaml_str, schema)
+        return cls(**config_dict)
     
     configurable_class.init_from_config = classmethod(init_from_config)
     

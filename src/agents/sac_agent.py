@@ -15,6 +15,7 @@ from gym.spaces import Box
 from torch.optim import Adam
 
 from src.agents.base import BaseAgent
+from src.config.yamlize import yamlize
 from src.deprecated.network import ActorCritic
 from src.encoders.VAE import VAE
 from src.utils.utils import RecordExperience
@@ -27,11 +28,11 @@ from src.config.schema import agent_schema
 from src.utils.envwrapper import EnvContainer
 
 
-
+@yamlize
 class SACAgent(BaseAgent):
     """Adopted from https://github.com/learn-to-race/l2r/blob/main/l2r/baselines/rl/sac.py"""
 
-    def __init__(self, cfg):
+    def __init__(self, steps_to_sample_randomly: int, record_dir: str, track_name: str, experiment_name: str, gamma: float, alpha: float, polyak: float, make_random_actions: bool, checkpoint: str):
         super(SACAgent, self).__init__()
 
         self.cfg = cfg
