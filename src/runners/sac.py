@@ -57,8 +57,9 @@ class SACRunner(BaseRunner):
 
             while not done:
                 action = self.agent.select_action(obs)
-                raise ValueError(action)
+                #raise ValueError(action)
                 obs, reward, terminated, info = self.env.step(action)
+                raise ValueError(action)
                 obs = obs['images']['CameraFrontRGB']
                 obs = self.encoder.encode(obs)
     
