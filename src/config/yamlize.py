@@ -41,7 +41,7 @@ def yamlize(configurable_class):
         with open(config_file_location, 'r') as mf:
             yaml_str = mf.read()
         try:
-            config_dict = sl.load(yaml_str, schema)
+            config_dict = sl.load(yaml_str, schema).data
         except Exception as e:
             raise ValueError(yaml_str, schema, e)
         try:
