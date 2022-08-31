@@ -39,7 +39,8 @@ class SACRunner(BaseRunner):
         ## LOGGER Declaration
         self.tb_logger_obj = TensorboardLogger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
         self.file_logger = FileLogger(self.agent_config["model_save_path"], self.exp_config["experiment_name"])
-        self.file_logger.log("Using random seed: {}".format(0))
+        self.file_logger.log_obj.info("Using random seed: {}".format(0))
+        raise ValueError("Am I reaching here?")
 
         ## ENCODER Declaration
         self.encoder = VAE()
