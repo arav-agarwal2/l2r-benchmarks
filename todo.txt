@@ -12,4 +12,6 @@ Code todos:
 - Adding commit hash + git link to experiment_name/.....
 
 
-
+[ ] Get SAC working
+[ ] Add back config parameters and make them appropriate to the formatting style you want
+[ ] Create container for env which handles the environment nonsense, and check that it works on the server.
