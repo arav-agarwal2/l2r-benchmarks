@@ -118,8 +118,8 @@ class SACAgent(BaseAgent):
             device=DEVICE,
         )
 
-        if self.cfg["checkpoint"] and self.cfg["load_checkpoint"]:
-            self.load_model(self.cfg["checkpoint"])
+        #if self.cfg["checkpoint"] and self.cfg["load_checkpoint"]:
+        #    self.load_model(self.cfg["checkpoint"])
 
         self.actor_critic_target = deepcopy(self.actor_critic)
 
