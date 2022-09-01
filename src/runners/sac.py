@@ -45,8 +45,14 @@ class SACRunner(BaseRunner):
         )
 
         ## LOGGER Declaration
-        self.tb_logger_obj = create_configurable("src/config_files/example_sac/loggers/tblogger.yaml", NameToSourcePath.logger)
-        self.file_logger = create_configurable("src/config_files/example_sac/loggers/file_logger.yaml", NameToSourcePath.logger)
+        self.tb_logger_obj = create_configurable(
+            "src/config_files/example_sac/loggers/tblogger.yaml",
+            NameToSourcePath.logger,
+        )
+        self.file_logger = create_configurable(
+            "src/config_files/example_sac/loggers/file_logger.yaml",
+            NameToSourcePath.logger,
+        )
         self.file_logger.log_obj.info("Using random seed: {}".format(0))
 
         ## ENCODER Declaration
@@ -58,11 +64,10 @@ class SACRunner(BaseRunner):
     def run(self):
         t = 0
         for _ in range(1):
-            
+
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
             obs_encoded = self.encoder.encode(obs)
-
 
             while not done:
                 t += 1
@@ -71,9 +76,13 @@ class SACRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
-                self.replay_buffer.store(obs_encoded, action, reward, obs_encoded_new, done)
+                self.replay_buffer.store(
+                    obs_encoded, action, reward, obs_encoded_new, done
+                )
                 obs_encoded = obs_encoded_new
-                if (t >= self.exp_config["update_after"]) & (t % self.exp_config["update_every"] == 0):
+                if (t >= self.exp_config["update_after"]) & (
+                    t % self.exp_config["update_every"] == 0
+                ):
                     for _ in range(self.exp_config["update_every"]):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
@@ -277,7 +286,6 @@ class SACRunner(BaseRunner):
             camera = camera2  # in case we, later, wish to store the state in the replay as well
 
             # Update handling
-
 
             if (t + 1) % self.cfg["eval_every"] == 0:
                 # eval on test environment

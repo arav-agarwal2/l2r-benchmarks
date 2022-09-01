@@ -4,6 +4,7 @@ from src.agents.random_agent import RandomAgent
 from src.agents.SACAgent import SACAgent
 from src.runners.sac import SACRunner
 
+
 def test_random_agent():
     ra = RandomAgent()
     # Just check that it randomly samples well for now
@@ -12,9 +13,10 @@ def test_random_agent():
     # Check that assigning another space works
     ra = RandomAgent(action_space=gym.spaces.Discrete(2))
     action = ra.select_action(np.zeros(0))
-    assert action in [0,1]
+    assert action in [0, 1]
 
     # TODO: Add some nicer test.
+
 
 def test_sac_agent_init():
     sa = SACAgent()

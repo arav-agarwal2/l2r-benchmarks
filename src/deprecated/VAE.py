@@ -9,7 +9,7 @@ import tqdm
 import numpy as np
 import torch
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # load img, data is in
     # https://drive.google.com/file/d/1RW3ewoS4FwXlCRVh4Dcb_n_xPniqHoeW/view?usp=sharing
     # with shape (10000, C=3, H=42, W=144), RGB format, 0~255
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     thres = int(n * 0.9)
     train_indices, test_indices = indices[:thres], indices[thres:]
 
-    device = "cuda" if torch.cuda.is_available() else 'cpu'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     bsz = 32
     lr = 1e-3
     vae = VAE().to(device)
@@ -36,9 +36,11 @@ if __name__ == '__main__':
         test_indices = np.random.permutation(test_indices)
         train_loss = []
         vae.train()
-        for i in tqdm.trange(len(train_indices) // bsz, desc=f"Epoch #{epoch + 1} train"):
-            index = train_indices[bsz * i: bsz * (i + 1)]
-            img = torch.as_tensor(imgs[index] / 255., device=device, dtype=torch.float)
+        for i in tqdm.trange(
+            len(train_indices) // bsz, desc=f"Epoch #{epoch + 1} train"
+        ):
+            index = train_indices[bsz * i : bsz * (i + 1)]
+            img = torch.as_tensor(imgs[index] / 255.0, device=device, dtype=torch.float)
             loss = vae.loss(img, *vae(img))
             optim.zero_grad()
             loss.backward()
@@ -48,19 +50,25 @@ if __name__ == '__main__':
         test_loss = []
         vae.eval()
         for i in tqdm.trange(len(test_indices) // bsz, desc=f"Epoch #{epoch + 1} test"):
-            index = test_indices[bsz * i: bsz * (i + 1)]
-            img = torch.as_tensor(imgs[index] / 255., device=device, dtype=torch.float)
-            loss = vae.loss(img, *vae(img), kld_weight=0.)
+            index = test_indices[bsz * i : bsz * (i + 1)]
+            img = torch.as_tensor(imgs[index] / 255.0, device=device, dtype=torch.float)
+            loss = vae.loss(img, *vae(img), kld_weight=0.0)
             test_loss.append(loss.item())
         test_loss = np.mean(test_loss)
-        print(f'#{epoch + 1} train_loss: {train_loss:.6f}, test_loss: {test_loss:.6f}')
+        print(f"#{epoch + 1} train_loss: {train_loss:.6f}, test_loss: {test_loss:.6f}")
         if test_loss < best_loss and epoch > num_epochs / 10:
             best_loss = test_loss
             print(f"save model at epoch #{epoch + 1}")
-            torch.save(vae.state_dict(), 'vae.pth')
+            torch.save(vae.state_dict(), "vae.pth")
         # print imgs for visualization
-        orig_img = torch.as_tensor(imgs[test_indices[0]] / 255., device=device, dtype=torch.float)
+        orig_img = torch.as_tensor(
+            imgs[test_indices[0]] / 255.0, device=device, dtype=torch.float
+        )
         vae_img = vae(orig_img[None])[0][0]
         # (C, H, W)/RGB -> (H, W, C)/BGR
-        cv2.imwrite("orig.png", orig_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255)
-        cv2.imwrite("vae.png", vae_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255)
+        cv2.imwrite(
+            "orig.png", orig_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255
+        )
+        cv2.imwrite(
+            "vae.png", vae_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255
+        )

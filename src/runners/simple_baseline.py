@@ -3,6 +3,7 @@ import time
 import numpy as np
 from runners.base import BaseRunner
 
+
 class SimpleRunner(BaseRunner):
     def __init__(self, env, agent):
         super().__init__()
@@ -15,6 +16,6 @@ class SimpleRunner(BaseRunner):
             while not done:
                 action = self.agent.select_action(obs)
                 obs, reward, done, info = self.env.step(action)
-    
+
     def evaluation(self):
         self.run()

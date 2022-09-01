@@ -33,7 +33,20 @@ from src.utils.envwrapper import EnvContainer
 class SACAgent(BaseAgent):
     """Adopted from https://github.com/learn-to-race/l2r/blob/main/l2r/baselines/rl/sac.py"""
 
-    def __init__(self, steps_to_sample_randomly: int, record_dir: str, track_name: str, experiment_name: str, gamma: float, alpha: float, polyak: float, make_random_actions: bool, checkpoint: str, model_save_path: str, lr:float):
+    def __init__(
+        self,
+        steps_to_sample_randomly: int,
+        record_dir: str,
+        track_name: str,
+        experiment_name: str,
+        gamma: float,
+        alpha: float,
+        polyak: float,
+        make_random_actions: bool,
+        checkpoint: str,
+        model_save_path: str,
+        lr: float,
+    ):
         super(SACAgent, self).__init__()
 
         self.steps_to_sample_randomly = steps_to_sample_randomly
@@ -67,7 +80,7 @@ class SACAgent(BaseAgent):
         self.action_space = Box(-1, 1, (2,))
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
-        
+
         self.actor_critic = ActorCritic(
             self.obs_dim,
             self.action_space,
@@ -76,7 +89,7 @@ class SACAgent(BaseAgent):
             device=DEVICE,
         )
 
-        #if self.cfg["checkpoint"] and self.cfg["load_checkpoint"]:
+        # if self.cfg["checkpoint"] and self.cfg["load_checkpoint"]:
         #    self.load_model(self.cfg["checkpoint"])
 
         self.actor_critic_target = deepcopy(self.actor_critic)
@@ -86,9 +99,7 @@ class SACAgent(BaseAgent):
         )
 
         # Set up optimizers for policy and q-function
-        self.pi_optimizer = Adam(
-            self.actor_critic.policy.parameters(), lr=self.lr
-        )
+        self.pi_optimizer = Adam(self.actor_critic.policy.parameters(), lr=self.lr)
         self.q_optimizer = Adam(self.q_params, lr=self.lr)
         self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
             self.pi_optimizer, 1, gamma=0.5
@@ -97,8 +108,6 @@ class SACAgent(BaseAgent):
         # Freeze target networks with respect to optimizers (only update via polyak averaging)
         for p in self.actor_critic_target.parameters():
             p.requires_grad = False
-
-
 
     def select_action(self, obs, encode=False):
         # Until start_steps have elapsed, randomly sample actions
@@ -137,16 +146,12 @@ class SACAgent(BaseAgent):
             self.experiment_name,
             file_logger,
             self,
-        ) ##When called in the runner make sure to add the file logger from the logger object
+        )  ##When called in the runner make sure to add the file logger from the logger object
         self.save_thread = threading.Thread(target=self.record_experience.save_thread)
         self.save_thread.start()
 
-
-
-
-
     def compute_loss_q(self, data):
-      
+
         """Set up function for computing SAC Q-losses."""
         o, a, r, o2, d = (
             data["obs"],
@@ -168,12 +173,10 @@ class SACAgent(BaseAgent):
             q1_pi_targ = self.actor_critic_target.q1(o2, a2)
             q2_pi_targ = self.actor_critic_target.q2(o2, a2)
             q_pi_targ = torch.min(q1_pi_targ, q2_pi_targ)
-            backup = r + self.gamma * (1 - d) * (
-                q_pi_targ - self.alpha * logp_a2
-            )
+            backup = r + self.gamma * (1 - d) * (q_pi_targ - self.alpha * logp_a2)
 
         # MSE loss against Bellman backup
-        loss_q1 = ( (q1 - backup) ** 2).mean()
+        loss_q1 = ((q1 - backup) ** 2).mean()
         loss_q2 = ((q2 - backup) ** 2).mean()
         loss_q = loss_q1 + loss_q2
 
@@ -205,7 +208,7 @@ class SACAgent(BaseAgent):
         self.q_optimizer.zero_grad()
         loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
-        self.q_optimizer.step() 
+        self.q_optimizer.step()
 
         # Freeze Q-networks so you don't waste computational effort
         # computing gradients for them during the policy learning step.
@@ -232,8 +235,7 @@ class SACAgent(BaseAgent):
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
 
-
-####
+    ####
 
     def update_best_pct_complete(self, info):
         if self.best_pct < info["metrics"]["pct_complete"]:
@@ -244,7 +246,7 @@ class SACAgent(BaseAgent):
                     self.pi_scheduler.step()
             self.best_pct = info["metrics"]["pct_complete"]
 
-    '''def checkpoint_model(self, ep_ret, n_eps):
+    """def checkpoint_model(self, ep_ret, n_eps):
         # Save if best (or periodically)
         if ep_ret > self.best_ret:  # and ep_ret > 100):
             path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
@@ -271,8 +273,7 @@ class SACAgent(BaseAgent):
                 # Try to save Safety Actor-Critic, if present
                 torch.save(self.safety_actor_critic.state_dict(), path_name)
             except:
-                pass ''' 
-
+                pass """
 
     def add_experience(
         self,
@@ -308,7 +309,7 @@ class SACAgent(BaseAgent):
         }
         return self.recording
 
-    '''def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
+    """def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
         self.tb_logger.add_scalar("val/episodic_return", ep_ret, n_eps)
         self.tb_logger.add_scalar("val/ep_n_steps", n_val_steps, n_eps)
 
@@ -393,4 +394,4 @@ class SACAgent(BaseAgent):
             self.metadata["info"]["metrics"]["movement_smoothness"],
             self.episode_num,
         )
-        self.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)'''
+        self.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)"""

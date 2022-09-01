@@ -9,10 +9,19 @@ from src.constants import DEVICE
 
 from src.encoders.base import BaseEncoder
 
+
 @yamlize
 class VAE(BaseEncoder, torch.nn.Module):
     """Input should be (bsz, C, H, W) where C=3, H=42, W=144"""
-    def __init__(self, image_channels:int=3, image_height:int=384, image_width:int=512, z_dim:int=32, load_checkpoint_from:str=''):
+
+    def __init__(
+        self,
+        image_channels: int = 3,
+        image_height: int = 384,
+        image_width: int = 512,
+        z_dim: int = 32,
+        load_checkpoint_from: str = "",
+    ):
         super().__init__()
 
         self.im_c = image_channels
@@ -40,16 +49,27 @@ class VAE(BaseEncoder, torch.nn.Module):
 
         self.decoder = nn.Sequential(
             nn.Unflatten(1, em_shape),
-            nn.ConvTranspose2d(em_shape[0], 128, kernel_size=4, stride=2, padding=1, output_padding=(1, 0)),
+            nn.ConvTranspose2d(
+                em_shape[0],
+                128,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+                output_padding=(1, 0),
+            ),
             nn.ReLU(),
             nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, output_padding=(1, 0)),
+            nn.ConvTranspose2d(
+                64, 32, kernel_size=4, stride=2, padding=1, output_padding=(1, 0)
+            ),
             nn.ReLU(),
             nn.ConvTranspose2d(32, image_channels, kernel_size=4, stride=2, padding=1),
             nn.Sigmoid(),
         )
-        self.load_from = load_checkpoint_from # TODO: Load VAE from saved point, or something.
+        self.load_from = (
+            load_checkpoint_from  # TODO: Load VAE from saved point, or something.
+        )
         # TODO: Figure out where speed encoder should go.
 
     def reparameterize(self, mu, logvar):
@@ -59,7 +79,7 @@ class VAE(BaseEncoder, torch.nn.Module):
         return z
 
     def bottleneck(self, h):
-        #raise ValueError(h.shape)
+        # raise ValueError(h.shape)
         mu, logvar = self.fc1(h), self.fc2(h)
         z = self.reparameterize(mu, logvar)
         return z, mu, logvar
@@ -80,15 +100,15 @@ class VAE(BaseEncoder, torch.nn.Module):
     def encode(self, x, device=DEVICE):
         x = torch.as_tensor(x, device=device, dtype=torch.float)
         if len(x.shape) == 3:
-            x = x.permute(2,0,1)
-            x = torch.unsqueeze(x,0)
-            
+            x = x.permute(2, 0, 1)
+            x = torch.unsqueeze(x, 0)
+
         else:
-            x = x.permute(0,3,1,2)
+            x = x.permute(0, 3, 1, 2)
         h = self.encoder(x)
-        #raise ValueError(x.shape,h.shape)
+        # raise ValueError(x.shape,h.shape)
         z, mu, logvar = self.bottleneck(h)
-        return z #, mu, logvar
+        return z  # , mu, logvar
 
     def decode(self, z):
         z = self.fc3(z)
@@ -100,8 +120,8 @@ class VAE(BaseEncoder, torch.nn.Module):
         z = self.decode(z)
         return z, mu, logvar
 
-    def loss(self, actual, recon, mu, logvar, kld_weight=1.):
-        bce = F.binary_cross_entropy(recon, actual, reduction='sum')
+    def loss(self, actual, recon, mu, logvar, kld_weight=1.0):
+        bce = F.binary_cross_entropy(recon, actual, reduction="sum")
         kld = -0.5 * torch.sum(1 + logvar - mu**2 - logvar.exp())
         return bce + kld * kld_weight
 

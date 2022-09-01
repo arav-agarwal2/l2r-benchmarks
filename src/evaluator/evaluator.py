@@ -157,15 +157,15 @@ class Learn2RaceEvaluator:
             print("=" * 10)
 
             for key in self.metrics_to_replace:
-                if key in metrics: 
+                if key in metrics:
                     print(key, metrics.get(key))
 
             for key in self.metrics_to_add:
-                if key in metrics: 
+                if key in metrics:
                     print(key, metrics.get(key))
 
             for key in self.metrics_to_append:
-                if key in metrics: 
+                if key in metrics:
                     print(key, round(np.mean(metrics.get(key, 0)), 3))
 
     def create_env(self):

@@ -4,15 +4,13 @@ import numpy as np
 import gym
 
 
-
 class BaseEncoder(ABC):
-
     @abstractmethod
-    def encode(self,image):
+    def encode(self, image):
         pass
 
     @abstractmethod
-    def decode(self,image):
+    def decode(self, image):
         pass
 
     @abstractmethod
