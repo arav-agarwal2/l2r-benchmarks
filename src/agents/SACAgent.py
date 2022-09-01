@@ -202,7 +202,7 @@ class SACAgent(BaseAgent):
     def update(self, data):
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
-        loss_q, q_info =(data)
+        loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
         self.q_optimizer.step()
 
