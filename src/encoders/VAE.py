@@ -12,7 +12,7 @@ from src.encoders.base import BaseEncoder
 @yamlize
 class VAE(BaseEncoder, torch.nn.Module):
     """Input should be (bsz, C, H, W) where C=3, H=42, W=144"""
-    def __init__(self, image_channels:int=3, image_height:int=384, image_width:int=512, z_dim:int=32, load_from:str=''):
+    def __init__(self, image_channels:int=3, image_height:int=384, image_width:int=512, z_dim:int=32, load_checkpoint_from:str=''):
         super().__init__()
 
         self.im_c = image_channels
@@ -49,7 +49,7 @@ class VAE(BaseEncoder, torch.nn.Module):
             nn.ConvTranspose2d(32, image_channels, kernel_size=4, stride=2, padding=1),
             nn.Sigmoid(),
         )
-        self.load_from = load_from # TODO: Load VAE from saved point, or something.
+        self.load_from = load_checkpoint_from # TODO: Load VAE from saved point, or something.
         # TODO: Figure out where speed encoder should go.
 
     def reparameterize(self, mu, logvar):
