@@ -66,6 +66,7 @@ class NameToSourcePath(Enum):
     agent = 'src.agents'
 
 def create_configurable(config_yaml, name_to_path):
+    name_to_path = name_to_path.value
     schema = sl.Map({"name": sl.Str(),  "config": sl.Any()})
     with open(config_yaml, 'r') as mf:
         yaml_contents = mf.read()
