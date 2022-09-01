@@ -56,23 +56,25 @@ class SACRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
     def run(self):
-        idx = 0
+        t = 0
         for _ in range(1):
+            
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
-            original_shape = obs.shape
             obs_encoded = self.encoder.encode(obs)
-            encoded_og_shape = obs_encoded.shape
+
 
             while not done:
-                idx += 1
+                t += 1
                 action = self.agent.select_action(obs_encoded)
-                if idx == 1:
-                    og_action_shape = action.shape
                 obs, reward, done, info = self.env.step(action)
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
+                if (t >= self.cfg["update_after"]) & (t % self.cfg["update_every"] == 0):
+                    for _ in range(self.cfg["update_every"]):
+                        batch = self.replay_buffer.sample_batch(self.cfg["batch_size"])
+                        self.agent.update(data=batch)
 
     def eval(self):
         print("Evaluation:")
@@ -188,23 +190,6 @@ class SACRunner(BaseRunner):
 
     def training(self):
         # List of parameters for both Q-networks (save this for convenience)
-        self.q_params = itertools.chain(
-            self.actor_critic.q1.parameters(), self.actor_critic.q2.parameters()
-        )
-
-        # Set up optimizers for policy and q-function
-        self.pi_optimizer = Adam(
-            self.actor_critic.policy.parameters(), lr=self.cfg["lr"]
-        )
-        self.q_optimizer = Adam(self.q_params, lr=self.cfg["lr"])
-        self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
-            self.pi_optimizer, 1, gamma=0.5
-        )
-
-        # Freeze target networks with respect to optimizers (only update via polyak averaging)
-        for p in self.actor_critic_target.parameters():
-            p.requires_grad = False
-
         # Count variables (protip: try to get a feel for how different size networks behave!)
         # var_counts = tuple(core.count_vars(module) for module in [ac.pi, ac.q1, ac.q2])
 
@@ -290,10 +275,7 @@ class SACRunner(BaseRunner):
             camera = camera2  # in case we, later, wish to store the state in the replay as well
 
             # Update handling
-            if (t >= self.cfg["update_after"]) & (t % self.cfg["update_every"] == 0):
-                for j in range(self.cfg["update_every"]):
-                    batch = self.replay_buffer.sample_batch(self.cfg["batch_size"])
-                    self.update(data=batch)
+
 
             if (t + 1) % self.cfg["eval_every"] == 0:
                 # eval on test environment
