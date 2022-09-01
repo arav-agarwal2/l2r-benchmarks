@@ -4,20 +4,22 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from src.config.yamlize import yamlize
 from src.constants import DEVICE
 
 from src.encoders.base import BaseEncoder
 
+@yamlize
 class VAE(BaseEncoder, torch.nn.Module):
     """Input should be (bsz, C, H, W) where C=3, H=42, W=144"""
-    def __init__(self, im_c:int=3, im_h:int=384, im_w:int=512, z_dim:int=32):
+    def __init__(self, image_channels:int=3, image_height:int=384, image_width:int=512, z_dim:int=32, load_from:str=''):
         super().__init__()
 
-        self.im_c = im_c
-        self.im_h = im_h
-        self.im_w = im_w
+        self.im_c = image_channels
+        self.im_h = image_height
+        self.im_w = image_width
         encoder_list = [
-            nn.Conv2d(im_c, 32, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(image_channels, 32, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
@@ -28,7 +30,7 @@ class VAE(BaseEncoder, torch.nn.Module):
             nn.Flatten(),
         ]
         self.encoder = nn.Sequential(*encoder_list)
-        sample_img = torch.zeros([1, im_c, im_h, im_w])
+        sample_img = torch.zeros([1, image_channels, image_height, image_width])
         em_shape = nn.Sequential(*encoder_list[:-1])(sample_img).shape[1:]
         h_dim = np.prod(em_shape)
 
@@ -44,9 +46,11 @@ class VAE(BaseEncoder, torch.nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, output_padding=(1, 0)),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, im_c, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(32, image_channels, kernel_size=4, stride=2, padding=1),
             nn.Sigmoid(),
         )
+        self.load_from = load_from # TODO: Load VAE from saved point, or something.
+        # TODO: Figure out where speed encoder should go.
 
     def reparameterize(self, mu, logvar):
         std = logvar.mul(0.5).exp_()

@@ -25,7 +25,6 @@ class SACRunner(BaseRunner):
     def __init__(self, env):
         super().__init__(env)
         self.exp_config = read_config("src/config_files/example_sac/experiment.yaml",experiment_schema)
-        self.encoder_config = read_config("src/config_files/example_sac/encoder.yaml",encoder_schema)
 
         ## ENV Setup
         self.env = env
@@ -46,7 +45,7 @@ class SACRunner(BaseRunner):
         
 
         ## ENCODER Declaration
-        self.encoder = VAE()
+        self.encoder = create_configurable("src/config_files/example_sac/encoder.yaml", NameToSourcePath.encoder)
         self.encoder.to(DEVICE)
 
 
