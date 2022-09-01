@@ -1,11 +1,12 @@
 from datetime import datetime
 import os
 from src.loggers.base import BaseLogger
+from src.config.yamlize import yamlize
 from tensorboardX import SummaryWriter
 
-
+@yamlize
 class TensorboardLogger(BaseLogger):
-    def __init__(self, log_dir, exp_name) -> None:
+    def __init__(self, log_dir:str, exp_name:str) -> None:
         super().__init__(log_dir, exp_name)
         current_time = datetime.now().strftime("%m%d%H%M%S")
         self.exp_name = exp_name

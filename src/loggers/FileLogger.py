@@ -1,9 +1,13 @@
 from src.loggers.base import BaseLogger
+from src.config.yamlize import yamlize
 import logging, re, sys
 from datetime import datetime
 
+
+
+@yamlize
 class FileLogger(BaseLogger):
-    def __init__(self, log_dir, exp_name) -> None:
+    def __init__(self, log_dir:str, exp_name:str) -> None:
         super().__init__(log_dir, exp_name)
         now = datetime.now()
         self.log_dir = log_dir

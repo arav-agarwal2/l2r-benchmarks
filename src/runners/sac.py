@@ -21,39 +21,45 @@ import torch
 import itertools
 from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 
+
 class SACRunner(BaseRunner):
     def __init__(self, env):
         super().__init__(env)
-        self.exp_config = read_config("src/config_files/example_sac/experiment.yaml",experiment_schema)
+        self.exp_config = read_config(
+            "src/config_files/example_sac/experiment.yaml", experiment_schema
+        )
 
         ## ENV Setup
         self.env = env
 
         ## AGENT Declaration
-        self.agent = create_configurable("src/config_files/example_sac/agent.yaml", NameToSourcePath.agent)
+        self.agent = create_configurable(
+            "src/config_files/example_sac/agent.yaml", NameToSourcePath.agent
+        )
         self.best_ret = 0
-
 
         ## BUFFER Declaration
         self.action_space = self.env.action_space
-        self.replay_buffer = create_configurable("src/config_files/example_sac/buffer.yaml", NameToSourcePath.buffer)
+        self.replay_buffer = create_configurable(
+            "src/config_files/example_sac/buffer.yaml", NameToSourcePath.buffer
+        )
 
         ## LOGGER Declaration
-        self.tb_logger_obj = TensorboardLogger(self.agent.model_save_path, self.exp_config["experiment_name"])
-        self.file_logger = FileLogger(self.agent.model_save_path, self.exp_config["experiment_name"])
+        self.tb_logger_obj = create_configurable("src/config_files/example_sac/loggers/tblogger.yaml", NameToSourcePath.logger)
+        self.file_logger = create_configurable("src/config_files/example_sac/loggers/file_logger.yaml", NameToSourcePath.logger)
         self.file_logger.log_obj.info("Using random seed: {}".format(0))
-        
 
         ## ENCODER Declaration
-        self.encoder = create_configurable("src/config_files/example_sac/encoder.yaml", NameToSourcePath.encoder)
+        self.encoder = create_configurable(
+            "src/config_files/example_sac/encoder.yaml", NameToSourcePath.encoder
+        )
         self.encoder.to(DEVICE)
-
 
     def run(self):
         idx = 0
         for _ in range(1):
             done = False
-            obs = self.env.reset()['images']['CameraFrontRGB']
+            obs = self.env.reset()["images"]["CameraFrontRGB"]
             original_shape = obs.shape
             obs_encoded = self.encoder.encode(obs)
             encoded_og_shape = obs_encoded.shape
@@ -64,10 +70,9 @@ class SACRunner(BaseRunner):
                 if idx == 1:
                     og_action_shape = action.shape
                 obs, reward, done, info = self.env.step(action)
-                obs = obs['images']['CameraFrontRGB']
+                obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
-
 
     def eval(self):
         print("Evaluation:")
@@ -100,7 +105,9 @@ class SACRunner(BaseRunner):
                 n_val_steps += 1
 
                 # Prevent the agent from being stuck
-                if np.allclose(state2[15:16], state[15:16], atol=self.agent.atol, rtol=0):
+                if np.allclose(
+                    state2[15:16], state[15:16], atol=self.agent.atol, rtol=0
+                ):
                     # self.file_logger.log("Sampling random action to get unstuck")
                     a = self.agent.action_space.sample()
                     # Step the env
@@ -133,19 +140,23 @@ class SACRunner(BaseRunner):
 
             val_ep_rets.append(ep_ret)
             self.agent.metadata["info"] = info
-            self.tb_logger_obj.log_val_metrics(info, ep_ret, ep_len, n_val_steps, self.metadata)
+            self.tb_logger_obj.log_val_metrics(
+                info, ep_ret, ep_len, n_val_steps, self.metadata
+            )
 
             # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
-            if self.agent.cfg["record_experience"]:  # and self.metadata['info']['success']:
+            if self.agent.cfg[
+                "record_experience"
+            ]:  # and self.metadata['info']['success']:
                 self.file_logger.log("writing experience")
                 self.agent.save_queue.put(experience)
 
-        self.checkpoint_model(ep_ret, self.cfg['max_ep_len'])
+        self.checkpoint_model(ep_ret, self.cfg["max_ep_len"])
         self.agent.update_best_pct_complete(info)
 
         return val_ep_rets
-    
+
     ## Sid needs to take care of the actor_critic objects
     def checkpoint_model(self, ep_ret, n_eps):
         if ep_ret > self.best_ret:  # and ep_ret > 100):
@@ -162,7 +173,7 @@ class SACRunner(BaseRunner):
             except:
                 pass
 
-        elif self.cfg['save_freq'] > 0 and (n_eps + 1 % self.cfg["save_freq"] == 0):
+        elif self.cfg["save_freq"] > 0 and (n_eps + 1 % self.cfg["save_freq"] == 0):
             path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
             self.file_logger.log(
                 f"Periodic save (save_freq of {self.cfg['save_freq']}) to {path_name}"
@@ -305,7 +316,9 @@ class SACRunner(BaseRunner):
                 self.episode_num += 1
                 msg = f"[Ep {self.episode_num }] {self.metadata}"
                 self.file_logger.log(msg)
-                self.tb_logger_obj.log_train_metrics(ep_ret, t, t_start, self.episode_num, self.metadata)
+                self.tb_logger_obj.log_train_metrics(
+                    ep_ret, t, t_start, self.episode_num, self.metadata
+                )
 
                 # Quickly dump recently-completed episode's experience to the multithread queue,
                 # as long as the episode resulted in "success"
