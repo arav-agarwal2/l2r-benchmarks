@@ -1,2 +1,6 @@
 black
 pytest-cov
+darglint
+docstr-coverage
+mypy
+types-PyYAML
