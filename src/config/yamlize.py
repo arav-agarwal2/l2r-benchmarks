@@ -74,6 +74,6 @@ def create_configurable(config_yaml, name_to_path):
     try:
         cls = getattr(importlib.import_module(name_to_path), config_dict['name'])
     except:
-        raise ValueError(name_to_path)
+        raise ValueError(name_to_path, type(name_to_path))
     return cls.instantiate_from_config_dict(config_dict['config'])
     
