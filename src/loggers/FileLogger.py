@@ -11,6 +11,7 @@ class FileLogger(BaseLogger):
         super().__init__(log_dir, experiment_name)
         now = datetime.now()
         self.log_dir = log_dir
+        # https://stackoverflow.com/questions/20240464/python-logging-file-is-not-working-when-using-logging-basicconfig
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s [%(levelname)s] %(message)s",
