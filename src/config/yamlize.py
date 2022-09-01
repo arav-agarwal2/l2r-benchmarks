@@ -35,6 +35,8 @@ def yamlize(configurable_class):
     print(init_defaults)
     schema = {}
     for key, val in init_types.items():
+        if key == 'return':
+            continue
         if key in init_defaults:
             key = sl.Optional(key, default=init_defaults[key])
         schema[key] =  convert_type_to_strictyaml(val)
