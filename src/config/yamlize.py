@@ -71,7 +71,10 @@ def create_configurable(config_yaml, name_to_path):
     with open(config_yaml, 'r') as mf:
         yaml_contents = mf.read()
         config_dict = sl.load(yaml_contents, schema)
-    cls = getattr(importlib.import_module(name_to_path), config_dict['name'])
-
+    try:
+        cls = getattr(importlib.import_module(name_to_path), config_dict['name'])
+    except Exception as e:
+        print(e)
+        raise ValueError(config_dict['name'])
     return cls.instantiate_from_config_dict(config_dict['config'])
     
