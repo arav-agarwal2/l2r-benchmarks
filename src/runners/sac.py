@@ -33,7 +33,7 @@ class SACRunner(BaseRunner):
         self.env = env
 
         ## AGENT Declaration
-        self.agent = create_configurable("src/config_files/example_sac/agent.yaml", NameToSourcePath.agent)
+        self.agent = create_configurable("src/config_files/example_sac/agent.yaml", NameToSourcePath["agent"])
         self.best_ret = 0
 
 
