@@ -6,14 +6,15 @@ from src.config.yamlize import yamlize
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
+
 @yamlize
 class SimpleReplayBuffer:
     """
     A simple FIFO experience replay buffer for SAC agents.
     """
 
-    def __init__(self, obs_dim:int, act_dim:int, size:int, batch_size:int):
-        
+    def __init__(self, obs_dim: int, act_dim: int, size: int, batch_size: int):
+
         self.obs_buf = np.zeros(
             (size, obs_dim), dtype=np.float32
         )  # +1:spd #core.combined_shape(size, obs_dim)
@@ -34,14 +35,12 @@ class SimpleReplayBuffer:
 
         def convert(arraylike):
             obs = arraylike
-            if isinstance(obs,torch.Tensor):
+            if isinstance(obs, torch.Tensor):
                 if obs.requires_grad:
                     obs = obs.detach()
                 obs = obs.cpu().numpy()
             return obs
 
-
-        
         self.obs_buf[self.ptr] = convert(obs)
         self.obs2_buf[self.ptr] = convert(next_obs)
         self.act_buf[self.ptr] = act  # .detach().cpu().numpy()

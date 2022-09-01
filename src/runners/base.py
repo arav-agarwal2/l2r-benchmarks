@@ -1,5 +1,6 @@
 from abc import ABC
 
+
 class BaseRunner(ABC):
     """ABC for BaseRunner."""
 
@@ -13,13 +14,13 @@ class BaseRunner(ABC):
         """
         self.env = env
 
-    def training(self): # pragma: no cover
+    def training(self):  # pragma: no cover
         """
         Training Loop
         """
         raise NotImplementedError
 
-    def evaluation(self): # pragma: no cover
+    def evaluation(self):  # pragma: no cover
         """
         Eval Loop
         """

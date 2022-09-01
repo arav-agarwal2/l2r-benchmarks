@@ -3,8 +3,9 @@ import torch
 import itertools
 from src.constants import DEVICE
 
-class EnvContainer():
-    """Container for Environment and Encoder. """
+
+class EnvContainer:
+    """Container for Environment and Encoder."""
 
     def __init__(self, env, env_type, encoder=None):
         self.env = env
@@ -17,7 +18,7 @@ class EnvContainer():
 
     def reset(self, random_pos=False):
         camera = 0
-        if self.env_type == 'roborace':
+        if self.env_type == "roborace":
             while (np.mean(camera) == 0) | (np.mean(camera) == 255):
                 obs = self.env.reset(random_pos=random_pos)
                 (state, camera), _ = obs
@@ -49,11 +50,10 @@ class EnvContainer():
         out[torch.isnan(out)] = 0
 
         return out
-    
+
     def reset_episode(self, t):
         camera, feat, state, _, _ = self.reset(random_pos=True)
         ep_ret, ep_len, experience = 0, 0, []
         t_start = t + 1
         camera, feat, _, _, _, _ = self.step([0, 1])
         return camera, ep_len, ep_ret, experience, feat, state, t_start
-
