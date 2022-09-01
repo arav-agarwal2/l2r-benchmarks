@@ -10,7 +10,7 @@ from src.encoders.base import BaseEncoder
 
 class VAE(BaseEncoder, torch.nn.Module):
     """Input should be (bsz, C, H, W) where C=3, H=42, W=144"""
-    def __init__(self, im_c=3, im_h=384, im_w=512, z_dim=32):
+    def __init__(self, im_c:int=3, im_h:int=384, im_w:int=512, z_dim:int=32):
         super().__init__()
 
         self.im_c = im_c
