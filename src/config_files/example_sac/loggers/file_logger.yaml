@@ -1,4 +1,4 @@
 name: FileLogger
 config:
-  model_save_path: '/mnt'
+  log_dir: '/mnt'
   experiment_name: 'SAC-test'
