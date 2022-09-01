@@ -12,9 +12,10 @@ def yamlize(configurable_class):
     def convert_type_to_strictyaml(val):
         
         type_container = tp.get_origin(val)
-        if type_container == tp.Tuple:
+        if type_container == tuple:
             args = tp.get_args(val)
-            raise ValueError(args)
+            arg_list = [convert_type_to_strictyaml(arg) for arg in args]
+            return sl.FixedSeq(arg_list)
 
 
         if val == int:
