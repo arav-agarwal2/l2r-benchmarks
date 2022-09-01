@@ -19,14 +19,13 @@ from src.constants import DEVICE
 from torch.optim import Adam
 import torch
 import itertools
-from src.buffers.replay_buffer import ReplayBuffer
+from src.buffers.SimpleReplayBuffer import ReplayBuffer
 
 class SACRunner(BaseRunner):
     def __init__(self, env):
         super().__init__(env)
         #self.agent_config = read_config("src/config_files/example_sac/agent.yaml",agent_schema)
         self.exp_config = read_config("src/config_files/example_sac/experiment.yaml",experiment_schema)
-        self.buffer_config = read_config("src/config_files/example_sac/buffer.yaml",replay_buffer_schema)
         self.encoder_config = read_config("src/config_files/example_sac/encoder.yaml",encoder_schema)
 
         ## ENV Setup
@@ -39,7 +38,7 @@ class SACRunner(BaseRunner):
 
         ## BUFFER Declaration
         self.action_space = self.env.action_space
-        self.replay_buffer = ReplayBuffer(obs_dim=33, act_dim=self.action_space.shape[0], size=self.buffer_config["replay_size"])
+        self.replay_buffer = create_configurable("src/config_files/example_sac/buffer.yaml", NameToSourcePath.buffer)
 
         ## LOGGER Declaration
         self.tb_logger_obj = TensorboardLogger(self.agent.model_save_path, self.exp_config["experiment_name"])

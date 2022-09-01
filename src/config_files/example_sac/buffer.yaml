@@ -1,3 +1,6 @@
-replay_buffer_config:
-  replay_size: 250_000
+name: SimpleReplayBuffer
+config:
+  size: 250_000
   batch_size: 256
+  obs_dim: 33
+  act_dim: 2
