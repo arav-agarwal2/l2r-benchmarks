@@ -69,8 +69,10 @@ class SACRunner(BaseRunner):
                 action = self.agent.select_action(obs_encoded)
                 obs, reward, done, info = self.env.step(action)
                 obs = obs["images"]["CameraFrontRGB"]
-                obs_encoded = self.encoder.encode(obs)
+                obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
+                self.replay_buffer.store(obs_encoded, action, reward, obs_encoded_new, done)
+                obs_encoded = obs_encoded_new
                 if (t >= self.exp_config["update_after"]) & (t % self.exp_config["update_every"] == 0):
                     for _ in range(self.exp_config["update_every"]):
                         batch = self.replay_buffer.sample_batch()
