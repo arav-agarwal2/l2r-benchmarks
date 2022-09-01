@@ -2,9 +2,11 @@ import torch
 import numpy as np
 from typing import Tuple
 
+from src.config.yamlize import yamlize
+
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
-
+@yamlize
 class ReplayBuffer:
     """
     A simple FIFO experience replay buffer for SAC agents.
