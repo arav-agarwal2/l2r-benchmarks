@@ -71,9 +71,9 @@ class SACRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
-                if (t >= self.cfg["update_after"]) & (t % self.cfg["update_every"] == 0):
-                    for _ in range(self.cfg["update_every"]):
-                        batch = self.replay_buffer.sample_batch(self.cfg["batch_size"])
+                if (t >= self.exp_config["update_after"]) & (t % self.exp_config["update_every"] == 0):
+                    for _ in range(self.exp_config["update_every"]):
+                        batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
 
     def eval(self):
