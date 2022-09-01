@@ -1,4 +1,4 @@
-from src.buffers.replay_buffer import ReplayBuffer
+from src.buffers.SimpleReplayBuffer import ReplayBuffer
 import numpy as np
 def test_buffer():
     buffer = ReplayBuffer(1,1,10)

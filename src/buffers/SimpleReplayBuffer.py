@@ -7,12 +7,12 @@ from src.config.yamlize import yamlize
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
 @yamlize
-class ReplayBuffer:
+class SimpleReplayBuffer:
     """
     A simple FIFO experience replay buffer for SAC agents.
     """
 
-    def __init__(self, obs_dim:int, act_dim:int, size:Tuple[int, int]):
+    def __init__(self, obs_dim:int, act_dim:int, size:int):
         
         self.obs_buf = np.zeros(
             (size, obs_dim), dtype=np.float32
