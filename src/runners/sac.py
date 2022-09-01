@@ -3,7 +3,7 @@ import time
 import numpy as np
 from src.runners.base import BaseRunner
 from src.utils.envwrapper import EnvContainer
-from src.agents.sac_agent import SACAgent
+from src.agents.SACAgent import SACAgent
 from src.loggers.TensorboardLogger import TensorboardLogger
 from src.loggers.FileLogger import FileLogger
 from src.encoders.VAE import VAE
