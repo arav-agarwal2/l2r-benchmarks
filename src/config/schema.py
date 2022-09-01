@@ -8,7 +8,9 @@ experiment_schema = Map(
                 "experiment_name": Str(),
                 "inference_only": Bool(),
                 "load_checkpoint": Bool(),
-                "record_experience": Bool()
+                "record_experience": Bool(),
+                "update_after": Int(),
+                "update_every": Int()
             }
         )
     }
