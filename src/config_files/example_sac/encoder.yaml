@@ -5,5 +5,3 @@ config:
   image_width: 512
   z_dim: 32
   load_checkpoint_from: 'add/me/pls'
-  update_after: 10
-  update_every: 1
