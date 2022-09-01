@@ -12,7 +12,7 @@ class SimpleReplayBuffer:
     A simple FIFO experience replay buffer for SAC agents.
     """
 
-    def __init__(self, obs_dim:int, act_dim:int, size:int):
+    def __init__(self, obs_dim:int, act_dim:int, size:int, batch_size:int):
         
         self.obs_buf = np.zeros(
             (size, obs_dim), dtype=np.float32
@@ -26,6 +26,7 @@ class SimpleReplayBuffer:
         self.rew_buf = np.zeros(size, dtype=np.float32)
         self.done_buf = np.zeros(size, dtype=np.float32)
         self.ptr, self.size, self.max_size = 0, 0, size
+        self.batch_size = batch_size
         self.weights = None
 
     def store(self, obs, act, rew, next_obs, done):
@@ -49,10 +50,10 @@ class SimpleReplayBuffer:
         self.ptr = (self.ptr + 1) % self.max_size
         self.size = min(self.size + 1, self.max_size)
 
-    def sample_batch(self, batch_size=32):
+    def sample_batch(self):
 
         idxs = np.random.choice(
-            self.size, size=min(batch_size, self.size), replace=False
+            self.size, size=min(self.batch_size, self.size), replace=False
         )
         batch = dict(
             obs=self.obs_buf[idxs],
