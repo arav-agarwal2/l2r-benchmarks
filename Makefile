@@ -1,4 +1,4 @@
-.PHONY: test black docstr_cov typecheck_cov check
+.PHONY: test black docstr_cov typecheck_cov check docs
 test:
 	python -m pytest --cov-report html --cov=src tests/*/*
 
@@ -12,7 +12,11 @@ docstr_cov:
 typecheck_cov:
 	mypy src/ --ignore-missing-imports --strict
 
-check: test black docstr_cov typecheck_cov
+docs: 
+	sphinx-apidoc -f -o docs/source/ src
+	cd docs && make html && cd ..
 
+check: test black docstr_cov typecheck_cov
+	pass
 # sphinx for documentation
 # mypy for type coverage

@@ -4,3 +4,5 @@ darglint
 docstr-coverage
 mypy
 types-PyYAML
+sphinx
+sphinx-rtd-theme
