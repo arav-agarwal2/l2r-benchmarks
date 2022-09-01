@@ -47,15 +47,57 @@ class SACAgent(BaseAgent):
         self.model_save_path = model_save_path
         self.lr = lr
 
-        # self.file_logger, self.tb_logger = self.setup_loggers()
+        self.save_episodes = True
+        self.episode_num = 0
+        self.best_ret = 0
+        self.t = 0
+        self.deterministic = False
+        self.atol = 1e-3
+        self.store_from_safe = False
+        self.pi_scheduler = None
+        self.t_start = 0
+        self.best_pct = 0
 
-        #if self.cfg["record_experience"]:
-        #    self.setup_experience_recorder()
+        # This is important: it allows child classes (that extend this one) to "push up" information
+        # that this parent class should log
+        self.metadata = {}
+        self.record = {"transition_actor": ""}
 
-        # Action limit for clamping: critically, assumes all dimensions share the same bound!
-        # self.act_limit = self.action_space.high[0]
+        self.action_space = Box(-1, 1, (2,))
+        self.act_dim = self.action_space.shape[0]
+        self.obs_dim = 32
+        
+        self.actor_critic = ActorCritic(
+            self.obs_dim,
+            self.action_space,
+            None,
+            latent_dims=self.obs_dim,
+            device=DEVICE,
+        )
 
-        self.set_params()
+        #if self.cfg["checkpoint"] and self.cfg["load_checkpoint"]:
+        #    self.load_model(self.cfg["checkpoint"])
+
+        self.actor_critic_target = deepcopy(self.actor_critic)
+
+        self.q_params = itertools.chain(
+            self.actor_critic.q1.parameters(), self.actor_critic.q2.parameters()
+        )
+
+        # Set up optimizers for policy and q-function
+        self.pi_optimizer = Adam(
+            self.actor_critic.policy.parameters(), lr=self.lr
+        )
+        self.q_optimizer = Adam(self.q_params, lr=self.lr)
+        self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
+            self.pi_optimizer, 1, gamma=0.5
+        )
+
+        # Freeze target networks with respect to optimizers (only update via polyak averaging)
+        for p in self.actor_critic_target.parameters():
+            p.requires_grad = False
+
+
 
     def select_action(self, obs, encode=False):
         # Until start_steps have elapsed, randomly sample actions
@@ -100,39 +142,7 @@ class SACAgent(BaseAgent):
 
 
 
-    def set_params(self):
-        self.save_episodes = True
-        self.episode_num = 0
-        self.best_ret = 0
-        self.t = 0
-        self.deterministic = False
-        self.atol = 1e-3
-        self.store_from_safe = False
-        self.pi_scheduler = None
-        self.t_start = 0
-        self.best_pct = 0
 
-        # This is important: it allows child classes (that extend this one) to "push up" information
-        # that this parent class should log
-        self.metadata = {}
-        self.record = {"transition_actor": ""}
-
-        self.action_space = Box(-1, 1, (2,))
-        self.act_dim = self.action_space.shape[0]
-        self.obs_dim = 32
-        
-        self.actor_critic = ActorCritic(
-            self.obs_dim,
-            self.action_space,
-            None,
-            latent_dims=self.obs_dim,
-            device=DEVICE,
-        )
-
-        #if self.cfg["checkpoint"] and self.cfg["load_checkpoint"]:
-        #    self.load_model(self.cfg["checkpoint"])
-
-        self.actor_critic_target = deepcopy(self.actor_critic)
 
     def compute_loss_q(self, data):
       
