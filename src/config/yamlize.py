@@ -4,11 +4,19 @@ import strictyaml as sl
 import yaml
 from enum import Enum
 import importlib
+import typing as tp
 
 def yamlize(configurable_class):
     #define a new display method
     
     def convert_type_to_strictyaml(val):
+        
+        type_container = tp.get_origin(val)
+        if type_container == tp.Tuple:
+            args = tp.get_args(val)
+            raise ValueError(args)
+
+
         if val == int:
             return sl.Int()
         elif val == str:
