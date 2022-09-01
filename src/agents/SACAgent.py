@@ -6,6 +6,7 @@ Source:
 https://github.com/openai/spinningup/blob/master/spinup/algos/pytorch/sac/sac.py
 """
 import itertools
+from multiprocessing.sharedctypes import Value
 import queue, threading
 from copy import deepcopy
 
@@ -201,6 +202,7 @@ class SACAgent(BaseAgent):
 
     def update(self, data):
         # First run one gradient descent step for Q1 and Q2
+        raise ValueError([ (key, elem.shape) for key, elem in data.items()])
         self.q_optimizer.zero_grad()
         loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
