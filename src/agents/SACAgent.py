@@ -202,11 +202,10 @@ class SACAgent(BaseAgent):
 
     def update(self, data):
         # First run one gradient descent step for Q1 and Q2
-        raise ValueError([ (key, elem.shape) for key, elem in data.items()])
         self.q_optimizer.zero_grad()
         loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
-        self.q_optimizer.step()
+        self.q_optimizer.step() 
 
         # Freeze Q-networks so you don't waste computational effort
         # computing gradients for them during the policy learning step.
