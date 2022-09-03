@@ -1,5 +1,5 @@
 experiment_config:
-  experiment_name: 'SAC-test'
+  experiment_name: 'log_dir_test'
   inference_only: False
   load_checkpoint: False
   record_experience: False
