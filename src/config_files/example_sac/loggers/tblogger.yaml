@@ -1,5 +1,0 @@
-name: TensorboardLogger
-config:
-  log_dir: '/mnt'
-  experiment_name: 'SAC-test'
-  
