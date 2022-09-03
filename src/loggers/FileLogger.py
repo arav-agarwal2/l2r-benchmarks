@@ -15,7 +15,7 @@ class FileLogger(BaseLogger):
             level=logging.INFO,
             format="%(asctime)s [%(levelname)s] %(message)s",
             handlers=[
-                logging.FileHandler(f"{self.log_dir}/runlogs/{experiment_name}.log"),
+                logging.FileHandler(f"{self.log_dir}/{experiment_name}/runlogs/{experiment_name}.log"),
                 logging.StreamHandler(sys.stdout),
             ],
             force=True,
