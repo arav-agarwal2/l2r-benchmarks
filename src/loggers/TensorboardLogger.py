@@ -5,13 +5,14 @@ from src.config.yamlize import yamlize
 from tensorboardX import SummaryWriter
 
 
-@yamlize
 class TensorboardLogger(BaseLogger):
     def __init__(self, log_dir: str, experiment_name: str) -> None:
         super().__init__(log_dir, experiment_name)
         current_time = datetime.now().strftime("%m%d%H%M%S")
         self.exp_name = experiment_name
-        self.tb_log_dir = f"{log_dir}/tblogs/{experiment_name}_{current_time}"
+        self.tb_log_dir = (
+            f"{log_dir}/{experiment_name}/tblogs/{experiment_name}_{current_time}"
+        )
         self.tb_logger = SummaryWriter(log_dir=self.tb_log_dir)
 
     def log_train_metrics(self, ep_ret, t, t_start, episode_num, metadata):
