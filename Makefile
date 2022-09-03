@@ -3,7 +3,7 @@ test:
 	python -m pytest --cov-report html --cov=src tests/*/*
 
 black:
-	python -m black src/ tests/ docs/source scripts/
+	python -m black src/ tests/ docs/source/ scripts/ source/
 
 docstr_cov:
 	docstr-coverage src/
