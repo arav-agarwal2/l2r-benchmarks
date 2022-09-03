@@ -4,7 +4,6 @@ import logging, re, sys
 from datetime import datetime
 
 
-@yamlize
 class FileLogger(BaseLogger):
     def __init__(self, log_dir: str, experiment_name: str) -> None:
         super().__init__(log_dir, experiment_name)
