@@ -10,7 +10,7 @@ if __name__ == "__main__":
     env = build_env()
     runner = SACRunner(env)
     
-    with open(f"{runner.agent.model_save_path}/{runner.exp_config["experiment_name"]}/git_config", "w+") as f:
+    with open(f"{runner.agent.model_save_path}/{runner.exp_config['experiment_name']}/git_config", "w+") as f:
         f.write(" ".join(sys.argv[1:]))
         
     # Race!
