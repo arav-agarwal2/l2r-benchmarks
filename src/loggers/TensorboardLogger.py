@@ -5,7 +5,6 @@ from src.config.yamlize import yamlize
 from tensorboardX import SummaryWriter
 
 
-@yamlize
 class TensorboardLogger(BaseLogger):
     def __init__(self, log_dir: str, experiment_name: str) -> None:
         super().__init__(log_dir, experiment_name)
