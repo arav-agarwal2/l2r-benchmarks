@@ -45,8 +45,12 @@ class SACRunner(BaseRunner):
         )
 
         ## LOGGER Declaration
-        self.tb_logger_obj = TensorboardLogger(self.agent.model_save_path, self.exp_config["experiment_name"])
-        self.file_logger = FileLogger(self.agent.model_save_path, self.exp_config["experiment_name"])
+        self.tb_logger_obj = TensorboardLogger(
+            self.agent.model_save_path, self.exp_config["experiment_name"]
+        )
+        self.file_logger = FileLogger(
+            self.agent.model_save_path, self.exp_config["experiment_name"]
+        )
         self.file_logger.log_obj.info("Using random seed: {}".format(0))
 
         ## ENCODER Declaration
