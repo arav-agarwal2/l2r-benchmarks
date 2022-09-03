@@ -45,13 +45,11 @@ class SACRunner(BaseRunner):
         )
 
         ## LOGGER Declaration
-        self.tb_logger_obj = create_configurable(
-            "src/config_files/example_sac/loggers/tblogger.yaml",
-            NameToSourcePath.logger,
+        self.tb_logger_obj = TensorboardLogger(
+            self.agent.model_save_path, self.exp_config["experiment_name"]
         )
-        self.file_logger = create_configurable(
-            "src/config_files/example_sac/loggers/file_logger.yaml",
-            NameToSourcePath.logger,
+        self.file_logger = FileLogger(
+            self.agent.model_save_path, self.exp_config["experiment_name"]
         )
         self.file_logger.log_obj.info("Using random seed: {}".format(0))
 

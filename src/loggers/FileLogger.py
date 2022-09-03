@@ -4,7 +4,6 @@ import logging, re, sys
 from datetime import datetime
 
 
-@yamlize
 class FileLogger(BaseLogger):
     def __init__(self, log_dir: str, experiment_name: str) -> None:
         super().__init__(log_dir, experiment_name)
@@ -15,7 +14,9 @@ class FileLogger(BaseLogger):
             level=logging.INFO,
             format="%(asctime)s [%(levelname)s] %(message)s",
             handlers=[
-                logging.FileHandler(f"{self.log_dir}/runlogs/{experiment_name}.log"),
+                logging.FileHandler(
+                    f"{self.log_dir}/{experiment_name}/runlogs/{experiment_name}.log"
+                ),
                 logging.StreamHandler(sys.stdout),
             ],
             force=True,
