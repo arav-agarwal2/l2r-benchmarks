@@ -67,7 +67,7 @@ class SACRunner(BaseRunner):
 
     def run(self):
         t = 0
-        for _ in range(1):
+        for ep_number in range(1):
 
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
@@ -95,12 +95,13 @@ class SACRunner(BaseRunner):
         
             # Save every N episodes or when the current episode return is better than the best return
             # Following the logic of now deprecated checkpoint_model
-            if(t % self.runner_config["save_every_nth_episode"] == 0):
-                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{t}.statedict"
+            if(ep_number % self.runner_config["save_every_nth_episode"] == 0):
+                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
                 self.agent.save_model(save_path)
+            
             elif(ep_ret > self.best_ret):
                 self.best_ret = ep_ret
-                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{t}.statedict"
+                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
                 self.agent.save_model(save_path)
 
 
@@ -183,7 +184,8 @@ class SACRunner(BaseRunner):
                 self.file_logger.log("writing experience")
                 self.agent.save_queue.put(experience)
 
-        self.checkpoint_model(ep_ret, self.runner_config["max_episode_length"])
+            self.checkpoint_model(ep_ret, j)
+
         self.agent.update_best_pct_complete(info)
 
         return val_ep_rets
