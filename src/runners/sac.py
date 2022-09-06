@@ -93,15 +93,15 @@ class SACRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
         
-        # Save every N episodes or when the current episode return is better than the best return
-        # Following the logic of now deprecated checkpoint_model
-        if(t % self.runner_config["save_every_nth_episode"] == 0):
-            save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{t}.statedict"
-            self.agent.save_model(save_path)
-        elif(ep_ret > self.best_ret):
-            self.best_ret = ep_ret
-            save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{t}.statedict"
-            self.agent.save_model(save_path)
+            # Save every N episodes or when the current episode return is better than the best return
+            # Following the logic of now deprecated checkpoint_model
+            if(t % self.runner_config["save_every_nth_episode"] == 0):
+                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{t}.statedict"
+                self.agent.save_model(save_path)
+            elif(ep_ret > self.best_ret):
+                self.best_ret = ep_ret
+                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{t}.statedict"
+                self.agent.save_model(save_path)
 
 
 
