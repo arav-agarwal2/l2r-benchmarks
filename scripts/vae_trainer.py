@@ -29,7 +29,7 @@ if __name__ == '__main__':
             "src/config_files/train_vae/encoder.yaml", NameToSourcePath.encoder
     ).to(device)
     optim = torch.optim.Adam(vae.parameters(), lr=lr)
-    num_epochs = 3
+    num_epochs = training_config["num_epochs"]
     best_loss = 1e10
 
     train_ds, val_ds, train_dl, val_dl = get_expert_demo_dataloaders(training_config['train_data_path'], training_config['val_data_path'], device)
@@ -38,8 +38,6 @@ if __name__ == '__main__':
         train_loss = []
         vae.train()
         for batch in tqdm.tqdm(train_dl, desc=f"Epoch #{epoch + 1} train"):
-            print(batch.shape)
-
             loss = vae.loss(batch, *vae(batch))
             optim.zero_grad()
             loss.backward()
@@ -57,10 +55,3 @@ if __name__ == '__main__':
             best_loss = test_loss
             print(f"save model at epoch #{epoch + 1}")
             torch.save(vae.state_dict(), f"{training_config['model_save_path']}/vae_{epoch + 1}.pth")
-
-        # print imgs for visualization
-        # orig_img = torch.as_tensor(val_ds[0], device=device, dtype=torch.float)
-        # vae_img = vae(orig_img[None])[0][0]
-        # (C, H, W)/RGB -> (H, W, C)/BGR
-        # cv2.imwrite("orig.png", orig_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255) 
-        # cv2.imwrite("vae.png", vae_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255)
