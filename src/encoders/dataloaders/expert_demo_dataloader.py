@@ -9,8 +9,7 @@ from torch.optim import AdamW
 import matplotlib.pyplot as plt
 import re
 
-from transforms import crop_resize_center
-
+from src.encoders.transforms.preprocessing import crop_resize_center
 
 class ExpertDemoDataset(torch.utils.data.Dataset):
     def __init__(self, data_dir):
@@ -20,8 +19,9 @@ class ExpertDemoDataset(torch.utils.data.Dataset):
 
         files = [os.path.join(dir, fname) for dir, _, flist in os.walk(data_dir) for fname in flist]
         for filename in tqdm(files, desc=f"Loading files..."):
-            data = np.load(filename)["img"]
-            self.imgs.append(crop_resize_center(data))
+            if filename.endswith(".npz"):
+                data = np.load(filename)["img"]
+                self.imgs.append(crop_resize_center(data))
         
         
     def __len__(self):
@@ -30,8 +30,6 @@ class ExpertDemoDataset(torch.utils.data.Dataset):
             
     def __getitem__(self, idx):
         return self.imgs[idx]
-
-
 
 
 def get_expert_demo_dataloaders(train_path, val_path, device):
@@ -43,8 +41,3 @@ def get_expert_demo_dataloaders(train_path, val_path, device):
     val_dl = torch.utils.data.DataLoader(val_ds, batch_size=64, collate_fn=collate, shuffle=False)
     return train_ds, val_ds, train_dl, val_dl
 
-
-
-if __name__ == "__main__":
-    ds = ExpertDemoDataset("val/")
-    print(len(ds))

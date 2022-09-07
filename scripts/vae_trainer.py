@@ -8,6 +8,7 @@ from src.encoders.dataloaders.expert_demo_dataloader import get_expert_demo_data
 from src.config.parser import read_config
 from src.config.schema import cv_trainer_schema
 import os
+from src.config.yamlize import create_configurable, NameToSourcePath
 
 
 if __name__ == '__main__':
@@ -24,12 +25,14 @@ if __name__ == '__main__':
     device = "cuda" if torch.cuda.is_available() else 'cpu'
     bsz = training_config["batch_size"]
     lr = training_config["lr"]
-    vae = VAE().to(device)
+    vae = create_configurable(
+            "src/config_files/train_vae/encoder.yaml", NameToSourcePath.encoder
+    ).to(device)
     optim = torch.optim.Adam(vae.parameters(), lr=lr)
-    num_epochs = 3
+    num_epochs = training_config["num_epochs"]
     best_loss = 1e10
 
-    train_ds, val_ds, train_dl, val_dl = get_expert_demo_dataloaders("train/", "val/", device)
+    train_ds, val_ds, train_dl, val_dl = get_expert_demo_dataloaders(training_config['train_data_path'], training_config['val_data_path'], device)
 
     for epoch in range(num_epochs):
         train_loss = []
@@ -52,10 +55,3 @@ if __name__ == '__main__':
             best_loss = test_loss
             print(f"save model at epoch #{epoch + 1}")
             torch.save(vae.state_dict(), f"{training_config['model_save_path']}/vae_{epoch + 1}.pth")
-
-        # print imgs for visualization
-        # orig_img = torch.as_tensor(val_ds[0], device=device, dtype=torch.float)
-        # vae_img = vae(orig_img[None])[0][0]
-        # (C, H, W)/RGB -> (H, W, C)/BGR
-        # cv2.imwrite("orig.png", orig_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255) 
-        # cv2.imwrite("vae.png", vae_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255)
