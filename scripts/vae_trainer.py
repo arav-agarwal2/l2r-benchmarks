@@ -55,3 +55,9 @@ if __name__ == '__main__':
             best_loss = test_loss
             print(f"save model at epoch #{epoch + 1}")
             torch.save(vae.state_dict(), f"{training_config['model_save_path']}/vae_{epoch + 1}.pth")
+        # print imgs for visualization
+        orig_img = torch.as_tensor(val_ds[0], device=device, dtype=torch.float)
+        vae_img = vae(orig_img[None])[0][0]
+        # (C, H, W)/RGB -> (H, W, C)/BGR
+        cv2.imwrite("orig.png", orig_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255) 
+        cv2.imwrite("vae.png", vae_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255)
