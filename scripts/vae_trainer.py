@@ -8,6 +8,7 @@ from src.encoders.dataloaders.expert_demo_dataloader import get_expert_demo_data
 from src.config.parser import read_config
 from src.config.schema import cv_trainer_schema
 import os
+from src.config.yamlize import create_configurable, NameToSourcePath
 
 
 if __name__ == '__main__':
@@ -24,7 +25,9 @@ if __name__ == '__main__':
     device = "cuda" if torch.cuda.is_available() else 'cpu'
     bsz = training_config["batch_size"]
     lr = training_config["lr"]
-    vae = VAE().to(device)
+    vae = create_configurable(
+            "src/config_files/train_vae/encoder.yaml", NameToSourcePath.encoder
+    ).to(device)
     optim = torch.optim.Adam(vae.parameters(), lr=lr)
     num_epochs = 3
     best_loss = 1e10
