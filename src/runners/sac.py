@@ -61,6 +61,7 @@ class SACRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
         ## WANDB Declaration
+        self.wandb_log = False
         if len(list_arguments) > 3:
             api_key = list_arguments[3]
             wandb.login(key=api_key)
