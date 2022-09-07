@@ -9,8 +9,7 @@ from torch.optim import AdamW
 import matplotlib.pyplot as plt
 import re
 
-from transforms import crop_resize_center
-
+from src.encoders.transforms.preprocessing import crop_resize_center
 
 class ExpertDemoDataset(torch.utils.data.Dataset):
     def __init__(self, data_dir):
