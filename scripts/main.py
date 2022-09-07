@@ -8,7 +8,7 @@ import sys
 if __name__ == "__main__":
     # Build environment
     env = build_env()
-    runner = SACRunner(env, sys.argv[3])
+    runner = SACRunner(env, sys.argv)
 
     with open(
         f"{runner.agent.model_save_path}/{runner.exp_config['experiment_name']}/git_config",
