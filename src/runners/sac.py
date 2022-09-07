@@ -24,7 +24,7 @@ from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 
 
 class SACRunner(BaseRunner):
-    def __init__(self, env):
+    def __init__(self, env, api_key):
         super().__init__(env)
         self.exp_config = read_config(
             "src/config_files/example_sac/experiment.yaml", experiment_schema
@@ -61,7 +61,7 @@ class SACRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
         ## WANDB Declaration
-        wandb.login()
+        wandb.login(key=api_key)
         wandb.init(project="test-project", entity="learn2race")
 
     def run(self):
