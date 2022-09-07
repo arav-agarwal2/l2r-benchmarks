@@ -7,7 +7,7 @@ from src.encoders.vae import VAE
 from src.encoders.dataloaders.expert_demo_dataloader import get_expert_demo_dataloaders
 from src.config.parser import read_config
 from src.config.schema import cv_trainer_schema
-
+import os
 
 
 if __name__ == '__main__':
@@ -16,6 +16,10 @@ if __name__ == '__main__':
     training_config = read_config(
         "src/config_files/train_vae/training.yaml", cv_trainer_schema
     )
+
+    if not os.path.exists(f"{training_config['model_save_path']}"):
+            os.umask(0)
+            os.makedirs(training_config['model_save_path'], mode=0o777, exist_ok=True)
 
     device = "cuda" if torch.cuda.is_available() else 'cpu'
     bsz = training_config["batch_size"]
