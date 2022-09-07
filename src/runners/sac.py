@@ -1,6 +1,7 @@
 import json
 import time
 import numpy as np
+import wandb
 from src.runners.base import BaseRunner
 from src.utils.envwrapper import EnvContainer
 from src.agents.SACAgent import SACAgent
@@ -59,6 +60,10 @@ class SACRunner(BaseRunner):
         )
         self.encoder.to(DEVICE)
 
+        ## WANDB Declaration
+        wandb.login()
+        wandb.init(project="test-project", entity="learn2race")
+
     def run(self):
         t = 0
         for _ in range(1):
@@ -74,6 +79,7 @@ class SACRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
+                wandb.log({"reward" : reward})
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
                 )
