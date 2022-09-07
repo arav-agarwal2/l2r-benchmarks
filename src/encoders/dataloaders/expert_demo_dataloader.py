@@ -32,8 +32,6 @@ class ExpertDemoDataset(torch.utils.data.Dataset):
         return self.imgs[idx]
 
 
-
-
 def get_expert_demo_dataloaders(train_path, val_path, device):
     def collate(batch):
         return torch.stack(batch).to(device)
@@ -43,8 +41,3 @@ def get_expert_demo_dataloaders(train_path, val_path, device):
     val_dl = torch.utils.data.DataLoader(val_ds, batch_size=64, collate_fn=collate, shuffle=False)
     return train_ds, val_ds, train_dl, val_dl
 
-
-
-if __name__ == "__main__":
-    ds = ExpertDemoDataset("val/")
-    print(len(ds))
