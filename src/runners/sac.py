@@ -24,7 +24,7 @@ from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 
 
 class SACRunner(BaseRunner):
-    def __init__(self, env, api_key):
+    def __init__(self, env, list_arguments):
         super().__init__(env)
         self.exp_config = read_config(
             "src/config_files/example_sac/experiment.yaml", experiment_schema
@@ -61,8 +61,11 @@ class SACRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
         ## WANDB Declaration
-        wandb.login(key=api_key)
-        wandb.init(project="test-project", entity="learn2race")
+        if len(list_arguments) > 3:
+            api_key = list_arguments[3]
+            wandb.login(key=api_key)
+            wandb.init(project="test-project", entity="learn2race")
+            self.wandb_log = True
 
     def run(self):
         t = 0
@@ -79,7 +82,8 @@ class SACRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
-                wandb.log({"reward" : reward})
+                if self.wandb_log:
+                    wandb.log({"reward" : reward})
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
                 )
