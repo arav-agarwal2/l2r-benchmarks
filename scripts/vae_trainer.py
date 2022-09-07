@@ -9,11 +9,17 @@ from src.config.parser import read_config
 from src.config.schema import cv_trainer_schema
 import os
 from src.config.yamlize import create_configurable, NameToSourcePath
-
+import sys
 
 if __name__ == "__main__":
     # TODO: data augmentation
 
+    with open(
+        f"{training_config["model_save_path"]}/git_config",
+        "w+",
+    ) as f:
+        f.write(" ".join(sys.argv[1:]))
+    
     training_config = read_config(
         "src/config_files/train_vae/training.yaml", cv_trainer_schema
     )
