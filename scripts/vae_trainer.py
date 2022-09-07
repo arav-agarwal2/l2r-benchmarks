@@ -32,7 +32,7 @@ if __name__ == '__main__':
     num_epochs = 3
     best_loss = 1e10
 
-    train_ds, val_ds, train_dl, val_dl = get_expert_demo_dataloaders("train/", "val/", device)
+    train_ds, val_ds, train_dl, val_dl = get_expert_demo_dataloaders(training_config['train_data_path'], training_config['val_data_path'], device)
 
     for epoch in range(num_epochs):
         train_loss = []
