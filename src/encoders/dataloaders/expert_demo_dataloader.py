@@ -19,8 +19,9 @@ class ExpertDemoDataset(torch.utils.data.Dataset):
 
         files = [os.path.join(dir, fname) for dir, _, flist in os.walk(data_dir) for fname in flist]
         for filename in tqdm(files, desc=f"Loading files..."):
-            data = np.load(filename)["img"]
-            self.imgs.append(crop_resize_center(data))
+            if filename.endswith(".npz"):
+                data = np.load(filename)["img"]
+                self.imgs.append(crop_resize_center(data))
         
         
     def __len__(self):
