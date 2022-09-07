@@ -6,7 +6,6 @@ from src.utils.envwrapper import EnvContainer
 from src.agents.SACAgent import SACAgent
 from src.loggers.TensorboardLogger import TensorboardLogger
 from src.loggers.FileLogger import FileLogger
-from src.encoders.VAE import VAE
 
 from src.config.parser import read_config
 from src.config.schema import agent_schema
