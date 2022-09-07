@@ -25,14 +25,15 @@ from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 class SACRunner(BaseRunner):
     def __init__(self, env):
         super().__init__(env)
-        
+
         # Loading Experiment configuration
         self.exp_config = read_config(
             "src/config_files/example_sac/experiment.yaml", experiment_schema
         )
 
         # Loading runner configuration
-        self.runner_config = read_config("src/config_files/example_sac/runner.yaml", runner_schema
+        self.runner_config = read_config(
+            "src/config_files/example_sac/runner.yaml", runner_schema
         )
 
         ## ENV Setup
@@ -78,7 +79,7 @@ class SACRunner(BaseRunner):
                 t += 1
                 action = self.agent.select_action(obs_encoded)
                 obs, reward, done, info = self.env.step(action)
-                ep_ret +=reward
+                ep_ret += reward
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
@@ -92,19 +93,17 @@ class SACRunner(BaseRunner):
                     for _ in range(self.exp_config["update_every"]):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
-        
+
             # Save every N episodes or when the current episode return is better than the best return
             # Following the logic of now deprecated checkpoint_model
-            if(ep_number % self.runner_config["save_every_nth_episode"] == 0):
-                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
+            if ep_number % self.runner_config["save_every_nth_episode"] == 0:
+                save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
                 self.agent.save_model(save_path)
-            
-            elif(ep_ret > self.best_ret):
+
+            elif ep_ret > self.best_ret:
                 self.best_ret = ep_ret
-                save_path = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
+                save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
                 self.agent.save_model(save_path)
-
-
 
     def eval(self):
         print("Evaluation:")
@@ -206,7 +205,9 @@ class SACRunner(BaseRunner):
             except:
                 pass
 
-        elif self.runner_config["save_every_nth_episode"] > 0 and (n_eps + 1 % self.runner_config["save_every_nth_episode"] == 0):
+        elif self.runner_config["save_every_nth_episode"] > 0 and (
+            n_eps + 1 % self.runner_config["save_every_nth_episode"] == 0
+        ):
             path_name = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}_episode_{n_eps}.statedict"
             self.file_logger.log(
                 f"Periodic save (save_freq of {self.runner_config['save_every_nth_episode']}) to {path_name}"
