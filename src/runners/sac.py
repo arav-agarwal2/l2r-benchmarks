@@ -96,12 +96,11 @@ class SACRunner(BaseRunner):
 
             # Save every N episodes or when the current episode return is better than the best return
             # Following the logic of now deprecated checkpoint_model
-            if ep_number % self.runner_config["save_every_nth_episode"] == 0:
-                save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
-                self.agent.save_model(save_path)
-
-            elif ep_ret > self.best_ret:
-                self.best_ret = ep_ret
+            if (
+                ep_number % self.runner_config["save_every_nth_episode"] == 0
+                or ep_ret > self.best_ret
+            ):
+                self.best_ret = max(ep_ret, self.best_ret)
                 save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
                 self.agent.save_model(save_path)
 
