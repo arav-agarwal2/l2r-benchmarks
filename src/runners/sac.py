@@ -70,7 +70,7 @@ class SACRunner(BaseRunner):
 
     def run(self):
         t = 0
-        for _ in range(1):
+        for _ in range(1000):
 
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
