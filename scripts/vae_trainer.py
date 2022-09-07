@@ -59,5 +59,5 @@ if __name__ == '__main__':
         orig_img = torch.as_tensor(val_ds[0], device=device, dtype=torch.float)
         vae_img = vae(orig_img[None])[0][0]
         # (C, H, W)/RGB -> (H, W, C)/BGR
-        cv2.imwrite("{training_config['model_save_path']}/orig.png", orig_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255) 
-        cv2.imwrite("{training_config['model_save_path']}/vae.png", vae_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255)
+        cv2.imwrite(f"{training_config['model_save_path']}/orig.png", orig_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255) 
+        cv2.imwrite(f"{training_config['model_save_path']}/vae.png", vae_img.detach().cpu().numpy()[::-1].transpose(1, 2, 0) * 255)
