@@ -38,6 +38,8 @@ if __name__ == '__main__':
         train_loss = []
         vae.train()
         for batch in tqdm.tqdm(train_dl, desc=f"Epoch #{epoch + 1} train"):
+            print(batch.shape)
+
             loss = vae.loss(batch, *vae(batch))
             optim.zero_grad()
             loss.backward()
