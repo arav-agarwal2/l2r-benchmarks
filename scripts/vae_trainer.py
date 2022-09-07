@@ -35,7 +35,7 @@ if __name__ == "__main__":
     train_ds, val_ds, train_dl, val_dl = get_expert_demo_dataloaders(
         training_config["train_data_path"],
         training_config["val_data_path"],
-        batch_size,
+        bsz,
         device,
     )
 
