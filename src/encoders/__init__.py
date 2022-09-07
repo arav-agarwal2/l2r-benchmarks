@@ -1,1 +1,1 @@
-from src.encoders.VAE import VAE
+from src.encoders.vae import VAE
