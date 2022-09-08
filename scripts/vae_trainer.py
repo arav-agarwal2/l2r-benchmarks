@@ -14,15 +14,15 @@ import sys
 if __name__ == "__main__":
     # TODO: data augmentation
 
-    with open(
-        f"{training_config["model_save_path"]}/git_config",
-        "w+",
-    ) as f:
-        f.write(" ".join(sys.argv[1:]))
-    
     training_config = read_config(
         "src/config_files/train_vae/training.yaml", cv_trainer_schema
     )
+
+    with open(
+        f"{training_config['model_save_path']}/git_config",
+        "w+",
+    ) as f:
+        f.write(" ".join(sys.argv[1:]))
 
     if not os.path.exists(f"{training_config['model_save_path']}"):
         os.umask(0)
