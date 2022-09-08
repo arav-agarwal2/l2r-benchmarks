@@ -94,15 +94,7 @@ class SACRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
 
-            # Save every N episodes or when the current episode return is better than the best return
-            # Following the logic of now deprecated checkpoint_model
-            if (
-                ep_number % self.runner_config["save_every_nth_episode"] == 0
-                or ep_ret > self.best_ret
-            ):
-                self.best_ret = max(ep_ret, self.best_ret)
-                save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
-                self.agent.save_model(save_path)
+            self.checkpoint_model(ep_ret, ep_number)
 
     def eval(self):
         print("Evaluation:")
@@ -188,36 +180,17 @@ class SACRunner(BaseRunner):
 
         return val_ep_rets
 
-    ## Sid needs to take care of the actor_critic objects
-    def checkpoint_model(self, ep_ret, n_eps):
-        if ep_ret > self.best_ret:  # and ep_ret > 100):
-            path_name = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger.log(
-                f"New best episode reward of {round(ep_ret, 1)}! Saving: {path_name}"
-            )
-            self.best_ret = ep_ret
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.runner_config['model_save_dir']}/best_{self.exp_config['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass
-
-        elif self.runner_config["save_every_nth_episode"] > 0 and (
-            n_eps + 1 % self.runner_config["save_every_nth_episode"] == 0
+    def checkpoint_model(self, ep_ret, ep_number):
+        # Save every N episodes or when the current episode return is better than the best return
+        # Following the logic of now deprecated checkpoint_model
+        if (
+            ep_number % self.runner_config["save_every_nth_episode"] == 0
+            or ep_ret > self.best_ret
         ):
-            path_name = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger.log(
-                f"Periodic save (save_freq of {self.runner_config['save_every_nth_episode']}) to {path_name}"
-            )
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass
+            self.best_ret = max(ep_ret, self.best_ret)
+            save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
+            self.agent.save_model(save_path)
+            self.file_logger.log(f"New model saved! Saving to: {save_path}")
 
     def training(self):
         # List of parameters for both Q-networks (save this for convenience)
