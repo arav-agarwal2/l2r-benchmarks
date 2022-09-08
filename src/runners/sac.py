@@ -83,6 +83,7 @@ class SACRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
+                self.file_logger.log(f"info: {info}")
                 if self.wandb_log:
                     wandb.log({"reward" : reward})
                 self.replay_buffer.store(
