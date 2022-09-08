@@ -96,3 +96,19 @@ env_schema = Map(
 replay_buffer_schema = Map(
     {"replay_buffer_config": Map({"replay_size": Int(), "batch_size": Int()})}
 )
+
+
+cv_trainer_schema = Map(
+    {
+        "cv_trainer_config": Map(
+            {
+                "batch_size": Int(),
+                "num_epochs": Int(),
+                "lr": Float(),
+                "model_save_path": Str(),
+                "train_data_path": Str(),
+                "val_data_path": Str(),
+            }
+        )
+    }
+)

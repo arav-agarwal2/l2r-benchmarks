@@ -4,10 +4,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import logging
+
 from src.config.yamlize import yamlize
 from src.constants import DEVICE
-
 from src.encoders.base import BaseEncoder
+from src.encoders.transforms.preprocessing import crop_resize_center
 
 
 @yamlize
@@ -17,8 +19,8 @@ class VAE(BaseEncoder, torch.nn.Module):
     def __init__(
         self,
         image_channels: int = 3,
-        image_height: int = 384,
-        image_width: int = 512,
+        image_height: int = 42,
+        image_width: int = 144,
         z_dim: int = 32,
         load_checkpoint_from: str = "",
     ):
@@ -67,9 +69,10 @@ class VAE(BaseEncoder, torch.nn.Module):
             nn.ConvTranspose2d(32, image_channels, kernel_size=4, stride=2, padding=1),
             nn.Sigmoid(),
         )
-        self.load_from = (
-            load_checkpoint_from  # TODO: Load VAE from saved point, or something.
-        )
+        if load_checkpoint_from == "":
+            logging.info("Not loading any visual encoder checkpoint")
+        else:
+            self.load_state_dict(torch.load(load_checkpoint_from))
         # TODO: Figure out where speed encoder should go.
 
     def reparameterize(self, mu, logvar):
@@ -91,24 +94,17 @@ class VAE(BaseEncoder, torch.nn.Module):
         # assume x is RGB image with shape (bsz, H, W, 3)
         p = np.zeros([x.shape[0], 42, 144, 3], np.float)
         for i in range(x.shape[0]):
-            p[i] = cv2.resize(x[i], (144, 144))[68:110] / 255
-        x = p.transpose(0, 3, 1, 2)
-        x = torch.as_tensor(x, device=device, dtype=torch.float)
+            p[i] = crop_resize_center(x[i])
         v = self.representation(x)
         return v, v.detach().cpu().numpy()
 
     def encode(self, x, device=DEVICE):
         x = torch.as_tensor(x, device=device, dtype=torch.float)
         if len(x.shape) == 3:
-            x = x.permute(2, 0, 1)
             x = torch.unsqueeze(x, 0)
-
-        else:
-            x = x.permute(0, 3, 1, 2)
         h = self.encoder(x)
-        # raise ValueError(x.shape,h.shape)
         z, mu, logvar = self.bottleneck(h)
-        return z  # , mu, logvar
+        return z, mu, logvar
 
     def decode(self, z):
         z = self.fc3(z)
