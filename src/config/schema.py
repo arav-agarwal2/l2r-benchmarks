@@ -61,6 +61,7 @@ agent_schema = Map(
                 "lr": Float(),
                 "alpha": Float(),
                 "checkpoint": Str(),
+                "load_checkpoint": Bool(),
                 "model_save_path": Str(),
             }
         )
