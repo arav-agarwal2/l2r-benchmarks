@@ -44,6 +44,7 @@ class SACAgent(BaseAgent):
         polyak: float,
         make_random_actions: bool,
         checkpoint: str,
+        load_checkpoint: bool,
         model_save_path: str,
         lr: float,
     ):
@@ -58,6 +59,7 @@ class SACAgent(BaseAgent):
         self.polyak = polyak
         self.make_random_actions = make_random_actions
         self.checkpoint = checkpoint
+        self.load_checkpoint = load_checkpoint
         self.model_save_path = model_save_path
         self.lr = lr
 
@@ -89,8 +91,8 @@ class SACAgent(BaseAgent):
             device=DEVICE,
         )
 
-        # if self.cfg["checkpoint"] and self.cfg["load_checkpoint"]:
-        #    self.load_model(self.cfg["checkpoint"])
+        if self.checkpoint and self.load_checkpoint:
+            self.load_model(self.checkpoint)
 
         self.actor_critic_target = deepcopy(self.actor_critic)
 
