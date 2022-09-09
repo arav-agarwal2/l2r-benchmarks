@@ -9,7 +9,7 @@ from src.loggers.FileLogger import FileLogger
 
 from src.config.parser import read_config
 from src.config.schema import agent_schema
-from src.config.schema import experiment_schema
+from src.config.schema import experiment_schema, runner_schema
 from src.config.schema import replay_buffer_schema
 from src.config.yamlize import create_configurable, NameToSourcePath
 from src.config.schema import encoder_schema
@@ -24,8 +24,15 @@ from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 class SACRunner(BaseRunner):
     def __init__(self, env):
         super().__init__(env)
+
+        # Loading Experiment configuration
         self.exp_config = read_config(
             "src/config_files/example_sac/experiment.yaml", experiment_schema
+        )
+
+        # Loading runner configuration
+        self.runner_config = read_config(
+            "src/config_files/example_sac/runner.yaml", runner_schema
         )
 
         ## ENV Setup
@@ -60,16 +67,18 @@ class SACRunner(BaseRunner):
 
     def run(self):
         t = 0
-        for _ in range(1):
+        for ep_number in range(1):
 
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
             obs_encoded = self.encoder.encode(obs)
+            ep_ret = 0
 
             while not done:
                 t += 1
                 action = self.agent.select_action(obs_encoded)
                 obs, reward, done, info = self.env.step(action)
+                ep_ret += reward
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
@@ -84,6 +93,8 @@ class SACRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
 
+            self.checkpoint_model(ep_ret, ep_number)
+
     def eval(self):
         print("Evaluation:")
         val_ep_rets = []
@@ -91,7 +102,7 @@ class SACRunner(BaseRunner):
         # Not implemented for logging multiple test episodes
         # assert self.cfg["num_test_episodes"] == 1
 
-        for j in range(self.cfg["num_test_episodes"]):
+        for j in range(self.runner_config["num_test_episodes"]):
             camera, features, state, _, _ = self.env.reset()
             camera = self.encoder.encode(camera)
             d, ep_ret, ep_len, n_val_steps, self.metadata = False, 0, 0, 0, {}
@@ -99,7 +110,7 @@ class SACRunner(BaseRunner):
             camera = self.encoder.encode(camera)
             experience, t = [], 0
 
-            while (not d) & (ep_len <= self.cfg["max_ep_len"]):
+            while (not d) & (ep_len <= self.runner_config["max_episode_length"]):
                 # Take deterministic actions at test time
                 self.agent.deterministic = True
                 self.t = 1e6
@@ -125,7 +136,7 @@ class SACRunner(BaseRunner):
                     camera2 = self.encoder.encode(camera)
                     ep_len += 1
 
-                if self.cfg["record_experience"]:
+                if self.exp_config["record_experience"]:
                     recording = self.agent.add_experience(
                         action=a,
                         camera=camera,
@@ -156,45 +167,29 @@ class SACRunner(BaseRunner):
 
             # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
-            if self.agent.cfg[
+            if self.exp_config[
                 "record_experience"
             ]:  # and self.metadata['info']['success']:
                 self.file_logger.log("writing experience")
                 self.agent.save_queue.put(experience)
 
-        self.checkpoint_model(ep_ret, self.cfg["max_ep_len"])
+            self.checkpoint_model(ep_ret, j)
+
         self.agent.update_best_pct_complete(info)
 
         return val_ep_rets
 
-    ## Sid needs to take care of the actor_critic objects
-    def checkpoint_model(self, ep_ret, n_eps):
-        if ep_ret > self.best_ret:  # and ep_ret > 100):
-            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger.log(
-                f"New best episode reward of {round(ep_ret, 1)}! Saving: {path_name}"
-            )
-            self.best_ret = ep_ret
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass
-
-        elif self.cfg["save_freq"] > 0 and (n_eps + 1 % self.cfg["save_freq"] == 0):
-            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger.log(
-                f"Periodic save (save_freq of {self.cfg['save_freq']}) to {path_name}"
-            )
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass
+    def checkpoint_model(self, ep_ret, ep_number):
+        # Save every N episodes or when the current episode return is better than the best return
+        # Following the logic of now deprecated checkpoint_model
+        if (
+            ep_number % self.runner_config["save_every_nth_episode"] == 0
+            or ep_ret > self.best_ret
+        ):
+            self.best_ret = max(ep_ret, self.best_ret)
+            save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
+            self.agent.save_model(save_path)
+            self.file_logger.log(f"New model saved! Saving to: {save_path}")
 
     def training(self):
         # List of parameters for both Q-networks (save this for convenience)
