@@ -24,7 +24,7 @@ from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 
 
 class SACRunner(BaseRunner):
-    def __init__(self, env, list_arguments):
+    def __init__(self, env, api_key = None):
         super().__init__(env)
 
         # Loading Experiment configuration
@@ -69,8 +69,7 @@ class SACRunner(BaseRunner):
 
         ## WANDB Declaration
         self.wandb_logger = None
-        if len(list_arguments) > 3:
-            api_key = list_arguments[3]
+        if api_key:
             self.wandb_logger = WanDBLogger(
                 api_key=api_key, project_name="test-project"
             )
