@@ -13,3 +13,4 @@ class WanDBLogger(BaseLogger):
 
     def log(self, data):
         wandb.log({"reward": data})
+        
