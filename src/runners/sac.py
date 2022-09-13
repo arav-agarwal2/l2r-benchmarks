@@ -71,6 +71,8 @@ class SACRunner(BaseRunner):
 
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
+            raise ValueError(f"in runner, obs shape is {obs.shape}")
+
             obs_encoded = self.encoder.encode(obs)
             ep_ret = 0
 
@@ -80,7 +82,6 @@ class SACRunner(BaseRunner):
                 obs, reward, done, info = self.env.step(action)
                 ep_ret += reward
                 obs = obs["images"]["CameraFrontRGB"]
-                raise ValueError(f"in runner, obs shape is {obs.shape}")
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
