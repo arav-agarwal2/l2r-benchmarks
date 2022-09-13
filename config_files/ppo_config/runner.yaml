@@ -1,4 +1,9 @@
-runner_config:
+name: ModelFreeRunner
+config:
+  exp_config_path: "config_files/ppo_config/experiment.yaml"
+  agent_config_path: "config_files/ppo_config/agent.yaml"
+  buffer_config_path: "config_files/ppo_config/buffer.yaml"
+  encoder_config_path: "config_files/ppo_config/encoder.yaml"
   model_save_dir: '/mnt/'
   experience_save_dir: '/mnt/'
   num_test_episodes: 1

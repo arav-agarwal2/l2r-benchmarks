@@ -1,7 +1,0 @@
-name: VAE
-config:
-  image_channels: 3
-  image_height: 384
-  image_width: 512
-  z_dim: 32
-  load_checkpoint_from: 'add/me/pls'
