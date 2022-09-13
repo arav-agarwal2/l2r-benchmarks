@@ -71,7 +71,9 @@ class SACRunner(BaseRunner):
         self.wandb_logger = None
         if len(list_arguments) > 3:
             api_key = list_arguments[3]
-            self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
+            self.wandb_logger = WanDBLogger(
+                api_key=api_key, project_name="test-project"
+            )
 
     def run(self):
         t = 0
