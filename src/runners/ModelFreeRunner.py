@@ -6,13 +6,12 @@ from src.utils.envwrapper import EnvContainer
 from src.agents.SACAgent import SACAgent
 from src.loggers.TensorboardLogger import TensorboardLogger
 from src.loggers.FileLogger import FileLogger
-from src.encoders.VAE import VAE
 
 from src.config.parser import read_config
 from src.config.schema import agent_schema
-from src.config.schema import experiment_schema, runner_schema
+from src.config.schema import experiment_schema
 from src.config.schema import replay_buffer_schema
-from src.config.yamlize import create_configurable, NameToSourcePath
+from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.config.schema import encoder_schema
 from src.constants import DEVICE
 
@@ -21,34 +20,57 @@ import torch
 import itertools
 from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 
-
-class SACRunner(BaseRunner):
-    def __init__(self, env):
-        super().__init__(env)
+@yamlize
+class ModelFreeRunner(BaseRunner):
+    def __init__(
+        self,
+        exp_config_path: str,
+        agent_config_path: str,
+        buffer_config_path: str,
+        encoder_config_path: str,
+        model_save_dir: str,
+        experience_save_dir: str,
+        num_test_episodes: int,
+        save_every_nth_episode: int,
+        total_environment_steps: int,
+        update_model_after: int,
+        update_model_every: int,
+        eval_every: int,
+        max_episode_length: int,
+        ):
+        super().__init__()
+        # Moved initialzation of env to run to allow for yamlization of this class.
+        # This would allow a common runner for all model-free approaches
+        
+        # Initialize runner parameters
+        self.exp_config_path = exp_config_path
+        self.agent_config_path = agent_config_path
+        self.buffer_config_path = buffer_config_path
+        self.encoder_config_path = encoder_config_path
+        self.model_save_dir = model_save_dir
+        self.experience_save_dir = experience_save_dir
+        self.num_test_episodes = num_test_episodes
+        self.save_every_nth_episode = save_every_nth_episode
+        self.total_environment_steps = total_environment_steps
+        self.update_model_after = update_model_after
+        self.update_model_every = update_model_every
+        self.eval_every = eval_every
+        self.max_episode_length = max_episode_length
 
         # Loading Experiment configuration
         self.exp_config = read_config(
-            "src/config_files/example_sac/experiment.yaml", experiment_schema
+            self.exp_config_path, experiment_schema
         )
-
-        # Loading runner configuration
-        self.runner_config = read_config(
-            "src/config_files/example_sac/runner.yaml", runner_schema
-        )
-
-        ## ENV Setup
-        self.env = env
 
         ## AGENT Declaration
         self.agent = create_configurable(
-            "src/config_files/example_sac/agent.yaml", NameToSourcePath.agent
+            self.agent_config_path, NameToSourcePath.agent
         )
         self.best_ret = 0
 
         ## BUFFER Declaration
-        self.action_space = self.env.action_space
         self.replay_buffer = create_configurable(
-            "src/config_files/example_sac/buffer.yaml", NameToSourcePath.buffer
+            self.buffer_config_path, NameToSourcePath.buffer
         )
 
         ## LOGGER Declaration
@@ -62,23 +84,24 @@ class SACRunner(BaseRunner):
 
         ## ENCODER Declaration
         self.encoder = create_configurable(
-            "src/config_files/example_sac/encoder.yaml", NameToSourcePath.encoder
+            self.encoder_config_path, NameToSourcePath.encoder
         )
         self.encoder.to(DEVICE)
 
-    def run(self):
+    def run(self, env):
+        
         t = 0
         for ep_number in range(1):
 
             done = False
-            obs = self.env.reset()["images"]["CameraFrontRGB"]
+            obs = env.reset()["images"]["CameraFrontRGB"]
             obs_encoded = self.encoder.encode(obs)
             ep_ret = 0
 
             while not done:
                 t += 1
                 action = self.agent.select_action(obs_encoded)
-                obs, reward, done, info = self.env.step(action)
+                obs, reward, done, info = env.step(action)
                 ep_ret += reward
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
@@ -96,27 +119,27 @@ class SACRunner(BaseRunner):
 
             self.checkpoint_model(ep_ret, ep_number)
 
-    def eval(self):
+    def eval(self, env):
         print("Evaluation:")
         val_ep_rets = []
 
         # Not implemented for logging multiple test episodes
         # assert self.cfg["num_test_episodes"] == 1
 
-        for j in range(self.runner_config["num_test_episodes"]):
-            camera, features, state, _, _ = self.env.reset()
+        for j in range(self.num_test_episodes):
+            camera, features, state, _, _ = env.reset()
             camera = self.encoder.encode(camera)
             d, ep_ret, ep_len, n_val_steps, self.metadata = False, 0, 0, 0, {}
-            camera, features, state2, r, d, info = self.env.step([0, 1])
+            camera, features, state2, r, d, info = env.step([0, 1])
             camera = self.encoder.encode(camera)
             experience, t = [], 0
 
-            while (not d) & (ep_len <= self.runner_config["max_episode_length"]):
+            while (not d) & (ep_len <= self.max_episode_length):
                 # Take deterministic actions at test time
                 self.agent.deterministic = True
                 self.t = 1e6
                 a = self.agent.select_action(features, encode=False)
-                camera2, features2, state2, r, d, info = self.env.step(a)
+                camera2, features2, state2, r, d, info = env.step(a)
 
                 # Check that the camera is turned on
                 assert (np.mean(camera2) > 0) & (np.mean(camera2) < 255)
@@ -143,7 +166,7 @@ class SACRunner(BaseRunner):
                         camera=camera,
                         next_camera=camera2,
                         done=d,
-                        env=self.env,
+                        env=env,
                         feature=features,
                         next_feature=features2,
                         info=info,
@@ -184,11 +207,11 @@ class SACRunner(BaseRunner):
         # Save every N episodes or when the current episode return is better than the best return
         # Following the logic of now deprecated checkpoint_model
         if (
-            ep_number % self.runner_config["save_every_nth_episode"] == 0
+            ep_number % self.save_every_nth_episode == 0
             or ep_ret > self.best_ret
         ):
             self.best_ret = max(ep_ret, self.best_ret)
-            save_path = f"{self.runner_config['model_save_dir']}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
+            save_path = f"{self.model_save_dir}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
 
