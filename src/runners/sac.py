@@ -2,6 +2,7 @@ import json
 import time
 import numpy as np
 import wandb
+from src.loggers.WanDBLogger import WanDBLogger
 from src.runners.base import BaseRunner
 from src.utils.envwrapper import EnvContainer
 from src.agents.SACAgent import SACAgent
@@ -61,16 +62,14 @@ class SACRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
         ## WANDB Declaration
-        self.wandb_log = False
+        self.wandb_logger = None
         if len(list_arguments) > 3:
             api_key = list_arguments[3]
-            wandb.login(key=api_key)
-            wandb.init(project="test-project", entity="learn2race")
-            self.wandb_log = True
+            self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
 
     def run(self):
         t = 0
-        for _ in range(1000):
+        for _ in range(2):
 
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
@@ -84,8 +83,8 @@ class SACRunner(BaseRunner):
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
                 self.file_logger.log(f"info: {info}")
-                if self.wandb_log:
-                    wandb.log({"reward" : reward})
+                if self.wandb_logger:
+                    self.wandb_logger.log(reward)
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
                 )
