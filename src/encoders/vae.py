@@ -111,7 +111,8 @@ class VAE(BaseEncoder, torch.nn.Module):
         return self.decoder(z)
 
     def forward(self, x):
-        # expects (N, C, H, W)
+        # expects (N, H, W, C)
+        x = x.permute(0, 3, 1, 2)
         z, mu, logvar = self.encode(x)
         z = self.decode(z)
         return z, mu, logvar
