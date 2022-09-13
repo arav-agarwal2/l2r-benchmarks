@@ -6,7 +6,8 @@ config:
   lr: 0.003
   alpha: 0.2
   steps_to_sample_randomly: 100 # start_steps
-  checkpoint: 'models/sac/checkpoints/best_sac_local_encoder-vae_small_seed-249_episode_480.statedict'
+  checkpoint: '/mnt/log_dir_test/best_log_dir_test_episode_0.statedict'
+  load_checkpoint: True
   model_save_path: '/mnt'
   experiment_name: 'SAC_TEST_2'
   record_dir: '/mnt'
