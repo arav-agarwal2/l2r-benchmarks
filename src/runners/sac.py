@@ -67,7 +67,7 @@ class SACRunner(BaseRunner):
 
     def run(self):
         t = 0
-        for ep_number in range(1):
+        for ep_number in range(self.runner_config["num_test_episodes"]):
 
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
