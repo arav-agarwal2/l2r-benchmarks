@@ -100,9 +100,13 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def encode(self, x, device=DEVICE):
         # expects (N, H, W, C)
-        x = torch.as_tensor(x, device=device, dtype=torch.float)
         if len(x.shape) == 3:
-            x = torch.unsqueeze(x, 0)
+            p = np.zeros([1, 42, 144, 3], np.float)
+        else:
+            p = np.zeros([x.shape[0], 42, 144, 3], np.float)
+        for i in range(x.shape[0]):
+            p[i] = crop_resize_center(x[i])
+        x = torch.as_tensor(x, device=device, dtype=torch.float)
         x = x.permute(0, 3, 1, 2)
         h = self.encoder(x)
         z, mu, logvar = self.bottleneck(h)
