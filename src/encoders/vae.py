@@ -100,10 +100,10 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def encode(self, x, device=DEVICE):
         # expects (N, H, W, C)
-        x = x.permute(0, 3, 1, 2)
         x = torch.as_tensor(x, device=device, dtype=torch.float)
         if len(x.shape) == 3:
             x = torch.unsqueeze(x, 0)
+        x = x.permute(0, 3, 1, 2)
         h = self.encoder(x)
         z, mu, logvar = self.bottleneck(h)
         return z, mu, logvar
@@ -114,7 +114,6 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def forward(self, x):
         # expects (N, H, W, C)
-        x = x.permute(0, 3, 1, 2)
         z, mu, logvar = self.encode(x)
         z = self.decode(z)
         return z, mu, logvar
