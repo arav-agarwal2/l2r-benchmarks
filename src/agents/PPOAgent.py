@@ -2,6 +2,7 @@ import itertools
 from multiprocessing.sharedctypes import Value
 import queue, threading
 from copy import deepcopy
+from src.loggers.FileLogger import FileLogger
 
 import torch
 import numpy as np
@@ -138,6 +139,10 @@ class PPOAgent(BaseAgent):
     def compute_loss_v(self,data):
         ## Check this.
         obs, ret = data['obs'], data['rew']
+        file_logger = FileLogger(
+            self.model_save_path, "log_dir_test"
+        )
+        file_logger.log(f"Data: {data}")
         return ((self.actor_critic.v(obs) - ret)**2).mean()
 
     def update(self, data): 
