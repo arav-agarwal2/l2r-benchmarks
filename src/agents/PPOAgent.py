@@ -38,6 +38,7 @@ class PPOAgent(BaseAgent):
         load_checkpoint: bool,
         model_save_path: str,
         lr: float,
+        clip_ratio: float
     ):
         super(PPOAgent, self).__init__()
         self.steps_to_sample_randomly = steps_to_sample_randomly
@@ -52,6 +53,7 @@ class PPOAgent(BaseAgent):
         self.load_checkpoint = load_checkpoint
         self.model_save_path = model_save_path
         self.lr = lr
+        self.clip_ratio = clip_ratio
 
         self.save_episodes = True
         self.episode_num = 0
