@@ -89,7 +89,7 @@ class ModelFreeRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
     def run(self, env):
-        
+        self.file_logger.log(f"MODEL: {type(self.agent).__name__}")
         t = 0
         for ep_number in range(1):
 
