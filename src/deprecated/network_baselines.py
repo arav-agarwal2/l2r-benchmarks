@@ -5,7 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.normal import Normal
-
+from torch.distributions.transforms import TanhTransform, AffineTransform
+from torch.distributions.transformed_distribution import TransformedDistribution
+from torch.distributions.categorical import Categorical
+import traceback
+import pdb
 
 def combined_shape(length, shape=None):
     if shape is None:
@@ -106,3 +110,104 @@ class MLPActorCritic(nn.Module):
         with torch.no_grad():
             a, _ = self.pi(obs, deterministic, False)
             return a.numpy()
+
+class Actor(nn.Module):
+
+    def _distribution(self, obs):
+        raise NotImplementedError
+
+    def _log_prob_from_distribution(self, pi, act):
+        raise NotImplementedError
+
+    def forward(self, obs, act=None):
+        # Produce action distributions for given observations, and 
+        # optionally compute the log likelihood of given actions under
+        # those distributions.
+        pi = self._distribution(obs)
+        logp_a = None
+        if act is not None:
+            logp_a = self._log_prob_from_distribution(pi, act)
+        return pi, logp_a
+
+class MLPCritic(nn.Module):
+
+    def __init__(self, obs_dim, hidden_sizes, activation):
+        super().__init__()
+        self.v_net = mlp([obs_dim] + list(hidden_sizes) + [1], activation)
+        # self.speed_encoder = mlp(
+        #             [1] + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
+        #         )
+    def forward(self, obs):
+        
+        # img_embed = obs[
+        #     ..., : self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
+        # ]  # n x latent_dims
+        # speed = obs[
+        #     ..., self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] :
+        # ]  # n x 1
+        # # pdb.set_trace()
+        # # spd_embed = self.speed_encoder(speed)  # n x 8
+        # feat = torch.cat([img_embed, speed], dim=-1)
+
+        return torch.squeeze(self.v_net(obs), -1) # Critical to ensure v has right shape.
+
+
+
+class MLPCategoricalActor(Actor):
+    
+    def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
+        super().__init__()
+        self.logits_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
+
+    def _distribution(self, obs):
+        logits = self.logits_net(obs)
+        return Categorical(logits=logits)
+
+    def _log_prob_from_distribution(self, pi, act):
+        return pi.log_prob(act)
+
+
+class MLPGaussianActor(Actor):
+
+    def __init__(self, obs_dim, act_dim, hidden_sizes, activation, scale):
+        super().__init__()
+        log_std = -0.5 * np.ones(act_dim, dtype=np.float32)
+        self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
+        self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
+        self.scale = scale
+        # self.speed_encoder = mlp(
+        #     [1] + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
+        # )
+
+    def _distribution(self, obs):
+        # img_embed = obs[
+        #         ..., : self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
+        #     ]  # n x latent_dims
+        # speed = obs[
+        #     ..., self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] :
+        # ]  # n x 1
+        # # pdb.set_trace()
+        # # spd_embed = self.speed_encoder(speed)  # n x 8
+        # feat = torch.cat([img_embed, speed], dim=-1)
+        feat = obs
+        
+
+        mu = self.mu_net(feat)
+        std = torch.exp(self.log_std)
+        dist = None
+        try:
+            # dist = TruncatedNormal(mu, std, -self.scale, self.scale)
+            dist = TransformedDistribution(Normal(mu, std), [TanhTransform(), AffineTransform(loc=0, scale=self.scale)])
+        except Exception as e:
+            traceback.print_exc()
+            # print("mu, std", mu, std)
+            # # print("spead", speed)
+            # # print("spd_embed", spd_embed)
+            # print("obs", obs)
+            # print("feat", feat)
+            pdb.set_trace()
+        return dist
+        # base_dist = Normal(mu, std)
+        # transforms = [TanhTransform(), AffineTransform(0, scale=self.scale)]
+        # transforms = [TanhTransform()]
+        # return TransformedDistribution(base_dist, transforms)

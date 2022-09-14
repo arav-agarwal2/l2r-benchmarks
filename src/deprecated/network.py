@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
-from src.deprecated.network_baselines import mlp, SquashedGaussianMLPActor
+from src.deprecated.network_baselines import MLPCategoricalActor, MLPCritic, MLPGaussianActor, mlp, SquashedGaussianMLPActor
 from enum import Enum
+from gym.spaces import Box, Discrete
 
 def resnet18(pretrained=True):
     model = torch.hub.load("pytorch/vision:v0.6.0", "resnet18", pretrained=pretrained)
@@ -156,3 +157,36 @@ class Vfunction(nn.Module):
         out = self.regressor(torch.cat([img_embed], dim=-1))  # n x 1
         # pdb.set_trace()
         return out.view(-1)
+
+
+class PPOMLPActorCritic(nn.Module):
+    def __init__(self, observation_space, action_space,
+                 hidden_sizes=(64,64), activation=nn.Tanh, device="cpu"):
+        super().__init__()
+
+        obs_dim = observation_space
+
+        
+        # obs_dim += self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"][-1]
+        # policy builder depends on action space
+        if isinstance(action_space, Box):
+            self.pi = MLPGaussianActor(obs_dim, action_space.shape[0], hidden_sizes, activation, action_space.high[0])
+        elif isinstance(action_space, Discrete):
+            self.pi = MLPCategoricalActor(obs_dim, action_space.n, hidden_sizes, activation)
+
+        # build value function
+        self.v  = MLPCritic(obs_dim, hidden_sizes, activation)
+
+        self.to(device)
+        self.device = device
+
+    def step(self, obs):
+        with torch.no_grad():
+            pi = self.pi._distribution(obs)
+            a = pi.sample()
+            logp_a = self.pi._log_prob_from_distribution(pi, a)
+            v = self.v(obs)
+        return a.cpu().numpy(), v.cpu().numpy(), logp_a.cpu().numpy()
+
+    def act(self, obs):
+        return self.step(obs)[0]
