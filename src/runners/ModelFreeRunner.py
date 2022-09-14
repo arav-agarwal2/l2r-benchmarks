@@ -19,6 +19,7 @@ from torch.optim import Adam
 import torch
 import itertools
 from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
+from src.buffers.PPOBuffer import PPOBuffer
 
 @yamlize
 class ModelFreeRunner(BaseRunner):
@@ -109,11 +110,14 @@ class ModelFreeRunner(BaseRunner):
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
                 )
+                if (t + 1) % self.eval_every == 0 or t == self.max_episode_length:
+                    self.replay_buffer.finish_path() # TODO: Taking default value currently, select_action needs to return value to change this
+
                 obs_encoded = obs_encoded_new
                 if (t >= self.exp_config["update_after"]) & (
                     t % self.exp_config["update_every"] == 0
                 ):
-                    for _ in range(self.exp_config["update_every"]):
+                    for _ in range(self.exp_config["update_every"]): 
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
 
@@ -215,7 +219,7 @@ class ModelFreeRunner(BaseRunner):
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
 
-    def training(self):
+    """def training(self):
         # List of parameters for both Q-networks (save this for convenience)
         # Count variables (protip: try to get a feel for how different size networks behave!)
         # var_counts = tuple(core.count_vars(module) for module in [ac.pi, ac.q1, ac.q2])
@@ -345,4 +349,4 @@ class ModelFreeRunner(BaseRunner):
                     feat,
                     state,
                     t_start,
-                ) = self.env.reset_episode(t)
+                ) = self.env.reset_episode(t)"""

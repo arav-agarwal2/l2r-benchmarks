@@ -11,7 +11,7 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic, CriticType
+from src.deprecated.network import ActorCritic, CriticType, PPOMLPActorCritic
 from src.encoders.VAE import VAE
 from src.utils.utils import RecordExperience
 
@@ -66,6 +66,8 @@ class PPOAgent(BaseAgent):
         self.pi_scheduler = None
         self.t_start = 0
         self.best_pct = 0
+        self.train_pi_iters = 80
+        self.train_v_iters = 80
 
         self.metadata = {}
         self.record = {"transition_actor": ""}
@@ -74,14 +76,9 @@ class PPOAgent(BaseAgent):
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
-        self.actor_critic = ActorCritic(
-            self.obs_dim,
-            self.action_space,
-            None,
-            latent_dims=self.obs_dim,
-            device=DEVICE,
-            critic_type=CriticType.Value
-        )
+        self.actor_critic = PPOMLPActorCritic(self.obs_dim, self.action_space, device=DEVICE)
+
+        self.target_kl = 0.01
 
         if self.checkpoint and self.load_checkpoint:
             self.load_model(self.checkpoint)
@@ -122,51 +119,63 @@ class PPOAgent(BaseAgent):
         obs, act, adv, logp_old = data['obs'], data['act'], data['adv'], data['logp']
 
         # Policy loss
-        pi, logp = self.actor_critic.pi(obs, act)
+        pi, logp = self.actor_critic.pi(obs.to(DEVICE), act.to(DEVICE))
+        # logp = logp.cpu().numpy()
+        # pi = pi.cpu()
+        logp_old = logp_old.to(DEVICE)
+        adv = adv.to(DEVICE)
         ratio = torch.exp(logp - logp_old)
+        if ratio.isnan().any().item():
+            print('ratio is nan ---')
+            print(ratio)
         clip_adv = torch.clamp(ratio, 1-self.clip_ratio, 1+self.clip_ratio) * adv
         loss_pi = -(torch.min(ratio * adv, clip_adv)).mean()
 
         # Useful extra info
         approx_kl = (logp_old - logp).mean().item()
-        ent = pi.entropy().mean().item()
+        # print("entropy", pi.entropy)
+        # ent = pi.entropy.mean().item()
         clipped = ratio.gt(1+self.clip_ratio) | ratio.lt(1-self.clip_ratio)
         clipfrac = torch.as_tensor(clipped, dtype=torch.float32).mean().item()
-        pi_info = dict(kl=approx_kl, ent=ent, cf=clipfrac)
-
+        # pi_info = dict(kl=approx_kl, ent=ent, cf=clipfrac)
+        pi_info = dict(kl=approx_kl, cf=clipfrac)
         return loss_pi, pi_info
+
 
     def compute_loss_v(self,data):
         ## Check this.
-        obs, ret = data['obs'], data['rew']
-        file_logger = FileLogger(
-            self.model_save_path, "log_dir_test"
-        )
-        file_logger.log(f"Data: {[(key, elem.shape) for key, elem in data.items()]} and {self.actor_critic.v(obs).shape} and square: {((self.actor_critic.v(obs) - ret)**2).shape}")
-        return ((self.actor_critic.v(obs) - ret)**2).mean(), 'TODO'
+        obs, ret = data['obs'], data['ret']
+        ret = ret.to(DEVICE)
+        return ((self.actor_critic.v(obs.to(DEVICE)) - ret)**2).mean()
 
     def update(self, data): 
         
-        # First run one gradient descent step for Q1 and Q2
-        self.v_optimizer.zero_grad()
-        loss_v, v_info = self.compute_loss_v(data)
-        loss_v.backward()
-        self.v_optimizer.step()
+        pi_l_old, pi_info_old = self.compute_loss_pi(data)
+        pi_l_old = pi_l_old.item()
+        v_l_old = self.compute_loss_v(data).item()
 
-         # Freeze Q-networks so you don't waste computational effort
-        # computing gradients for them during the policy learning step.
-        for p in self.v_params:
-            p.requires_grad = False
+        # Train policy with multiple steps of gradient descent
+        for i in range(self.train_pi_iters):
+            self.pi_optimizer.zero_grad()
+            loss_pi, pi_info = self.compute_loss_pi(data)
+            kl = pi_info['kl']
+            if kl > 1.5 * self.target_kl:
+                # print(next(self.actor_critic.pi.mu_net.parameters()))
+                self.file_logger('Early stopping at step %d due to reaching max kl.'%i)
+                break
+            loss_pi.backward()
+            self.pi_optimizer.step()
+            print(next(self.actor_critic.pi.mu_net.parameters()))
+        # print(next(self.actor_critic.pi.mu_net.parameters()))
+        # logger.store(StopIter=i)
 
-        # Next run one gradient descent step for pi.
-        self.pi_optimizer.zero_grad()
-        loss_pi, pi_info = self.compute_loss_pi(data)
-        loss_pi.backward()
-        self.pi_optimizer.step()
-
-        # Unfreeze Q-networks so you can optimize it at next step.
-        for p in self.v_params:
-            p.requires_grad = True
+        # Value function learning
+        for i in range(self.train_v_iters):
+            self.v_optimizer.zero_grad()
+            loss_v = self.compute_loss_v(data)
+            loss_v.backward()
+            self.v_optimizer.step()
+        print(next(self.actor_critic.pi.mu_net.parameters()))
 
     def load_model(self, path):
         self.actor_critic.load_state_dict(torch.load(path))
