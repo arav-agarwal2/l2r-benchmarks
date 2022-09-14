@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from src.deprecated.network_baselines import mlp, SquashedGaussianMLPActor
-
+import enum
 
 def resnet18(pretrained=True):
     model = torch.hub.load("pytorch/vision:v0.6.0", "resnet18", pretrained=pretrained)
@@ -71,6 +71,10 @@ class DuelingNetwork(nn.Module):
         """
         return out.view(-1)
 
+class CriticType(enum):
+    Q = 0,
+    Safety = 1,
+    Value = 2
 
 class ActorCritic(nn.Module):
     def __init__(
@@ -81,7 +85,7 @@ class ActorCritic(nn.Module):
         activation=nn.ReLU,
         latent_dims=None,
         device="cpu",
-        safety=False,  ## Flag to indicate architecture for Safety_actor_critic
+        critic_type=CriticType.Value,  ## Flag to indicate architecture for Safety_actor_critic
     ):
         super().__init__()
         self.cfg = cfg
@@ -94,11 +98,14 @@ class ActorCritic(nn.Module):
         self.policy = SquashedGaussianMLPActor(
             obs_dim, act_dim, [64, 64, 32], activation, act_limit
         )
-        if safety:
+        if critic_type == CriticType.Safety:
             self.q1 = DuelingNetwork(cfg)
-        else:
+        elif critic_type == CriticType.Q:
             self.q1 = Qfunction(cfg)
             self.q2 = Qfunction(cfg)
+        elif critic_type == CriticType.Value:
+            self.v = Vfunction(cfg)
+        
         self.device = device
         self.to(device)
 
@@ -129,3 +136,36 @@ class ActorCritic(nn.Module):
             a, _ = self.policy(feat, deterministic, False)
             a = a.squeeze(0)
         return a.numpy() if self.device == "cpu" else a.cpu().numpy()
+
+
+class Vfunction(nn.Module):
+    """Modified from Qfunction."""
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+        # pdb.set_trace()
+        self.speed_encoder = mlp(
+            [1] + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
+        )
+        self.regressor = mlp(
+            [
+                self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
+                + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"][-1]
+                + 2
+            ]
+            + self.cfg[self.cfg["use_encoder_type"]]["hiddens"]
+            + [1]
+        )
+    def forward(self, obs_feat):
+        # if obs_feat.ndimension() == 1:
+        #    obs_feat = obs_feat.unsqueeze(0)
+        img_embed = obs_feat[
+            ..., : self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
+        ]  # n x latent_dims
+        speed = obs_feat[
+            ..., self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] :
+        ]  # n x 1
+        spd_embed = self.speed_encoder(speed)  # n x 16
+        out = self.regressor(torch.cat([img_embed, spd_embed], dim=-1))  # n x 1
+        # pdb.set_trace()
+        return out.view(-1)

@@ -10,7 +10,7 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic
+from src.deprecated.network import ActorCritic, CriticType
 from src.encoders.VAE import VAE
 from src.utils.utils import RecordExperience
 
@@ -77,6 +77,7 @@ class PPOAgent(BaseAgent):
             None,
             latent_dims=self.obs_dim,
             device=DEVICE,
+            critic_type=CriticType.Value
         )
 
         if self.checkpoint and self.load_checkpoint:
