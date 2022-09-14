@@ -145,7 +145,7 @@ class Vfunction(nn.Module):
         self.cfg = cfg
         # pdb.set_trace()
         self.speed_encoder = mlp([1] + [8, 8])
-        self.regressor = mlp([32 + 2] + [32, 64, 64, 32, 32] + [1])
+        self.regressor = mlp([32] + [32, 64, 64, 32, 32] + [1])
 
     def forward(self, obs_feat):
         # if obs_feat.ndimension() == 1:
