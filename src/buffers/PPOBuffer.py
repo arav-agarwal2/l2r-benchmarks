@@ -28,7 +28,7 @@ class PPOBuffer:
     for calculating the advantages of state-action pairs.
     """
 
-    def __init__(self, obs_dim: int, act_dim: int, size: int, gamma=0.99, lam=0.95):
+    def __init__(self, obs_dim: int, act_dim: int, size: int, batch_size: int, gamma=0.99, lam=0.95):
         self.obs_buf = np.zeros( (size, obs_dim), dtype=np.float32)
         self.act_buf = np.zeros( (size, act_dim), dtype=np.float32)
         self.adv_buf = np.zeros(size, dtype=np.float32)
@@ -38,6 +38,7 @@ class PPOBuffer:
         self.logp_buf = np.zeros(size, dtype=np.float32)
         self.gamma, self.lam = gamma, lam
         self.ptr, self.path_start_idx, self.max_size = 0, 0, size
+        self.batch_size = batch_size
 
     def store(self, obs, act, rew, val, logp):
         """
@@ -130,10 +131,10 @@ class SACReplayBuffer:
         self.ptr = (self.ptr + 1) % self.max_size
         self.size = min(self.size + 1, self.max_size)
 
-    def sample_batch(self, batch_size=32):
+    def sample_batch(self):
 
         idxs = np.random.choice(
-            self.size, size=min(batch_size, self.size), replace=False
+            self.size, size=min(self.batch_size, self.size), replace=False
         )
         batch = dict(
             obs=self.obs_buf[idxs],
