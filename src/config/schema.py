@@ -63,6 +63,9 @@ agent_schema = Map(
                 "checkpoint": Str(),
                 "load_checkpoint": Bool(),
                 "model_save_path": Str(),
+                "experiment_name": Str(),
+                "record_dir": Str(),
+                "track_name": Str(),
             }
         )
     }
