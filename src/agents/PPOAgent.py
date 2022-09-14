@@ -142,7 +142,7 @@ class PPOAgent(BaseAgent):
         file_logger = FileLogger(
             self.model_save_path, "log_dir_test"
         )
-        file_logger.log(f"Data: {[(key, elem.shape) for key, elem in data.items()]} and {self.actor_critic.v(obs).shape}")
+        file_logger.log(f"Data: {[(key, elem.shape) for key, elem in data.items()]} and {self.actor_critic.v(obs).shape} and square: {((self.actor_critic.v(obs) - ret)**2).shape}")
         return ((self.actor_critic.v(obs) - ret)**2).mean()
 
     def update(self, data): 
