@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from src.deprecated.network_baselines import mlp, SquashedGaussianMLPActor
-import enum
+from enum import Enum
 
 def resnet18(pretrained=True):
     model = torch.hub.load("pytorch/vision:v0.6.0", "resnet18", pretrained=pretrained)
@@ -71,9 +71,9 @@ class DuelingNetwork(nn.Module):
         """
         return out.view(-1)
 
-class CriticType(enum):
-    Q = 0,
-    Safety = 1,
+class CriticType(Enum):
+    Q = 0
+    Safety = 1
     Value = 2
 
 class ActorCritic(nn.Module):
