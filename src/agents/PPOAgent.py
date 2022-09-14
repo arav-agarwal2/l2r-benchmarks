@@ -79,7 +79,7 @@ class PPOAgent(BaseAgent):
             None,
             latent_dims=self.obs_dim,
             device=DEVICE,
-            critic_type=CriticType.Value
+            critic_type=CriticType.Q
         )
 
         if self.checkpoint and self.load_checkpoint:
