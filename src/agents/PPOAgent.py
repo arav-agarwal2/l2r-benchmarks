@@ -135,7 +135,7 @@ class PPOAgent(BaseAgent):
 
     def compute_loss_v(self,data):
         ## Check this.
-        obs, ret = data['obs'], data['ret']
+        obs, ret = data['obs'], data['rew']
         return ((self.actor_critic.v(obs) - ret)**2).mean()
 
     def update(self, data): 
