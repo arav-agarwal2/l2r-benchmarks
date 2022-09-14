@@ -78,20 +78,89 @@ class PPOAgent(BaseAgent):
             device=DEVICE,
         )
 
+        if self.checkpoint and self.load_checkpoint:
+            self.load_model(self.checkpoint)
+
+        self.actor_critic_target = deepcopy(self.actor_critic)
+
+        self.v_params = itertools.chain(
+            self.actor_critic.v.parameters()
+        )
+
+        # Set up optimizers for policy and q-function
+        self.pi_optimizer = Adam(
+            self.actor_critic.policy.parameters(), lr=self.lr
+        )
+        self.v_optimizer = Adam(self.v_params, lr=self.lr)
+        self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
+            self.pi_optimizer, 1, gamma=0.5
+        )
 
 
     def select_action(self, obs) -> np.array: 
-        
-        raise NotImplementedError
+        if self.t > self.steps_to_sample_randomly:
+            a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
+            a = a  # numpy array...
+            self.record["transition_actor"] = "learner"
+        else:
+            a = self.action_space.sample()
+            self.record["transition_actor"] = "random"
+        self.t = self.t + 1
+        return a
 
     def register_reset(self, obs) -> np.array:  
-        raise NotImplementedError
+        self.deterministic = True
+        self.t = 1e6
+
+    def compute_loss_pi(self,data):
+
+        obs, act, adv, logp_old = data['obs'], data['act'], data['adv'], data['logp']
+
+        # Policy loss
+        pi, logp = self.actor_critic.pi(obs, act)
+        ratio = torch.exp(logp - logp_old)
+        clip_adv = torch.clamp(ratio, 1-self.clip_ratio, 1+self.clip_ratio) * adv
+        loss_pi = -(torch.min(ratio * adv, clip_adv)).mean()
+
+        # Useful extra info
+        approx_kl = (logp_old - logp).mean().item()
+        ent = pi.entropy().mean().item()
+        clipped = ratio.gt(1+self.clip_ratio) | ratio.lt(1-self.clip_ratio)
+        clipfrac = torch.as_tensor(clipped, dtype=torch.float32).mean().item()
+        pi_info = dict(kl=approx_kl, ent=ent, cf=clipfrac)
+
+        return loss_pi, pi_info
+
+    def compute_loss_v(self,data):
+        ## Check this.
+        obs, ret = data['obs'], data['ret']
+        return ((self.actor_critic.v(obs) - ret)**2).mean()
 
     def update(self, data): 
-        raise NotImplementedError
+        
+        # First run one gradient descent step for Q1 and Q2
+        self.v_optimizer.zero_grad()
+        loss_v, v_info = self.compute_loss_v(data)
+        loss_v.backward()
+        self.v_optimizer.step()
+
+         # Freeze Q-networks so you don't waste computational effort
+        # computing gradients for them during the policy learning step.
+        for p in self.v_params:
+            p.requires_grad = False
+
+        # Next run one gradient descent step for pi.
+        self.pi_optimizer.zero_grad()
+        loss_pi, pi_info = self.compute_loss_pi(data)
+        loss_pi.backward()
+        self.pi_optimizer.step()
+
+        # Unfreeze Q-networks so you can optimize it at next step.
+        for p in self.v_params:
+            p.requires_grad = True
 
     def load_model(self, path):
-        raise NotImplementedError
+        self.actor_critic.load_state_dict(torch.load(path))
 
     def save_model(self, path):
-        raise NotImplementedError
+        torch.save(self.actor_critic.state_dict(), path)
