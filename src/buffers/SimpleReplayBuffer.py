@@ -35,7 +35,6 @@ class SimpleReplayBuffer:
 
         def convert(arraylike):
             obs = arraylike
-            raise ValueError(f"type of obs: {type(obs)}")
             if isinstance(obs, torch.Tensor):
                 if obs.requires_grad:
                     obs = obs.detach()
