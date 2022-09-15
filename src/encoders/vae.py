@@ -90,18 +90,16 @@ class VAE(BaseEncoder, torch.nn.Module):
     def representation(self, x):
         return self.bottleneck(self.encoder(x))[0]
 
-    def encode_raw(self, x: np.ndarray, device) -> np.ndarray:
+    def encode(self, x: np.ndarray, device) -> np.ndarray:
         # assume x is RGB image with shape (bsz, H, W, 3)
         p = torch.zeros([x.shape[0], 42, 144, 3])
         for i in range(x.shape[0]):
-            # semi-untested
             p[i] = crop_resize_center(x[i])
         v = self.representation(x)
-        return v, v.detach().cpu().numpy()
-
-    def encode(self, x, device=DEVICE):
+        return v
+    
+    def distribution(self, x, device=DEVICE):
         # expects (N, H, W, C)
-#         raise ValueError(f"x type in encode {type(x)}")
         if len(x.shape) == 3:
             p = torch.zeros([1, 3, 42, 144]).to(device)
             p[0] = crop_resize_center(x)
@@ -119,7 +117,7 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def forward(self, x):
         # expects (N, H, W, C)
-        z, mu, logvar = self.encode(x)
+        z, mu, logvar = self.distribution(x)
         z = self.decode(z)
         return z, mu, logvar
 
