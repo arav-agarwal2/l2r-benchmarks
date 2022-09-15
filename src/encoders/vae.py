@@ -103,13 +103,12 @@ class VAE(BaseEncoder, torch.nn.Module):
         # expects (N, H, W, C)
 #         raise ValueError(f"x type in encode {type(x)}")
         if len(x.shape) == 3:
-            p = torch.zeros([1, 42, 144, 3])
+            p = torch.zeros([1, 3, 42, 144])
             p[0] = crop_resize_center(x)
         else:
-            p = torch.zeros([x.shape[0], 42, 144, 3])
+            p = torch.zeros([x.shape[0], 3, 42, 144])
             for i in range(x.shape[0]):
                 p[i] = crop_resize_center(x[i])
-        x = p.permute(0, 3, 1, 2)
         h = self.encoder(x)
         z, mu, logvar = self.bottleneck(h)
         return z, mu, logvar
