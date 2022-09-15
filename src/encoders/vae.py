@@ -109,7 +109,7 @@ class VAE(BaseEncoder, torch.nn.Module):
             p = torch.zeros([x.shape[0], 3, 42, 144])
             for i in range(x.shape[0]):
                 p[i] = crop_resize_center(x[i])
-        h = self.encoder(x)
+        h = self.encoder(p)
         z, mu, logvar = self.bottleneck(h)
         return z, mu, logvar
 
