@@ -100,7 +100,6 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def encode(self, x, device=DEVICE):
         # expects (N, H, W, C)
-        print(x.shape)
         if len(x.shape) == 3:
             p = np.zeros([1, 42, 144, 3], np.float)
         else:
