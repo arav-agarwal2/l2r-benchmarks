@@ -92,8 +92,9 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def encode_raw(self, x: np.ndarray, device) -> np.ndarray:
         # assume x is RGB image with shape (bsz, H, W, 3)
-        p = np.zeros([x.shape[0], 42, 144, 3], np.float)
+        p = torch.zeros([x.shape[0], 42, 144, 3])
         for i in range(x.shape[0]):
+            # semi-untested
             p[i] = crop_resize_center(x[i])
         v = self.representation(x)
         return v, v.detach().cpu().numpy()
@@ -102,14 +103,13 @@ class VAE(BaseEncoder, torch.nn.Module):
         # expects (N, H, W, C)
         raise ValueError(f"x type in encode {type(x)}")
         if len(x.shape) == 3:
-            p = np.zeros([1, 42, 144, 3], np.float)
+            p = torch.zeros([1, 42, 144, 3])
             p[0] = crop_resize_center(x)
         else:
-            p = np.zeros([x.shape[0], 42, 144, 3], np.float)
+            p = torch.zeros([x.shape[0], 42, 144, 3])
             for i in range(x.shape[0]):
                 p[i] = crop_resize_center(x[i])
-        x = torch.as_tensor(p, device=device, dtype=torch.float)
-        x = x.permute(0, 3, 1, 2)
+        x = p.permute(0, 3, 1, 2)
         h = self.encoder(x)
         z, mu, logvar = self.bottleneck(h)
         return z, mu, logvar
