@@ -90,9 +90,12 @@ class VAE(BaseEncoder, torch.nn.Module):
     def representation(self, x):
         return self.bottleneck(self.encoder(x))[0]
 
-    def encode(self, x: np.ndarray, device=DEVICE) -> np.ndarray:
+    def encode(self, x: np.ndarray, device=DEVICE) -> torch.Tensor:
         # assume x is RGB image with shape (H, W, 3)
-        v = self.representation(crop_resize_center(x))
+        print(x.shape)
+        h = crop_resize_center(x)
+        print(h.shape)
+        v = self.representation(h)
         return v
     
     def distribution(self, x, device=DEVICE):
