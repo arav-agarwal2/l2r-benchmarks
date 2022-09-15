@@ -6,9 +6,9 @@ config:
   lr: 0.003
   alpha: 0.2
   steps_to_sample_randomly: 100 # start_steps
-  checkpoint: '/mnt/log_dir_test/best_log_dir_test_episode_0.statedict'
+  checkpoint: ''
   load_checkpoint: True
   model_save_path: '/mnt'
-  experiment_name: 'SAC_TEST_2'
   record_dir: '/mnt'
+  experiment_name: 'pixiethecat'
   track_name: 'Thruxton'
