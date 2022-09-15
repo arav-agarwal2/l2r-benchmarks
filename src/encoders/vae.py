@@ -92,7 +92,7 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def encode(self, x: np.ndarray, device=DEVICE) -> torch.Tensor:
         # assume x is RGB image with shape (H, W, 3)
-        h = crop_resize_center(x)
+        h = crop_resize_center(x).unsqueeze(0)
         v = self.representation(h)
         return v
     
