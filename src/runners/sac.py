@@ -1,6 +1,8 @@
 import json
 import time
 import numpy as np
+import wandb
+from src.loggers.WanDBLogger import WanDBLogger
 from src.runners.base import BaseRunner
 from src.utils.envwrapper import EnvContainer
 from src.agents.SACAgent import SACAgent
@@ -22,7 +24,7 @@ from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
 
 
 class SACRunner(BaseRunner):
-    def __init__(self, env):
+    def __init__(self, env, api_key = None):
         super().__init__(env)
 
         # Loading Experiment configuration
@@ -65,6 +67,13 @@ class SACRunner(BaseRunner):
         )
         self.encoder.to(DEVICE)
 
+        ## WANDB Declaration
+        self.wandb_logger = None
+        if api_key:
+            self.wandb_logger = WanDBLogger(
+                api_key=api_key, project_name="test-project"
+            )
+
     def run(self):
         t = 0
         for ep_number in range(self.runner_config["num_test_episodes"]):
@@ -83,6 +92,9 @@ class SACRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
+                self.file_logger.log(f"info: {info}")
+                if self.wandb_logger:
+                    self.wandb_logger.log(reward)
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
                 )
