@@ -90,7 +90,7 @@ class VAE(BaseEncoder, torch.nn.Module):
     def representation(self, x):
         return self.bottleneck(self.encoder(x))[0]
 
-    def encode(self, x: np.ndarray, device) -> np.ndarray:
+    def encode(self, x: np.ndarray, device=DEVICE) -> np.ndarray:
         # assume x is RGB image with shape (bsz, H, W, 3)
         p = torch.zeros([x.shape[0], 42, 144, 3])
         for i in range(x.shape[0]):
