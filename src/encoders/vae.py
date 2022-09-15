@@ -103,10 +103,11 @@ class VAE(BaseEncoder, torch.nn.Module):
         raise ValueError(f"x shape in encode: {x.shape}")
         if len(x.shape) == 3:
             p = np.zeros([1, 42, 144, 3], np.float)
+            p[0] = crop_resize_center(x)
         else:
             p = np.zeros([x.shape[0], 42, 144, 3], np.float)
-        for i in range(x.shape[0]):
-            p[i] = crop_resize_center(x[i])
+            for i in range(x.shape[0]):
+                p[i] = crop_resize_center(x[i])
         x = torch.as_tensor(x, device=device, dtype=torch.float)
         x = x.permute(0, 3, 1, 2)
         h = self.encoder(x)
