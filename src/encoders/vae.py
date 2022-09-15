@@ -101,7 +101,7 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def encode(self, x, device=DEVICE):
         # expects (N, H, W, C)
-        raise ValueError(f"x type in encode {type(x)}")
+#         raise ValueError(f"x type in encode {type(x)}")
         if len(x.shape) == 3:
             p = torch.zeros([1, 42, 144, 3])
             p[0] = crop_resize_center(x)
