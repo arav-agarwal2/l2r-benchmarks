@@ -80,6 +80,7 @@ class SACRunner(BaseRunner):
 
             done = False
             obs = self.env.reset()["images"]["CameraFrontRGB"]
+
             obs_encoded = self.encoder.encode(obs)
             ep_ret = 0
 
