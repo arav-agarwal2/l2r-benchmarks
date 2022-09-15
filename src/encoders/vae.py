@@ -69,10 +69,10 @@ class VAE(BaseEncoder, torch.nn.Module):
             nn.ConvTranspose2d(32, image_channels, kernel_size=4, stride=2, padding=1),
             nn.Sigmoid(),
         )
-#         if load_checkpoint_from == "":
-#             logging.info("Not loading any visual encoder checkpoint")
-#         else:
-#             self.load_state_dict(torch.load(load_checkpoint_from))
+        if load_checkpoint_from == "":
+            logging.info("Not loading any visual encoder checkpoint")
+        else:
+            self.load_state_dict(torch.load(load_checkpoint_from))
         # TODO: Figure out where speed encoder should go.
 
     def reparameterize(self, mu, logvar):
