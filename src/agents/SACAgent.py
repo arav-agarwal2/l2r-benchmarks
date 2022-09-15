@@ -248,35 +248,6 @@ class SACAgent(BaseAgent):
                     self.pi_scheduler.step()
             self.best_pct = info["metrics"]["pct_complete"]
 
-    """def checkpoint_model(self, ep_ret, n_eps):
-        # Save if best (or periodically)
-        if ep_ret > self.best_ret:  # and ep_ret > 100):
-            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger(
-                f"New best episode reward of {round(ep_ret, 1)}! Saving: {path_name}"
-            ) ## Hello
-            self.best_ret = ep_ret
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass
-
-        elif self.cfg['save_freq'] > 0 and (n_eps + 1 % self.cfg["save_freq"] == 0):
-            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger(
-                f"Periodic save (save_freq of {self.cfg['save_freq']}) to {path_name}"
-            ) ## Hello
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass """
-
     def add_experience(
         self,
         action,
