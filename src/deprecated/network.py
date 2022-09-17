@@ -22,16 +22,16 @@ class Qfunction(nn.Module):
         self.cfg = cfg
         # pdb.set_trace()
         self.speed_encoder = mlp([1] + [8, 8])
-        self.regressor = mlp([32 + 2] + [32, 64, 64, 32, 32] + [1])
+        self.regressor = mlp([32 + 8 + 2] + [32, 64, 64, 32, 32] + [1])
         # self.lr = cfg['resnet']['LR']
 
     def forward(self, obs_feat, action):
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
-        # speed = obs_feat[..., 32:]  # n x 1
-        # spd_embed = self.speed_encoder(speed)  # n x 16
-        out = self.regressor(torch.cat([img_embed, action], dim=-1))  # n x 1
+        speed = obs_feat[..., 32:]  # n x 1
+        spd_embed = self.speed_encoder(speed)  # n x 16
+        out = self.regressor(torch.cat([img_embed, spd_embed, action], dim=-1))  # n x 1
         # pdb.set_trace()
         return out.view(-1)
 
