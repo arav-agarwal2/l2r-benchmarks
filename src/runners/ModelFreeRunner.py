@@ -103,7 +103,12 @@ class ModelFreeRunner(BaseRunner):
         for ep_number in range(self.num_test_episodes):
 
             done = False
-            obs = env.reset()["images"]["CameraFrontRGB"]
+            obs = env.reset()
+            speeds_xyz = obs["pose"][3:6]
+            speed = np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))
+            self.file_logger.log(f"speed: {speed}")
+            obs = obs["images"]["CameraFrontRGB"]
+
             obs_encoded = self.encoder.encode(obs)
             ep_ret = 0
 
@@ -112,7 +117,9 @@ class ModelFreeRunner(BaseRunner):
                 action = self.agent.select_action(obs_encoded)
                 obs, reward, done, info = env.step(action)
                 ep_ret += reward
-                self.file_logger.log(f"obs: {obs}")
+                speeds_xyz = obs["pose"][3:6]
+                speed = np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))
+                self.file_logger.log(f"speed: {speed}")
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 #self.file_logger.log(f"reward: {reward}")
