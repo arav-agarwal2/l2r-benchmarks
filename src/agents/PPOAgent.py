@@ -12,7 +12,7 @@ from torch.optim import Adam
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
 from src.deprecated.network import ActorCritic, CriticType, PPOMLPActorCritic
-from src.encoders.VAE import VAE
+from src.encoders.vae import VAE
 from src.utils.utils import RecordExperience
 
 from src.constants import DEVICE
