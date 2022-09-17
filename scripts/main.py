@@ -18,7 +18,6 @@ if __name__ == "__main__":
         f"{runner.agent.model_save_path}/{runner.exp_config['experiment_name']}/git_config",
         "w+",
     ) as f:
-        f.write(" ".join(sys.argv[1:]))
-
+        f.write(" ".join(sys.argv[1:3]))
     # Race!
     runner.run(env)

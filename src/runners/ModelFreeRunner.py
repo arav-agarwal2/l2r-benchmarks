@@ -1,6 +1,8 @@
 import json
 import time
 import numpy as np
+import wandb
+from src.loggers.WanDBLogger import WanDBLogger
 from src.runners.base import BaseRunner
 from src.utils.envwrapper import EnvContainer
 from src.agents.SACAgent import SACAgent
@@ -36,6 +38,7 @@ class ModelFreeRunner(BaseRunner):
         update_model_every: int,
         eval_every: int,
         max_episode_length: int,
+        api_key: str,
         ):
         super().__init__()
         # Moved initialzation of env to run to allow for yamlization of this class.
@@ -55,6 +58,7 @@ class ModelFreeRunner(BaseRunner):
         self.update_model_every = update_model_every
         self.eval_every = eval_every
         self.max_episode_length = max_episode_length
+        self.api_key = api_key
 
         # Loading Experiment configuration
         self.exp_config = read_config(
@@ -87,10 +91,16 @@ class ModelFreeRunner(BaseRunner):
         )
         self.encoder.to(DEVICE)
 
+        ## WANDB Declaration
+        self.wandb_logger = None
+        if self.api_key:
+            self.wandb_logger = WanDBLogger(
+                api_key=self.api_key, project_name="test-project"
+            )
+
     def run(self, env):
-        self.file_logger.log(f"MODEL: {type(self.agent).__name__}")
         t = 0
-        for ep_number in range(1):
+        for ep_number in range(self.runner_config["num_test_episodes"]):
 
             done = False
             obs = env.reset()["images"]["CameraFrontRGB"]
@@ -105,6 +115,9 @@ class ModelFreeRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 self.file_logger.log(f"reward: {reward}")
+                self.file_logger.log(f"info: {info}")
+                if self.wandb_logger:
+                    self.wandb_logger.log(reward)
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
                 )
