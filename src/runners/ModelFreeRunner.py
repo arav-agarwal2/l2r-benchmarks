@@ -100,7 +100,7 @@ class ModelFreeRunner(BaseRunner):
 
     def run(self, env):
         t = 0
-        for ep_number in range(self.runner_config["num_test_episodes"]):
+        for ep_number in range(self.num_test_episodes):
 
             done = False
             obs = env.reset()["images"]["CameraFrontRGB"]
