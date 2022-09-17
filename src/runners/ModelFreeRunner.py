@@ -110,8 +110,7 @@ class ModelFreeRunner(BaseRunner):
             obs = obs["images"]["CameraFrontRGB"]
 
             obs_encoded = self.encoder.encode(obs)
-            self.file_logger.log(f"obs_Encoded_Shape: {obs_encoded.shape}")
-            self.file_logger.log(f"obs_encoded: {obs_encoded.shape}")
+            obs_encoded = torch.cat((obs_encoded, speed), 1)
             ep_ret = 0
 
             while not done:
@@ -121,12 +120,11 @@ class ModelFreeRunner(BaseRunner):
                 ep_ret += reward
                 speeds_xyz = obs["pose"][3:6]
                 speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1))
-                self.file_logger.log(f"speed: {speed}, speed shape: {speed.shape}")
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
-                self.file_logger.log(f"obs_Encoded_Shape: {obs_encoded_new.shape}")
-                #self.file_logger.log(f"reward: {reward}")
-                #self.file_logger.log(f"info: {info}")
+                obs_encoded_new = torch.cat((obs_encoded_new, speed), 1)
+                self.file_logger.log(f"reward: {reward}")
+                self.file_logger.log(f"info: {info}")
                 if self.wandb_logger:
                     self.wandb_logger.log(reward)
                 self.replay_buffer.store(
