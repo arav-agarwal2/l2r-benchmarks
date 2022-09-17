@@ -112,8 +112,8 @@ class ModelFreeRunner(BaseRunner):
                 action = self.agent.select_action(obs_encoded)
                 obs, reward, done, info = env.step(action)
                 ep_ret += reward
-                obs = obs["images"]["CameraFrontRGB"]
                 self.file_logger.log(f"obs: {obs}")
+                obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs)
                 #self.file_logger.log(f"reward: {reward}")
                 #self.file_logger.log(f"info: {info}")
