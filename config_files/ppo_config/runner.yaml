@@ -6,8 +6,8 @@ config:
   encoder_config_path: "config_files/ppo_config/encoder.yaml"
   model_save_dir: '/mnt/'
   experience_save_dir: '/mnt/'
-  num_test_episodes: 1
-  save_every_nth_episode: 1
+  num_test_episodes: 50000
+  save_every_nth_episode: 1000
   total_environment_steps: 250_000
   update_model_after: 2000 # update_after steps
   update_model_every: 1 # update_every
