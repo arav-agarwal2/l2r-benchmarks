@@ -1,4 +1,4 @@
-from src.config.yamlize import yamlize
+"""from src.config.yamlize import yamlize
 import torch
 import numpy as np
 import scipy
@@ -22,11 +22,11 @@ def discount_cumsum(x, discount):
 
 @yamlize
 class PPOBuffer:
-    """
+    '''
     A buffer for storing trajectories experienced by a PPO agent interacting
     with the environment, and using Generalized Advantage Estimation (GAE-Lambda)
     for calculating the advantages of state-action pairs.
-    """
+    '''
 
     def __init__(self, obs_dim: int, act_dim: int, size: int, batch_size: int, gamma=0.99, lam=0.95):
         self.obs_buf = np.zeros( (size, obs_dim), dtype=np.float32)
@@ -41,9 +41,9 @@ class PPOBuffer:
         self.batch_size = batch_size
 
     def store(self, obs, act, rew, val, logp):
-        """
+        '''
         Append one timestep of agent-environment interaction to the buffer.
-        """
+        '''
         assert self.ptr < self.max_size     # buffer has to have room so you can store
         self.obs_buf[self.ptr] = obs.detach().cpu()
         self.act_buf[self.ptr] = act
@@ -53,7 +53,7 @@ class PPOBuffer:
         self.ptr += 1
 
     def finish_path(self, last_val=0):
-        """
+        '''
         Call this at the end of a trajectory, or when one gets cut off
         by an epoch ending. This looks back in the buffer to where the
         trajectory started, and uses rewards and value estimates from
@@ -65,7 +65,7 @@ class PPOBuffer:
         should be V(s_T), the value function estimated for the last state.
         This allows us to bootstrap the reward-to-go calculation to account
         for timesteps beyond the arbitrary episode horizon (or epoch cutoff).
-        """
+        '''
 
         path_slice = slice(self.path_start_idx, self.ptr)
         rews = np.append(self.rew_buf[path_slice], last_val)
@@ -82,11 +82,11 @@ class PPOBuffer:
         self.path_start_idx = self.ptr
 
     def sample_batch(self):
-        """
+        '''
         Call this at the end of an epoch to get all of the data from
         the buffer, with advantages appropriately normalized (shifted to have
         mean zero and std one). Also, resets some pointers in the buffer.
-        """
+        '''
         assert self.ptr == self.max_size    # buffer has to be full before you can get
         self.ptr, self.path_start_idx = 0, 0
         if np.isnan(self.adv_buf).any():
@@ -102,9 +102,9 @@ class PPOBuffer:
 
 
 class SACReplayBuffer:
-    """
+    '''
     A simple FIFO experience replay buffer for SAC agents.
-    """
+    '''
 
     def __init__(self, obs_dim, act_dim, size):
         self.obs_buf = np.zeros(
@@ -150,3 +150,4 @@ class SACReplayBuffer:
             k: torch.tensor(v, dtype=torch.float32, device=DEVICE)
             for k, v in batch.items()
         }
+"""
