@@ -105,7 +105,7 @@ class ModelFreeRunner(BaseRunner):
             done = False
             obs = env.reset()
             speeds_xyz = obs["pose"][3:6]
-            speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).to(DEVICE)
+            speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).float().to(DEVICE)
             obs = obs["images"]["CameraFrontRGB"]
 
             obs_encoded = self.encoder.encode(obs).to(DEVICE)
@@ -118,7 +118,7 @@ class ModelFreeRunner(BaseRunner):
                 obs, reward, done, info = env.step(action)
                 ep_ret += reward
                 speeds_xyz = obs["pose"][3:6]
-                speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).to(DEVICE)
+                speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).float().to(DEVICE)
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs).to(DEVICE)
                 obs_encoded_new = torch.cat((obs_encoded_new, speed), 1).to(DEVICE)
