@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # TODO: data augmentation
 
     training_config = read_config(
-        "src/config_files/train_vae/training.yaml", cv_trainer_schema
+        "config_files/train_vae/training.yaml", cv_trainer_schema
     )
 
     with open(
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     bsz = training_config["batch_size"]
     lr = training_config["lr"]
     vae = create_configurable(
-        "src/config_files/train_vae/encoder.yaml", NameToSourcePath.encoder
+        "config_files/train_vae/encoder.yaml", NameToSourcePath.encoder
     ).to(device)
     optim = torch.optim.Adam(vae.parameters(), lr=lr)
     num_epochs = training_config["num_epochs"]
