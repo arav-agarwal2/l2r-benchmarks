@@ -113,9 +113,10 @@ class ModelFreeRunner(BaseRunner):
                 obs, reward, done, info = env.step(action)
                 ep_ret += reward
                 obs = obs["images"]["CameraFrontRGB"]
+                self.file_logger.log(f"obs: {obs}")
                 obs_encoded_new = self.encoder.encode(obs)
-                self.file_logger.log(f"reward: {reward}")
-                self.file_logger.log(f"info: {info}")
+                #self.file_logger.log(f"reward: {reward}")
+                #self.file_logger.log(f"info: {info}")
                 if self.wandb_logger:
                     self.wandb_logger.log(reward)
                 self.replay_buffer.store(
