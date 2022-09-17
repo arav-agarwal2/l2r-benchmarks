@@ -18,8 +18,6 @@ from src.constants import DEVICE
 from torch.optim import Adam
 import torch
 import itertools
-from src.buffers.SimpleReplayBuffer import SimpleReplayBuffer
-from src.buffers.PPOBuffer import PPOBuffer
 
 @yamlize
 class ModelFreeRunner(BaseRunner):
