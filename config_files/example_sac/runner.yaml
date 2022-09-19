@@ -6,7 +6,7 @@ config:
   encoder_config_path: "config_files/example_sac/encoder.yaml"
   model_save_dir: '/mnt/'
   experience_save_dir: '/mnt/'
-  num_test_episodes: 5000
+  num_test_episodes: 5100
   save_every_nth_episode: 100
   total_environment_steps: 250_000
   update_model_after: 2000 # update_after steps
