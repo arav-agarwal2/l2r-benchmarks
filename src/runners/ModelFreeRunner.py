@@ -122,7 +122,7 @@ class ModelFreeRunner(BaseRunner):
                 obs = obs["images"]["CameraFrontRGB"]
                 obs_encoded_new = self.encoder.encode(obs).to(DEVICE)
                 obs_encoded_new = torch.cat((obs_encoded_new, speed), 1).to(DEVICE)
-                self.file_logger.log(f"reward: {reward}")
+                #self.file_logger.log(f"reward: {reward}")
                 self.file_logger.log(f"info: {info}")
                 if self.wandb_logger:
                     self.wandb_logger.log(reward)
@@ -139,7 +139,7 @@ class ModelFreeRunner(BaseRunner):
                     for _ in range(self.exp_config["update_every"]): 
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
-
+            self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
 
     def eval(self, env):
