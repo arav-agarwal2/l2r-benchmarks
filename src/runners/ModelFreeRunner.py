@@ -39,6 +39,7 @@ class ModelFreeRunner(BaseRunner):
         eval_every: int,
         max_episode_length: int,
         api_key: str,
+        use_container: bool = False,
         ):
         super().__init__()
         # Moved initialzation of env to run to allow for yamlization of this class.
@@ -91,6 +92,14 @@ class ModelFreeRunner(BaseRunner):
         )
         self.encoder.to(DEVICE)
 
+
+        
+
+        if use_container:
+            self.env_wrapped = EnvContainer(self.encoder)
+        else:
+            self.env_wrapped = None
+
         ## WANDB Declaration
         self.wandb_logger = None
         if self.api_key:
@@ -103,25 +112,18 @@ class ModelFreeRunner(BaseRunner):
         for ep_number in range(self.num_test_episodes):
 
             done = False
-            obs = env.reset()
-            speeds_xyz = obs["pose"][3:6]
-            speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).float().to(DEVICE)
-            obs = obs["images"]["CameraFrontRGB"]
+            if self.env_wrapped:
+                obs_encoded = self.env_wrapped.reset(True,env)
+            else:
+                obs_encoded = self.env.reset()
 
-            obs_encoded = self.encoder.encode(obs).to(DEVICE)
-            obs_encoded = torch.cat((obs_encoded, speed), 1).to(DEVICE)
+
             ep_ret = 0
             info = None
             while not done:
                 t += 1
                 action = self.agent.select_action(obs_encoded)
-                obs, reward, done, info = env.step(action)
-                ep_ret += reward
-                speeds_xyz = obs["pose"][3:6]
-                speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).float().to(DEVICE)
-                obs = obs["images"]["CameraFrontRGB"]
-                obs_encoded_new = self.encoder.encode(obs).to(DEVICE)
-                obs_encoded_new = torch.cat((obs_encoded_new, speed), 1).to(DEVICE)
+                obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
                 #self.file_logger.log(f"reward: {reward}")
                 if self.wandb_logger:
                     self.wandb_logger.log(reward)
