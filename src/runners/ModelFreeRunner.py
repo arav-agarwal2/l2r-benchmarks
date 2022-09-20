@@ -39,7 +39,7 @@ class ModelFreeRunner(BaseRunner):
         eval_every: int,
         max_episode_length: int,
         api_key: str,
-        use_container: bool = False,
+        use_container: bool = True,
         ):
         super().__init__()
         # Moved initialzation of env to run to allow for yamlization of this class.
@@ -126,7 +126,7 @@ class ModelFreeRunner(BaseRunner):
                 if self.env_wrapped:
                     obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
                 else:
-                    obs_encoded, reward, done, info = env.step(action)
+                    obs_encoded_new, reward, done, info = env.step(action)
                 #self.file_logger.log(f"reward: {reward}")
                 if self.wandb_logger:
                     self.wandb_logger.log(reward)
