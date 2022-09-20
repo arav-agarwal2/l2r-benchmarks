@@ -13,7 +13,7 @@ class EnvContainer:
     def _process_obs(self,obs:dict):
         obs_camera = obs['images']['CameraFrontRGB']
         obs_encoded = self.encoder.encode(obs_camera).to(DEVICE)
-        speed = torch.tensor(np.linalg.norm(obs['pose'][3:6], ord=2)).to(DEVICE)
+        speed = torch.tensor(np.linalg.norm(obs['pose'][3:6], ord=2)).to(DEVICE).reshape((-1,1))
         return torch.cat((obs_encoded, speed), 1).to(DEVICE)
 
     def step(self, action, env=None):
