@@ -115,7 +115,7 @@ class ModelFreeRunner(BaseRunner):
             if self.env_wrapped:
                 obs_encoded = self.env_wrapped.reset(True,env)
             else:
-                obs_encoded = self.env.reset()
+                obs_encoded = env.reset()
 
 
             ep_ret = 0
@@ -123,7 +123,10 @@ class ModelFreeRunner(BaseRunner):
             while not done:
                 t += 1
                 action = self.agent.select_action(obs_encoded)
-                obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
+                if self.env_wrapped:
+                    obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
+                else:
+                    obs_encoded, reward, done, info = env.step(action)
                 #self.file_logger.log(f"reward: {reward}")
                 if self.wandb_logger:
                     self.wandb_logger.log(reward)
