@@ -79,7 +79,7 @@ class SACRunner(BaseRunner):
         for ep_number in range(self.runner_config["num_test_episodes"]):
 
             done = False
-            obs = self.env.reset()["images"]["CameraFrontRGB"]
+            obs = self.env.reset(random_pos = True)["images"]["CameraFrontRGB"]
 
             obs_encoded = self.encoder.encode(obs)
             ep_ret = 0
