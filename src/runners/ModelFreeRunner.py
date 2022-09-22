@@ -94,6 +94,7 @@ class ModelFreeRunner(BaseRunner):
             )
             self.best_ret = 0
             self.last_saved_episode = 0
+        
         # TODO: Fix
         else:
             with open(self.exp_config["experiment_state_path"], 'r') as openfile:           
@@ -103,7 +104,7 @@ class ModelFreeRunner(BaseRunner):
             #self.replay_buffer = old_runner_obj.replay_buffer
             self.best_ret = running_vars["current_best_ret"]
             self.last_saved_episode = running_vars["last_saved_episode"]
-
+            # TODO buffer loading logic
 
         ## WANDB Declaration
         '''self.wandb_logger = None
@@ -271,6 +272,7 @@ class ModelFreeRunner(BaseRunner):
             encoded = jsonpickle.encode(running_variables)
             with open(self.exp_config["experiment_state_path"], "w") as outfile:
                 outfile.write(encoded)
+            # TODO: Buffer saving logic
         else:
             raise Exception("Path not specified or does not exist")
 
