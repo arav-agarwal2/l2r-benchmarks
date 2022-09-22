@@ -162,7 +162,6 @@ class ModelFreeRunner(BaseRunner):
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
-            self.save_experiment_state(ep_number)
 
     def eval(self, env):
         print("Evaluation:")
@@ -260,6 +259,7 @@ class ModelFreeRunner(BaseRunner):
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
             self.last_saved_episode = ep_number
+            self.save_experiment_state(ep_number)
     
     def save_experiment_state(self, epnumber):
         running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber, "buffer": self.replay_buffer}
