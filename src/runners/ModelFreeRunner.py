@@ -92,13 +92,19 @@ class ModelFreeRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
         ## WANDB Declaration
+        '''self.wandb_logger = None
+        if self.api_key:
+            self.wandb_logger = WanDBLogger(
+                api_key=self.api_key, project_name="test-project"
+            )'''
+
+    def run(self, env, api_key):
+        self.api_key = api_key
         self.wandb_logger = None
         if self.api_key:
             self.wandb_logger = WanDBLogger(
                 api_key=self.api_key, project_name="test-project"
             )
-
-    def run(self, env):
         t = 0
         for ep_number in range(self.num_test_episodes):
 
@@ -124,7 +130,6 @@ class ModelFreeRunner(BaseRunner):
                 obs_encoded_new = self.encoder.encode(obs).to(DEVICE)
                 obs_encoded_new = torch.cat((obs_encoded_new, speed), 1).to(DEVICE)
                 #self.file_logger.log(f"reward: {reward}")
-                total_reward += reward
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
                 )
@@ -139,7 +144,7 @@ class ModelFreeRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
             if self.wandb_logger:
-                self.wandb_logger.log(total_reward)
+                self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)

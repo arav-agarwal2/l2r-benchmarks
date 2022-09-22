@@ -20,4 +20,4 @@ if __name__ == "__main__":
     ) as f:
         f.write(" ".join(sys.argv[1:3]))
     # Race!
-    runner.run(env)
+    runner.run(env, sys.argv[3])
