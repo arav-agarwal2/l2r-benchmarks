@@ -86,7 +86,6 @@ class ModelFreeRunner(BaseRunner):
         )
         self.encoder.to(DEVICE)
 
-        # TODO: modify loading for resume
         ## BUFFER Declaration
         if(not self.agent.load_checkpoint):
             self.replay_buffer = create_configurable(
@@ -271,8 +270,6 @@ class ModelFreeRunner(BaseRunner):
             encoded = jsonpickle.encode(running_variables)
             with open(self.exp_config["experiment_state_path"], "w") as outfile:
                 outfile.write(encoded)
-            
-            # TODO: Buffer saving logic
 
 
         else:
