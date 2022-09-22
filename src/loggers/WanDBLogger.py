@@ -12,4 +12,6 @@ class WanDBLogger(BaseLogger):
         wandb.init(project=project_name, entity="learn2race")
 
     def log(self, data):
-        wandb.log({"reward": data})
+        wandb.log({"reward": data[0]})
+        wandb.log({"Distance": data[1]})
+        wandb.log({"Time": data[2]})
