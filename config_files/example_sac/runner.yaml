@@ -13,4 +13,3 @@ config:
   update_model_every: 1 # update_every
   eval_every: 5000
   max_episode_length: 50000 # max_ep_len
-  api_key: ""  
