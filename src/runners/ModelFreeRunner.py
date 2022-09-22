@@ -38,7 +38,6 @@ class ModelFreeRunner(BaseRunner):
         update_model_every: int,
         eval_every: int,
         max_episode_length: int,
-        api_key: str,
         ):
         super().__init__()
         # Moved initialzation of env to run to allow for yamlization of this class.
@@ -58,7 +57,6 @@ class ModelFreeRunner(BaseRunner):
         self.update_model_every = update_model_every
         self.eval_every = eval_every
         self.max_episode_length = max_episode_length
-        self.api_key = api_key
 
         # Loading Experiment configuration
         self.exp_config = read_config(
@@ -99,11 +97,10 @@ class ModelFreeRunner(BaseRunner):
             )'''
 
     def run(self, env, api_key):
-        self.api_key = api_key
         self.wandb_logger = None
-        if self.api_key:
+        if api_key:
             self.wandb_logger = WanDBLogger(
-                api_key=self.api_key, project_name="test-project"
+                api_key=api_key, project_name="test-project"
             )
         t = 0
         for ep_number in range(self.num_test_episodes):
