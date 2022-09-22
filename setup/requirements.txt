@@ -75,3 +75,4 @@ Werkzeug==2.2.2
 wrapt==1.14.1
 zipp==3.8.1
 wandb==0.13.2
+jsonpickle==2.2.0
