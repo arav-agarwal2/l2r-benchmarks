@@ -133,7 +133,7 @@ class ModelFreeRunner(BaseRunner):
             total_reward = 0
             info = None
             while not done:
-                self.t += 1
+                t += 1
                 action = self.agent.select_action(obs_encoded)
                 obs, reward, done, info = env.step(action)
                 ep_ret += reward
@@ -150,8 +150,8 @@ class ModelFreeRunner(BaseRunner):
                 #    self.replay_buffer.finish_path() # TODO: Taking default value currently, select_action needs to return value to change this
 
                 obs_encoded = obs_encoded_new
-                if (self.t >= self.exp_config["update_after"]) & (
-                    self.t % self.exp_config["update_every"] == 0
+                if (t >= self.exp_config["update_after"]) & (
+                    t % self.exp_config["update_every"] == 0
                 ):
                     for _ in range(self.exp_config["update_every"]): 
                         batch = self.replay_buffer.sample_batch()
@@ -162,7 +162,7 @@ class ModelFreeRunner(BaseRunner):
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
-            self.save_experiment_state()
+            self.save_experiment_state(ep_number)
 
     def eval(self, env):
         print("Evaluation:")
@@ -261,8 +261,8 @@ class ModelFreeRunner(BaseRunner):
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
             self.last_saved_episode = ep_number
     
-    def save_experiment_state(self):
-        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret}
+    def save_experiment_state(self, epnumber):
+        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber}
         if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         
