@@ -41,6 +41,7 @@ class ModelFreeRunner(BaseRunner):
         update_model_every: int,
         eval_every: int,
         max_episode_length: int,
+        use_container: bool = True,
         ):
         super().__init__()
         # Moved initialzation of env to run to allow for yamlization of this class.
@@ -104,6 +105,13 @@ class ModelFreeRunner(BaseRunner):
             self.last_saved_episode = running_vars["last_saved_episode"]
             self.replay_buffer = running_vars["buffer"]
 
+        
+
+        if use_container:
+            self.env_wrapped = EnvContainer(self.encoder)
+        else:
+            self.env_wrapped = None
+
         ## WANDB Declaration
         '''self.wandb_logger = None
         if self.api_key:
@@ -121,26 +129,24 @@ class ModelFreeRunner(BaseRunner):
         for ep_number in range(self.last_saved_episode + 1, self.num_test_episodes + self.last_saved_episode + 1):
 
             done = False
-            obs = env.reset(random_pos=True)
-            speeds_xyz = obs["pose"][3:6]
-            speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).float().to(DEVICE)
-            obs = obs["images"]["CameraFrontRGB"]
+            if self.env_wrapped:
+                obs_encoded = self.env_wrapped.reset(True,env)
+            else:
+                obs_encoded = env.reset()
 
-            obs_encoded = self.encoder.encode(obs).to(DEVICE)
-            obs_encoded = torch.cat((obs_encoded, speed), 1).to(DEVICE)
+
             ep_ret = 0
             total_reward = 0
             info = None
             while not done:
                 t += 1
                 action = self.agent.select_action(obs_encoded)
-                obs, reward, done, info = env.step(action)
+                if self.env_wrapped:
+                    obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
+                else:
+                    obs_encoded_new, reward, done, info = env.step(action)
+                
                 ep_ret += reward
-                speeds_xyz = obs["pose"][3:6]
-                speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).float().to(DEVICE)
-                obs = obs["images"]["CameraFrontRGB"]
-                obs_encoded_new = self.encoder.encode(obs).to(DEVICE)
-                obs_encoded_new = torch.cat((obs_encoded_new, speed), 1).to(DEVICE)
                 #self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
                     obs_encoded, action, reward, obs_encoded_new, done
