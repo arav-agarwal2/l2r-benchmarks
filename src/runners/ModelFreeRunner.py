@@ -95,7 +95,9 @@ class ModelFreeRunner(BaseRunner):
             self.best_ret = 0
             self.t = 0
         else:
-            old_runner_obj = jsonpickle.decode(self.exp_config["experiment_state_path"])
+            with open(self.exp_config["experiment_state_path"], 'r') as openfile:           
+                json_object = json.load(openfile)
+            old_runner_obj = jsonpickle.decode(json_object)
             self.replay_buffer = old_runner_obj.replay_buffer
             self.best_ret = old_runner_obj.best_ret
             self.t = old_runner_obj.t
@@ -259,11 +261,14 @@ class ModelFreeRunner(BaseRunner):
     
     # TODO: save the running variables 
     def save_experiment_state(self):
-        if(not self.exp_config["experiment_state_path.endswith"](".json")):
+        #running_variables = {"current_episode": self.t, "current_best_ret":self.best_ret}
+        if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         
         if(self.exp_config["experiment_state_path"]):
-            jsonpickle.encode(self)
+            encoded = jsonpickle.encode(self)
+            with open(self.exp_config["experiment_state_path"], "w") as outfile:
+                outfile.write(encoded)
         else:
             raise Exception("Path not specified or does not exist")
 
