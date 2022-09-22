@@ -94,13 +94,14 @@ class ModelFreeRunner(BaseRunner):
             )
             self.best_ret = 0
             self.t = 0
+        # TODO: Fix
         else:
             with open(self.exp_config["experiment_state_path"], 'r') as openfile:           
-                json_object = json.load(openfile)
-            old_runner_obj = jsonpickle.decode(json_object)
-            self.replay_buffer = old_runner_obj.replay_buffer
-            self.best_ret = old_runner_obj.best_ret
-            self.t = old_runner_obj.t
+                json_object = openfile.readline()
+            running_vars = jsonpickle.decode(json_object)
+            #self.replay_buffer = old_runner_obj.replay_buffer
+            self.best_ret = running_vars.best_ret
+            self.t = running_vars.t
 
 
         ## WANDB Declaration
@@ -259,14 +260,14 @@ class ModelFreeRunner(BaseRunner):
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
     
-    # TODO: save the running variables 
     def save_experiment_state(self):
-        #running_variables = {"current_episode": self.t, "current_best_ret":self.best_ret}
+        running_variables = {"current_episode": self.t, "current_best_ret":self.best_ret}
         if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         
         if(self.exp_config["experiment_state_path"]):
-            encoded = jsonpickle.encode(self)
+            #encoded = jsonpickle.encode(self)
+            encoded = jsonpickle.encode(running_variables)
             with open(self.exp_config["experiment_state_path"], "w") as outfile:
                 outfile.write(encoded)
         else:
