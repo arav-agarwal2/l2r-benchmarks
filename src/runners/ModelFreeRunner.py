@@ -123,7 +123,7 @@ class ModelFreeRunner(BaseRunner):
                 api_key=api_key, project_name="test-project"
             )
         t = 0
-        for ep_number in range(self.last_saved_episode, self.num_test_episodes + self.last_saved_episode):
+        for ep_number in range(self.last_saved_episode + 1, self.num_test_episodes + self.last_saved_episode + 1):
 
             done = False
             obs = env.reset(random_pos=True)
@@ -266,7 +266,7 @@ class ModelFreeRunner(BaseRunner):
             self.last_saved_episode = ep_number
     
     def save_experiment_state(self, epnumber):
-        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber}
+        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber, "buffer": self.replay_buffer}
         if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         
@@ -275,7 +275,10 @@ class ModelFreeRunner(BaseRunner):
             encoded = jsonpickle.encode(running_variables)
             with open(self.exp_config["experiment_state_path"], "w") as outfile:
                 outfile.write(encoded)
+            
             # TODO: Buffer saving logic
+
+
         else:
             raise Exception("Path not specified or does not exist")
 
