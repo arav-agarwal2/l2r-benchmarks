@@ -103,7 +103,7 @@ class ModelFreeRunner(BaseRunner):
         for ep_number in range(self.num_test_episodes):
 
             done = False
-            obs = env.reset()
+            obs = env.reset(random_pos=True)
             speeds_xyz = obs["pose"][3:6]
             speed = torch.tensor(np.sqrt(np.square(speeds_xyz[0]) + np.square(speeds_xyz[1]) + np.square(speeds_xyz[2]))).reshape((-1,1)).float().to(DEVICE)
             obs = obs["images"]["CameraFrontRGB"]
