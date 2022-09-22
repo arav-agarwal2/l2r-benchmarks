@@ -1,5 +1,6 @@
 import json
 import time
+from matplotlib.font_manager import json_dump
 import numpy as np
 import wandb
 from src.loggers.WanDBLogger import WanDBLogger
@@ -20,6 +21,8 @@ from src.constants import DEVICE
 from torch.optim import Adam
 import torch
 import itertools
+import jsonpickle
+
 
 @yamlize
 class ModelFreeRunner(BaseRunner):
@@ -67,12 +70,6 @@ class ModelFreeRunner(BaseRunner):
         self.agent = create_configurable(
             self.agent_config_path, NameToSourcePath.agent
         )
-        self.best_ret = 0
-
-        ## BUFFER Declaration
-        self.replay_buffer = create_configurable(
-            self.buffer_config_path, NameToSourcePath.buffer
-        )
 
         ## LOGGER Declaration
         self.tb_logger_obj = TensorboardLogger(
@@ -89,6 +86,21 @@ class ModelFreeRunner(BaseRunner):
         )
         self.encoder.to(DEVICE)
 
+        # TODO: modify loading for resume
+        ## BUFFER Declaration
+        if(not self.agent.load_checkpoint):
+            self.replay_buffer = create_configurable(
+                self.buffer_config_path, NameToSourcePath.buffer
+            )
+            self.best_ret = 0
+            self.t = 0
+        else:
+            old_runner_obj = jsonpickle.decode(self.exp_config.experiment_state_path)
+            self.replay_buffer = old_runner_obj.replay_buffer
+            self.best_ret = old_runner_obj.best_ret
+            self.t = old_runner_obj.t
+
+
         ## WANDB Declaration
         '''self.wandb_logger = None
         if self.api_key:
@@ -102,8 +114,8 @@ class ModelFreeRunner(BaseRunner):
             self.wandb_logger = WanDBLogger(
                 api_key=api_key, project_name="test-project"
             )
-        t = 0
-        for ep_number in range(self.num_test_episodes):
+
+        for ep_number in range(self.t, self.num_test_episodes + self.t):
 
             done = False
             obs = env.reset(random_pos=True)
@@ -117,7 +129,7 @@ class ModelFreeRunner(BaseRunner):
             total_reward = 0
             info = None
             while not done:
-                t += 1
+                self.t += 1
                 action = self.agent.select_action(obs_encoded)
                 obs, reward, done, info = env.step(action)
                 ep_ret += reward
@@ -134,12 +146,15 @@ class ModelFreeRunner(BaseRunner):
                 #    self.replay_buffer.finish_path() # TODO: Taking default value currently, select_action needs to return value to change this
 
                 obs_encoded = obs_encoded_new
-                if (t >= self.exp_config["update_after"]) & (
-                    t % self.exp_config["update_every"] == 0
+                if (self.t >= self.exp_config["update_after"]) & (
+                    self.t % self.exp_config["update_every"] == 0
                 ):
                     for _ in range(self.exp_config["update_every"]): 
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
+            
+            self.save_experiment_state()
+            
             if self.wandb_logger:
                 self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
             self.file_logger.log(f"info: {info}")
@@ -241,6 +256,18 @@ class ModelFreeRunner(BaseRunner):
             save_path = f"{self.model_save_dir}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
+    
+    # TODO: save the running variables 
+    def save_experiment_state(self):
+        if(not self.exp_config.experiment_state_path.endswith(".json")):
+            raise Exception("Folder or incorrect file type specified")
+        
+        if(self.exp_config.experiment_state_path):
+            jsonpickle.encode(self)
+        else:
+            raise Exception("Path not specified or does not exist")
+
+        pass
 
     """def training(self):
         # List of parameters for both Q-networks (save this for convenience)
