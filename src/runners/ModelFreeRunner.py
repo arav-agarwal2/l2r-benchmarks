@@ -93,15 +93,16 @@ class ModelFreeRunner(BaseRunner):
                 self.buffer_config_path, NameToSourcePath.buffer
             )
             self.best_ret = 0
-            self.t = 0
+            self.last_saved_episode = 0
         # TODO: Fix
         else:
             with open(self.exp_config["experiment_state_path"], 'r') as openfile:           
                 json_object = openfile.readline()
             running_vars = jsonpickle.decode(json_object)
+            self.file_logger.log(f"running_vars: {running_vars}, {type(running_vars)}")
             #self.replay_buffer = old_runner_obj.replay_buffer
-            self.best_ret = running_vars.best_ret
-            self.t = running_vars.t
+            self.best_ret = running_vars["current_best_ret"]
+            self.last_saved_episode = running_vars["last_saved_episode"]
 
 
         ## WANDB Declaration
@@ -118,7 +119,7 @@ class ModelFreeRunner(BaseRunner):
                 api_key=api_key, project_name="test-project"
             )
 
-        for ep_number in range(self.t, self.num_test_episodes + self.t):
+        for ep_number in range(self.last_saved_episode, self.num_test_episodes + self.last_saved_episode):
 
             done = False
             obs = env.reset(random_pos=True)
@@ -156,13 +157,12 @@ class ModelFreeRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
             
-            self.save_experiment_state()
-            
             if self.wandb_logger:
                 self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
+            self.save_experiment_state()
 
     def eval(self, env):
         print("Evaluation:")
@@ -259,9 +259,10 @@ class ModelFreeRunner(BaseRunner):
             save_path = f"{self.model_save_dir}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
+            self.last_saved_episode = ep_number
     
     def save_experiment_state(self):
-        running_variables = {"current_episode": self.t, "current_best_ret":self.best_ret}
+        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret}
         if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         
