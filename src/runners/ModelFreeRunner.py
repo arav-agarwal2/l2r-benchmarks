@@ -118,7 +118,7 @@ class ModelFreeRunner(BaseRunner):
             self.wandb_logger = WanDBLogger(
                 api_key=api_key, project_name="test-project"
             )
-
+        t = 0
         for ep_number in range(self.last_saved_episode, self.num_test_episodes + self.last_saved_episode):
 
             done = False
