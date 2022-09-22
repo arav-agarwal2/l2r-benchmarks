@@ -95,7 +95,6 @@ class ModelFreeRunner(BaseRunner):
             self.best_ret = 0
             self.last_saved_episode = 0
         
-        # TODO: Fix
         else:
             with open(self.exp_config["experiment_state_path"], 'r') as openfile:           
                 json_object = openfile.readline()
@@ -104,10 +103,7 @@ class ModelFreeRunner(BaseRunner):
             #self.replay_buffer = old_runner_obj.replay_buffer
             self.best_ret = running_vars["current_best_ret"]
             self.last_saved_episode = running_vars["last_saved_episode"]
-            # TODO buffer loading logic
-            self.replay_buffer = create_configurable(
-                self.buffer_config_path, NameToSourcePath.buffer
-            )
+            self.replay_buffer = running_vars["buffer"]
 
         ## WANDB Declaration
         '''self.wandb_logger = None
