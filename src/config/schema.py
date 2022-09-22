@@ -22,6 +22,7 @@ experiment_schema = Map(
                 "record_experience": Bool(),
                 "update_after": Int(),
                 "update_every": Int(),
+                "experiment_state_path": Str(),
             }
         )
     }
