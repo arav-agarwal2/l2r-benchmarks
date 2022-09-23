@@ -238,7 +238,6 @@ class SACAgent(BaseAgent):
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
 
-    #TODO: Enable me.
     def update_best_pct_complete(self, info):
         if self.best_pct < info["metrics"]["pct_complete"]:
             for cutoff in [93, 100]:
@@ -322,7 +321,7 @@ class SACAgent(BaseAgent):
         except:
             pass
 
-        # TODO: Find a better way: requires knowledge of child class API :(
+        #Find a better way: requires knowledge of child class API :(
         if "safety_info" in self.metadata:
             self.tb_logger.add_scalar(
                 "val/ep_interventions",

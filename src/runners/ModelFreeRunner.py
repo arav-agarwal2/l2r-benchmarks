@@ -94,6 +94,7 @@ class ModelFreeRunner(BaseRunner):
             )
             self.best_ret = 0
             self.last_saved_episode = 0
+            self.best_eval_ret = 0
         
         else:
             with open(self.exp_config["experiment_state_path"], 'r') as openfile:           
@@ -104,6 +105,7 @@ class ModelFreeRunner(BaseRunner):
             self.best_ret = running_vars["current_best_ret"]
             self.last_saved_episode = running_vars["last_saved_episode"]
             self.replay_buffer = running_vars["buffer"]
+            self.best_eval_ret = running_vars["current_best_eval_ret"]
 
         
 
@@ -164,7 +166,9 @@ class ModelFreeRunner(BaseRunner):
                         self.agent.update(data=batch)
 
                 if(t % self.eval_every == 0):
-                    self.eval(env)
+                    eval_ret = self.eval(env)
+                    if(eval_ret > self.best_eval_ret):
+                        self.best_eval_ret = eval_ret
 
 
             if self.wandb_logger:
@@ -248,7 +252,6 @@ class ModelFreeRunner(BaseRunner):
             )
             if self.wandb_logger:
                 self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
-            self.file_logger.log(f"Exploitation info: {info}")
             
             """            # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
@@ -259,6 +262,7 @@ class ModelFreeRunner(BaseRunner):
                 self.agent.save_queue.put(experience)
 
             """
+            self.agent.update_best_pct_complete(info)
         return val_ep_rets
 
     def checkpoint_model(self, ep_ret, ep_number):
@@ -276,7 +280,7 @@ class ModelFreeRunner(BaseRunner):
             self.save_experiment_state(ep_number)
     
     def save_experiment_state(self, epnumber):
-        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber, "buffer": self.replay_buffer}
+        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber, "buffer": self.replay_buffer, "current_best_eval_ret": self.best_eval_ret}
         if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         

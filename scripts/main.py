@@ -11,7 +11,7 @@ import logging
 
 if __name__ == "__main__":
     # Build environment
-    env = build_env()
+    env = build_env(controller_kwargs={'quiet':True})
     runner = create_configurable("config_files/example_sac/runner.yaml", NameToSourcePath.runner)
 
     with open(
