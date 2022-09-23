@@ -253,7 +253,7 @@ class ModelFreeRunner(BaseRunner):
                 info, ep_ret, ep_len, n_val_steps, self.metadata
             )
             if self.wandb_logger:
-                self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
+                self.wandb_logger.eval_log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
             
             """            # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
@@ -267,7 +267,7 @@ class ModelFreeRunner(BaseRunner):
             # TODO: add back - info no longer contains "pct_complete"
 
             # self.agent.update_best_pct_complete(info)
-        return val_ep_rets
+        return max(val_ep_rets)
 
     def checkpoint_model(self, ep_ret, ep_number):
         # Save every N episodes or when the current episode return is better than the best return
