@@ -35,6 +35,7 @@ class ModelFreeRunner(BaseRunner):
         model_save_dir: str,
         experience_save_dir: str,
         num_test_episodes: int,
+        num_run_episodes: int,
         save_every_nth_episode: int,
         total_environment_steps: int,
         update_model_after: int,
@@ -55,6 +56,7 @@ class ModelFreeRunner(BaseRunner):
         self.model_save_dir = model_save_dir
         self.experience_save_dir = experience_save_dir
         self.num_test_episodes = num_test_episodes
+        self.num_run_episodes = num_run_episodes
         self.save_every_nth_episode = save_every_nth_episode
         self.total_environment_steps = total_environment_steps
         self.update_model_after = update_model_after
@@ -128,7 +130,7 @@ class ModelFreeRunner(BaseRunner):
                 api_key=api_key, project_name="test-project"
             )
         t = 0
-        for ep_number in range(self.last_saved_episode + 1, self.num_test_episodes + self.last_saved_episode + 1):
+        for ep_number in range(self.last_saved_episode + 1, self.num_run_episodes + self.last_saved_episode + 1):
 
             done = False
             if self.env_wrapped:

@@ -79,6 +79,7 @@ runner_schema = Map(
                 "model_save_dir": Str(),
                 "experience_save_dir": Str(),
                 "num_test_episodes": Int(),
+                "num_run_episodes": Int(),
                 "save_every_nth_episode": Int(),
                 "total_environment_steps": Int(),
                 "update_model_after": Int(),
