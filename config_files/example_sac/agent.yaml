@@ -6,8 +6,8 @@ config:
   lr: 0.003
   alpha: 0.2
   steps_to_sample_randomly: 1000 # start_steps
-  checkpoint: '/mnt/SAC_VAE/best_SAC_VAE_episode_0.statedict'
-  load_checkpoint: False
+  checkpoint: '/mnt/SAC_VAE/best_SAC_VAE_episode_5.statedict'
+  load_checkpoint: True
   model_save_path: '/mnt'
   record_dir: '/mnt'
   experiment_name: 'pixiethecat'
