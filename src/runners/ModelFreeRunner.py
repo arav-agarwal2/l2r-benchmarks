@@ -140,6 +140,7 @@ class ModelFreeRunner(BaseRunner):
             info = None
             while not done:
                 t += 1
+                self.agent.deterministic = True
                 action = self.agent.select_action(obs_encoded)
                 if self.env_wrapped:
                     obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
@@ -161,7 +162,11 @@ class ModelFreeRunner(BaseRunner):
                     for _ in range(self.exp_config["update_every"]): 
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
-            
+
+                if(t % self.eval_every == 0):
+                    self.eval(env)
+
+
             if self.wandb_logger:
                 self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
             self.file_logger.log(f"info: {info}")
@@ -176,29 +181,33 @@ class ModelFreeRunner(BaseRunner):
         # assert self.cfg["num_test_episodes"] == 1
 
         for j in range(self.num_test_episodes):
-            camera, features, state, _, _ = env.reset()
-            camera = self.encoder.encode(camera)
-            d, ep_ret, ep_len, n_val_steps, self.metadata = False, 0, 0, 0, {}
-            camera, features, state2, r, d, info = env.step([0, 1])
-            camera = self.encoder.encode(camera)
+
+            if self.env_wrapped:
+                obs_encoded = self.env_wrapped.reset()
+            else:
+                obs_encoded = env.reset()
+            
+
+            done, ep_ret, ep_len, n_val_steps, self.metadata = False, 0, 0, 0, {}
             experience, t = [], 0
 
-            while (not d) & (ep_len <= self.max_episode_length):
+            while (not done) & (ep_len <= self.max_episode_length):
                 # Take deterministic actions at test time
                 self.agent.deterministic = True
                 self.t = 1e6
-                a = self.agent.select_action(features, encode=False)
-                camera2, features2, state2, r, d, info = env.step(a)
-
+                action = self.agent.select_action(obs_encoded, encode=False)
+                if self.env_wrapped:
+                    obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
+                else:
+                    obs_encoded_new, reward, done, info = env.step(action)
+            
                 # Check that the camera is turned on
-                assert (np.mean(camera2) > 0) & (np.mean(camera2) < 255)
-                camera2 = self.encoder.encode(camera2)
-
-                ep_ret += r
+                ep_ret += reward
                 ep_len += 1
                 n_val_steps += 1
 
-                # Prevent the agent from being stuck
+                #TODO Add the below comment's functionality to the eval loop. The below parts allows for restarts.
+                """                 # Prevent the agent from being stuck 
                 if np.allclose(
                     state2[15:16], state[15:16], atol=self.agent.atol, rtol=0
                 ):
@@ -208,7 +217,9 @@ class ModelFreeRunner(BaseRunner):
                     camera2, features2, state2, r, d, info = self.env.step(a)
                     camera2 = self.encoder.encode(camera)
                     ep_len += 1
+                """
 
+                """
                 if self.exp_config["record_experience"]:
                     recording = self.agent.add_experience(
                         action=a,
@@ -224,10 +235,8 @@ class ModelFreeRunner(BaseRunner):
                         step=t,
                     )
                     experience.append(recording)
-
-                features = features2
-                camera = camera2
-                state = state2
+                """
+                obs_encoded = obs_encoded_new
                 t += 1
 
             self.file_logger.log(f"[eval episode] {info}")
@@ -237,8 +246,11 @@ class ModelFreeRunner(BaseRunner):
             self.tb_logger_obj.log_val_metrics(
                 info, ep_ret, ep_len, n_val_steps, self.metadata
             )
-
-            # Quickly dump recently-completed episode's experience to the multithread queue,
+            if self.wandb_logger:
+                self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
+            self.file_logger.log(f"Exploitation info: {info}")
+            
+            """            # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
             if self.exp_config[
                 "record_experience"
@@ -246,10 +258,7 @@ class ModelFreeRunner(BaseRunner):
                 self.file_logger.log("writing experience")
                 self.agent.save_queue.put(experience)
 
-            self.checkpoint_model(ep_ret, j)
-
-        self.agent.update_best_pct_complete(info)
-
+            """
         return val_ep_rets
 
     def checkpoint_model(self, ep_ret, ep_number):
