@@ -262,7 +262,9 @@ class ModelFreeRunner(BaseRunner):
                 self.agent.save_queue.put(experience)
 
             """
-            self.agent.update_best_pct_complete(info)
+            # TODO: add back - info no longer contains "pct_complete"
+
+            # self.agent.update_best_pct_complete(info)
         return val_ep_rets
 
     def checkpoint_model(self, ep_ret, ep_number):
