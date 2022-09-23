@@ -15,3 +15,8 @@ class WanDBLogger(BaseLogger):
         wandb.log({"reward": data[0]})
         wandb.log({"Distance": data[1]})
         wandb.log({"Time": data[2]})
+
+    def eval_log(self, data):
+        wandb.log({"Eval reward": data[0]})
+        wandb.log({"Eval Distance": data[1]})
+        wandb.log({"Eval Time": data[2]})
