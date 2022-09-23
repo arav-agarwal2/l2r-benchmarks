@@ -131,7 +131,7 @@ class SACAgent(BaseAgent):
         Same input/output as select_action, except this method is called at episodal reset.
         """
         # camera, features, state = obs
-        self.deterministic = True
+        self.deterministic = True #TODO: Confirm that this makes sense.
         self.t = 1e6
 
     def load_model(self, path):
@@ -238,8 +238,7 @@ class SACAgent(BaseAgent):
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
 
-    ####
-
+    #TODO: Enable me.
     def update_best_pct_complete(self, info):
         if self.best_pct < info["metrics"]["pct_complete"]:
             for cutoff in [93, 100]:
