@@ -169,9 +169,9 @@ class ModelFreeRunner(BaseRunner):
                         self.agent.update(data=batch)
 
                 if(t % self.eval_every == 0):
-                    self.file_logger.log(f"Episode Number before eval: {ep_number}")
+                    #self.file_logger.log(f"Episode Number before eval: {ep_number}")
                     eval_ret = self.eval(env)
-                    self.file_logger.log(f"Episode Number after eval: {ep_number}")
+                    #self.file_logger.log(f"Episode Number after eval: {ep_number}")
                     if(eval_ret > self.best_eval_ret):
                         self.best_eval_ret = eval_ret
 
@@ -190,7 +190,7 @@ class ModelFreeRunner(BaseRunner):
                                             info["metrics"]["laps_completed"],
                                             ))
             
-            self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
+            #self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
@@ -261,7 +261,7 @@ class ModelFreeRunner(BaseRunner):
                 obs_encoded = obs_encoded_new
                 t += 1
 
-            self.file_logger.log(f"[eval episode] {info}")
+            self.file_logger.log(f"[eval episode] Episode: {j} - {info}")
 
             val_ep_rets.append(ep_ret)
             self.agent.metadata["info"] = info
