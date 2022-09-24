@@ -5,7 +5,7 @@ import numpy as np
 import wandb
 from src.loggers.WanDBLogger import WanDBLogger
 from src.runners.base import BaseRunner
-from src.utils.envwrapper import EnvContainer
+from src.utils.envwrapper_aicrowd import EnvContainer
 from src.agents.SACAgent import SACAgent
 from src.loggers.TensorboardLogger import TensorboardLogger
 from src.loggers.FileLogger import FileLogger
