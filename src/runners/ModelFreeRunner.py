@@ -130,7 +130,8 @@ class ModelFreeRunner(BaseRunner):
                 api_key=api_key, project_name="test-project"
             )
         t = 0
-        for ep_number in range(self.last_saved_episode + 1, self.num_run_episodes + 1):
+        start_idx = self.last_saved_episode
+        for ep_number in range(start_idx + 1, self.num_run_episodes + 1):
 
             done = False
             if self.env_wrapped:
@@ -168,7 +169,9 @@ class ModelFreeRunner(BaseRunner):
                         self.agent.update(data=batch)
 
                 if(t % self.eval_every == 0):
+                    self.file_logger.log(f"Episode Number before eval: {ep_number}")
                     eval_ret = self.eval(env)
+                    self.file_logger.log(f"Episode Number after eval: {ep_number}")
                     if(eval_ret > self.best_eval_ret):
                         self.best_eval_ret = eval_ret
 
@@ -186,6 +189,8 @@ class ModelFreeRunner(BaseRunner):
                                             info["metrics"]["timestep/sec"],
                                             info["metrics"]["laps_completed"],
                                             ))
+            
+            self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
