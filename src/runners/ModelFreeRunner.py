@@ -130,7 +130,7 @@ class ModelFreeRunner(BaseRunner):
                 api_key=api_key, project_name="test-project"
             )
         t = 0
-        for ep_number in range(self.last_saved_episode + 1, self.num_run_episodes + self.last_saved_episode + 1):
+        for ep_number in range(self.last_saved_episode + 1, self.num_run_episodes + 1):
 
             done = False
             if self.env_wrapped:
@@ -303,11 +303,10 @@ class ModelFreeRunner(BaseRunner):
             save_path = f"{self.model_save_dir}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
-            self.last_saved_episode = ep_number
             self.save_experiment_state(ep_number)
     
     def save_experiment_state(self, epnumber):
-        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber, "buffer": self.replay_buffer, "current_best_eval_ret": self.best_eval_ret}
+        running_variables = {"last_saved_episode": epnumber, "current_best_ret":self.best_ret, "current_episode":epnumber, "buffer": self.replay_buffer, "current_best_eval_ret": self.best_eval_ret}
         if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         
