@@ -174,7 +174,18 @@ class ModelFreeRunner(BaseRunner):
 
 
             if self.wandb_logger:
-                self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
+                self.wandb_logger.eval_log((ep_ret, 
+                                            info["metrics"]["total_distance"], 
+                                            info["metrics"]["total_time"], 
+                                            info["metrics"]["num_infractions"],
+                                            info["metrics"]["average_speed_kph"],
+                                            info["metrics"]["average_displacement_error"],
+                                            info["metrics"]["trajectory_efficiency"],
+                                            info["metrics"]["trajectory_admissibility"],
+                                            info["metrics"]["movement_smoothness"],
+                                            info["metrics"]["timestep/sec"],
+                                            info["metrics"]["laps_completed"],
+                                            ))
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
@@ -253,7 +264,19 @@ class ModelFreeRunner(BaseRunner):
                 info, ep_ret, ep_len, n_val_steps, self.metadata
             )
             if self.wandb_logger:
-                self.wandb_logger.eval_log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
+                self.wandb_logger.eval_log((ep_ret, 
+                                            info["metrics"]["total_distance"], 
+                                            info["metrics"]["total_time"], 
+                                            info["metrics"]["num_infractions"],
+                                            info["metrics"]["average_speed_kph"],
+                                            info["metrics"]["average_displacement_error"],
+                                            info["metrics"]["trajectory_efficiency"],
+                                            info["metrics"]["trajectory_admissibility"],
+                                            info["metrics"]["movement_smoothness"],
+                                            info["metrics"]["timestep/sec"],
+                                            info["metrics"]["laps_completed"],
+                                            info["metrics"]["pct_complete"],
+                                            ))
             
             """            # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
