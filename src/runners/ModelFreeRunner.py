@@ -174,7 +174,7 @@ class ModelFreeRunner(BaseRunner):
 
 
             if self.wandb_logger:
-                self.wandb_logger.eval_log((ep_ret, 
+                self.wandb_logger.log((ep_ret, 
                                             info["metrics"]["total_distance"], 
                                             info["metrics"]["total_time"], 
                                             info["metrics"]["num_infractions"],
