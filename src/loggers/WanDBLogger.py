@@ -36,4 +36,3 @@ class WanDBLogger(BaseLogger):
         wandb.log({"Eval Movement_smoothness": data[8]})
         wandb.log({"Eval Timestep/sec": data[9]})
         wandb.log({"Eval Laps_completed": data[10]})
-        wandb.log({"Eval Pct_complete": data[11]})
