@@ -130,7 +130,8 @@ class ModelFreeRunner(BaseRunner):
                 api_key=api_key, project_name="test-project"
             )
         t = 0
-        for ep_number in range(self.last_saved_episode + 1, self.num_run_episodes + self.last_saved_episode + 1):
+        start_idx = self.last_saved_episode
+        for ep_number in range(start_idx + 1, self.num_run_episodes + 1):
 
             done = False
             if self.env_wrapped:
@@ -144,7 +145,7 @@ class ModelFreeRunner(BaseRunner):
             info = None
             while not done:
                 t += 1
-                self.agent.deterministic = True
+                self.agent.deterministic = False
                 action = self.agent.select_action(obs_encoded)
                 if self.env_wrapped:
                     obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
@@ -168,13 +169,28 @@ class ModelFreeRunner(BaseRunner):
                         self.agent.update(data=batch)
 
                 if(t % self.eval_every == 0):
+                    self.file_logger.log(f"Episode Number before eval: {ep_number}")
                     eval_ret = self.eval(env)
+                    self.file_logger.log(f"Episode Number after eval: {ep_number}")
                     if(eval_ret > self.best_eval_ret):
                         self.best_eval_ret = eval_ret
 
 
             if self.wandb_logger:
-                self.wandb_logger.log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
+                self.wandb_logger.log((ep_ret, 
+                                            info["metrics"]["total_distance"], 
+                                            info["metrics"]["total_time"], 
+                                            info["metrics"]["num_infractions"],
+                                            info["metrics"]["average_speed_kph"],
+                                            info["metrics"]["average_displacement_error"],
+                                            info["metrics"]["trajectory_efficiency"],
+                                            info["metrics"]["trajectory_admissibility"],
+                                            info["metrics"]["movement_smoothness"],
+                                            info["metrics"]["timestep/sec"],
+                                            info["metrics"]["laps_completed"],
+                                            ))
+            
+            self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}")
             self.checkpoint_model(ep_ret, ep_number)
@@ -189,28 +205,28 @@ class ModelFreeRunner(BaseRunner):
         for j in range(self.num_test_episodes):
 
             if self.env_wrapped:
-                obs_encoded = self.env_wrapped.reset()
+                eval_obs_encoded = self.env_wrapped.reset()
             else:
-                obs_encoded = env.reset()
+                eval_obs_encoded = env.reset()
             
 
-            done, ep_ret, ep_len, n_val_steps, self.metadata = False, 0, 0, 0, {}
-            experience, t = [], 0
+            eval_done, eval_ep_ret, eval_ep_len, eval_n_val_steps, self.metadata = False, 0, 0, 0, {}
+            experience, t_eval = [], 0
 
-            while (not done) & (ep_len <= self.max_episode_length):
+            while (not eval_done) & (eval_ep_len <= self.max_episode_length):
                 # Take deterministic actions at test time
                 self.agent.deterministic = True
                 self.t = 1e6
-                action = self.agent.select_action(obs_encoded, encode=False)
+                eval_action = self.agent.select_action(eval_obs_encoded, encode=False)
                 if self.env_wrapped:
-                    obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
+                    eval_obs_encoded_new, eval_reward, eval_done, eval_info = self.env_wrapped.step(eval_action)
                 else:
-                    obs_encoded_new, reward, done, info = env.step(action)
+                    eval_obs_encoded_new, eval_reward, eval_done, eval_info = env.step(eval_action)
             
                 # Check that the camera is turned on
-                ep_ret += reward
-                ep_len += 1
-                n_val_steps += 1
+                eval_ep_ret += eval_reward
+                eval_ep_len += 1
+                eval_n_val_steps += 1
 
                 #TODO Add the below comment's functionality to the eval loop. The below parts allows for restarts.
                 """                 # Prevent the agent from being stuck 
@@ -242,18 +258,28 @@ class ModelFreeRunner(BaseRunner):
                     )
                     experience.append(recording)
                 """
-                obs_encoded = obs_encoded_new
-                t += 1
+                eval_obs_encoded = eval_obs_encoded_new
+                t_eval += 1
 
-            self.file_logger.log(f"[eval episode] {info}")
+            self.file_logger.log(f"[eval episode] Episode: {j} - {eval_info}")
 
-            val_ep_rets.append(ep_ret)
-            self.agent.metadata["info"] = info
+            val_ep_rets.append(eval_ep_ret)
             self.tb_logger_obj.log_val_metrics(
-                info, ep_ret, ep_len, n_val_steps, self.metadata
+                eval_info, eval_ep_ret, eval_ep_len, eval_n_val_steps, self.metadata
             )
             if self.wandb_logger:
-                self.wandb_logger.eval_log((ep_ret, info["metrics"]["total_distance"], info["metrics"]["total_time"]))
+                self.wandb_logger.eval_log((eval_ep_ret, 
+                                            eval_info["metrics"]["total_distance"], 
+                                            eval_info["metrics"]["total_time"], 
+                                            eval_info["metrics"]["num_infractions"],
+                                            eval_info["metrics"]["average_speed_kph"],
+                                            eval_info["metrics"]["average_displacement_error"],
+                                            eval_info["metrics"]["trajectory_efficiency"],
+                                            eval_info["metrics"]["trajectory_admissibility"],
+                                            eval_info["metrics"]["movement_smoothness"],
+                                            eval_info["metrics"]["timestep/sec"],
+                                            eval_info["metrics"]["laps_completed"]
+                                            ))
             
             """            # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
@@ -280,11 +306,10 @@ class ModelFreeRunner(BaseRunner):
             save_path = f"{self.model_save_dir}/{self.exp_config['experiment_name']}/best_{self.exp_config['experiment_name']}_episode_{ep_number}.statedict"
             self.agent.save_model(save_path)
             self.file_logger.log(f"New model saved! Saving to: {save_path}")
-            self.last_saved_episode = ep_number
             self.save_experiment_state(ep_number)
     
-    def save_experiment_state(self, epnumber):
-        running_variables = {"last_saved_episode": self.last_saved_episode, "current_best_ret":self.best_ret, "current_episode":epnumber, "buffer": self.replay_buffer, "current_best_eval_ret": self.best_eval_ret}
+    def save_experiment_state(self, ep_number):
+        running_variables = {"last_saved_episode": ep_number, "current_best_ret":self.best_ret, "buffer": self.replay_buffer, "current_best_eval_ret": self.best_eval_ret}
         if(not self.exp_config["experiment_state_path"].endswith(".json")):
             raise Exception("Folder or incorrect file type specified")
         

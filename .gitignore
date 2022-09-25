@@ -10,6 +10,7 @@ logs/
 env/
 environment/
 docs/build/*
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
