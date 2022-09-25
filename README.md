@@ -6,7 +6,7 @@ Find safepo.yaml on my (Arav's) hot storage. Copy it to your hot storage, along 
 
 ```
 kubectl create -f safepo.yaml
-kubectl exec --it safepo -- /bin/bash
+kubectl exec -it safepo -- /bin/bash
 ```
 
 Then run the following to setup the container:
