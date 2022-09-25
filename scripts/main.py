@@ -22,5 +22,6 @@ if __name__ == "__main__":
     # Race!
     try: 
         runner.run(env, sys.argv[3])
-    except:
+    except IndexError as e:
+        logging.warning(e,e.info)
         runner.run(env, "")
