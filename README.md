@@ -18,4 +18,4 @@ git checkout this branch
 cd l2r-benchmarks
 chmod +x runme.sh
 ./runme.sh
-python3.8 - scripts.main-aicrowd
+python3.8 -m scripts.main-aicrowd
