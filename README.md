@@ -13,9 +13,11 @@ Then run the following to setup the container:
 
 ```
 cd /mnt
+sudo apt-get update
+sudo apt-get install git
 git clone this repo
-git checkout this branch
 cd l2r-benchmarks
+git checkout this branch
 chmod +x runme.sh
 ./runme.sh
 python3.8 -m scripts.main-aicrowd
