@@ -117,7 +117,7 @@ class PPOAgent(BaseAgent):
             action_obj.logp= logp
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
-        return a
+        return action_obj
 
     def register_reset(self, obs) -> np.array:  
         self.deterministic = True
