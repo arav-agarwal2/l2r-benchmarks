@@ -206,4 +206,4 @@ class MLPGaussianActor(Actor):
         # return TransformedDistribution(base_dist, transforms)
 
     def _log_prob_from_distribution(self, pi, act):
-        return pi.log_prob(act)
+        return pi.log_prob(act).sum(axis=-1) 
