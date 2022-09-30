@@ -129,29 +129,6 @@ class Actor(nn.Module):
             logp_a = self._log_prob_from_distribution(pi, act)
         return pi, logp_a
 
-class MLPCritic(nn.Module):
-
-    def __init__(self, obs_dim, hidden_sizes, activation):
-        super().__init__()
-        self.v_net = mlp([obs_dim] + list(hidden_sizes) + [1], activation)
-        # self.speed_encoder = mlp(
-        #             [1] + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
-        #         )
-    def forward(self, obs):
-        
-        # img_embed = obs[
-        #     ..., : self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
-        # ]  # n x latent_dims
-        # speed = obs[
-        #     ..., self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] :
-        # ]  # n x 1
-        # # pdb.set_trace()
-        # # spd_embed = self.speed_encoder(speed)  # n x 8
-        # feat = torch.cat([img_embed, speed], dim=-1)
-
-        return torch.squeeze(self.v_net(obs), -1) # Critical to ensure v has right shape.
-
-
 
 class MLPCategoricalActor(Actor):
     
