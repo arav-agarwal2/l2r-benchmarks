@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from src.deprecated.network_baselines import MLPCategoricalActor, MLPCritic, MLPGaussianActor, mlp, SquashedGaussianMLPActor
+from src.deprecated.network_baselines import MLPCategoricalActor, MLPGaussianActor, mlp, SquashedGaussianMLPActor
 from enum import Enum
 from gym.spaces import Box, Discrete
 
