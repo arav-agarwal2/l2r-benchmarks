@@ -13,7 +13,7 @@ from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
 from src.deprecated.network import ActorCritic, CriticType, PPOMLPActorCritic
 from src.encoders.vae import VAE
-from src.utils.utils import RecordExperience
+from src.utils.utils import ActionSample, RecordExperience
 
 from src.constants import DEVICE
 
@@ -100,12 +100,21 @@ class PPOAgent(BaseAgent):
 
 
     def select_action(self, obs) -> np.array: 
+        action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
-            a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
+            a, v, logp = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
+            print(v.shape)
             a = a  # numpy array...
+            action_obj.action = a
+            action_obj.value = v
+            action_obj.logp = logp
             self.record["transition_actor"] = "learner"
         else:
             a = self.action_space.sample()
+            logp = np.ones((self.action_space.shape[0], ))/self.action_space.shape[0]
+            # TODO: add default value after getting value shape
+            action_obj.action = a
+            action_obj.logp= logp
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
         return a
