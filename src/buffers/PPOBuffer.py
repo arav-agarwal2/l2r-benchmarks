@@ -4,6 +4,7 @@ import numpy as np
 import scipy
 from scipy import signal
 import pdb
+from utils import ActionSample
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
@@ -40,19 +41,19 @@ class PPOBuffer:
         self.ptr, self.path_start_idx, self.max_size = 0, 0, size
         self.batch_size = batch_size
 
-    def store(self, obs, act, rew, val, logp):
+    def store(self, buffer_dict):
         '''
         Append one timestep of agent-environment interaction to the buffer.
         '''
         assert self.ptr < self.max_size     # buffer has to have room so you can store
-        self.obs_buf[self.ptr] = obs.detach().cpu()
-        self.act_buf[self.ptr] = act
-        self.rew_buf[self.ptr] = rew
-        self.val_buf[self.ptr] = val
-        self.logp_buf[self.ptr] = logp
+        self.obs_buf[self.ptr] = buffer_dict["obs"].detach().cpu()
+        self.act_buf[self.ptr] = buffer_dict["act"].action
+        self.rew_buf[self.ptr] = buffer_dict["rew"]
+        self.val_buf[self.ptr] = buffer_dict["act"].value
+        self.logp_buf[self.ptr] = buffer_dict["act"].logp
         self.ptr += 1
 
-    def finish_path(self, last_val=0):
+    def finish_path(self, action_obj=None):
         '''
         Call this at the end of a trajectory, or when one gets cut off
         by an epoch ending. This looks back in the buffer to where the
@@ -68,8 +69,8 @@ class PPOBuffer:
         '''
 
         path_slice = slice(self.path_start_idx, self.ptr)
-        rews = np.append(self.rew_buf[path_slice], last_val)
-        vals = np.append(self.val_buf[path_slice], last_val)
+        rews = np.append(self.rew_buf[path_slice], action_obj.value)
+        vals = np.append(self.val_buf[path_slice], action_obj.value)
         
         # the next two lines implement GAE-Lambda advantage calculation
         deltas = rews[:-1] + self.gamma * vals[1:] - vals[:-1]
@@ -100,54 +101,4 @@ class PPOBuffer:
                     adv=self.adv_buf, logp=self.logp_buf)
         return {k: torch.as_tensor(v, dtype=torch.float32) for k,v in data.items()}
 
-
-class SACReplayBuffer:
-    '''
-    A simple FIFO experience replay buffer for SAC agents.
-    '''
-
-    def __init__(self, obs_dim, act_dim, size):
-        self.obs_buf = np.zeros(
-            (size, obs_dim), dtype=np.float32
-        ) 
-        self.obs2_buf = np.zeros(
-            (size, obs_dim), dtype=np.float32
-        ) 
-        self.act_buf = np.zeros(
-            (size, act_dim), dtype=np.float32
-        ) 
-        self.rew_buf = np.zeros(size, dtype=np.float32)
-        self.done_buf = np.zeros(size, dtype=np.float32)
-        self.ptr, self.size, self.max_size = 0, 0, size
-        self.weights = None
-
-    def store(self, obs, act, rew, next_obs, done):
-        # pdb.set_trace()
-        self.obs_buf[self.ptr] = obs.detach().cpu().numpy()
-        self.obs2_buf[self.ptr] = next_obs.detach().cpu().numpy()
-        self.act_buf[self.ptr] = act  # .detach().cpu().numpy()
-        self.rew_buf[self.ptr] = rew
-        self.done_buf[self.ptr] = done
-        self.ptr = (self.ptr + 1) % self.max_size
-        self.size = min(self.size + 1, self.max_size)
-
-    def sample_batch(self):
-
-        idxs = np.random.choice(
-            self.size, size=min(self.batch_size, self.size), replace=False
-        )
-        batch = dict(
-            obs=self.obs_buf[idxs],
-            obs2=self.obs2_buf[idxs],
-            act=self.act_buf[idxs],
-            rew=self.rew_buf[idxs],
-            done=self.done_buf[idxs],
-        )
-        self.weights = torch.tensor(
-            np.zeros_like(idxs), dtype=torch.float32, device=DEVICE
-        )
-        return {
-            k: torch.tensor(v, dtype=torch.float32, device=DEVICE)
-            for k, v in batch.items()
-        }
 """
