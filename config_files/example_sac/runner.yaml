@@ -12,5 +12,5 @@ config:
   total_environment_steps: 250_000
   update_model_after: 2000 # update_after steps
   update_model_every: 100 # update_every
-  eval_every: 5000
+  eval_every: 10
   max_episode_length: 50000 # max_ep_len
