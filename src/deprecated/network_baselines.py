@@ -204,3 +204,6 @@ class MLPGaussianActor(Actor):
         # transforms = [TanhTransform(), AffineTransform(0, scale=self.scale)]
         # transforms = [TanhTransform()]
         # return TransformedDistribution(base_dist, transforms)
+
+    def _log_prob_from_distribution(self, pi, act):
+        return pi.log_prob(act)
