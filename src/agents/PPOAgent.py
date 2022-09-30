@@ -76,7 +76,7 @@ class PPOAgent(BaseAgent):
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
-        self.actor_critic = PPOMLPActorCritic(self.obs_dim, self.action_space, device=DEVICE)
+        self.actor_critic = PPOMLPActorCritic(self.obs_dim, self.action_space, None, device=DEVICE)
 
         self.target_kl = 0.01
 

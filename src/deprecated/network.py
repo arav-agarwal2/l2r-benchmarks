@@ -160,7 +160,7 @@ class Vfunction(nn.Module):
 
 
 class PPOMLPActorCritic(nn.Module):
-    def __init__(self, observation_space, action_space,
+    def __init__(self, observation_space, action_space, cfg,
                  hidden_sizes=(64,64), activation=nn.Tanh, device="cpu"):
         super().__init__()
 
@@ -176,7 +176,7 @@ class PPOMLPActorCritic(nn.Module):
             self.pi = MLPCategoricalActor(obs_dim, action_space.n, hidden_sizes, activation)
 
         # build value function
-        self.v  = MLPCritic(obs_dim, hidden_sizes, activation)
+        self.v  = Vfunction(cfg)
 
         self.to(device)
         self.device = device
