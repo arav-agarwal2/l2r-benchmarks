@@ -181,13 +181,15 @@ class PPOMLPActorCritic(nn.Module):
         self.to(device)
         self.device = device
 
-    def step(self, obs):
+    def step(self, obs, deterministic=False):
         with torch.no_grad():
-            pi = self.pi._distribution(obs)
-            a = pi.sample()
-            logp_a = self.pi._log_prob_from_distribution(pi, a)
+            img_embed = obs[..., :32]  # n x latent_dims
+            # speed = obs_feat[..., 32:] # n x 1
+            # raise ValueError(obs_feat.shape, img_embed.shape, speed.shape)
+            # pdb.set_trace()
+            # spd_embed = self.speed_encoder(speed) # n x 8
+            feat = img_embed
+            a, logp_a = self.pi(feat, deterministic, True)
+            a = a.squeeze(0)
             v = self.v(obs)
         return a.cpu().numpy(), v.cpu().numpy(), logp_a.cpu().numpy()
-
-    def act(self, obs):
-        return self.step(obs)[0]
