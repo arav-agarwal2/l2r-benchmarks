@@ -170,7 +170,8 @@ class PPOMLPActorCritic(nn.Module):
         # obs_dim += self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"][-1]
         # policy builder depends on action space
         if isinstance(action_space, Box):
-            self.pi = MLPGaussianActor(obs_dim, action_space.shape[0], hidden_sizes, activation, action_space.high[0])
+            self.pi = SquashedGaussianMLPActor(obs_dim, action_space.shape[0], [64, 64, 32], activation, action_space.high[0])
+        # Discrete might not work
         elif isinstance(action_space, Discrete):
             self.pi = MLPCategoricalActor(obs_dim, action_space.n, hidden_sizes, activation)
 
