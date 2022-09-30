@@ -175,21 +175,14 @@ class MLPGaussianActor(Actor):
         self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
         self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
         self.scale = scale
-        # self.speed_encoder = mlp(
-        #     [1] + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
-        # )
+        self.speed_encoder = mlp([1] + [8, 8])
 
     def _distribution(self, obs):
-        # img_embed = obs[
-        #         ..., : self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
-        #     ]  # n x latent_dims
-        # speed = obs[
-        #     ..., self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] :
-        # ]  # n x 1
-        # # pdb.set_trace()
-        # # spd_embed = self.speed_encoder(speed)  # n x 8
-        # feat = torch.cat([img_embed, speed], dim=-1)
-        feat = obs
+        img_embed = obs[..., :32]  # n x latent_dims
+        speed = obs[..., 32:]  # n x 1
+        spd_embed = self.speed_encoder(speed) 
+        feat = torch.cat([img_embed, spd_embed], dim=-1)
+        #feat = obs
         
 
         mu = self.mu_net(feat)
