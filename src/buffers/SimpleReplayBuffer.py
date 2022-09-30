@@ -43,7 +43,7 @@ class SimpleReplayBuffer:
 
         self.obs_buf[self.ptr] = convert(buffer_dict["obs"])
         self.obs2_buf[self.ptr] = convert(buffer_dict["next_obs"])
-        self.act_buf[self.ptr] = buffer_dict["act"]  # .detach().cpu().numpy()
+        self.act_buf[self.ptr] = buffer_dict["act"].action  # .detach().cpu().numpy()
         self.rew_buf[self.ptr] = buffer_dict["rew"]
         self.done_buf[self.ptr] = buffer_dict["done"]
         self.ptr = (self.ptr + 1) % self.max_size
