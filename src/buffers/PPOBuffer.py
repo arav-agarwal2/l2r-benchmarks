@@ -4,7 +4,7 @@ import numpy as np
 import scipy
 from scipy import signal
 import pdb
-from utils import ActionSample
+from src.utils.utils import ActionSample
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
