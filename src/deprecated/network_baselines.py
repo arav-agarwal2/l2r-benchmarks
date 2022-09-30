@@ -173,7 +173,7 @@ class MLPGaussianActor(Actor):
         super().__init__()
         log_std = -0.5 * np.ones(act_dim, dtype=np.float32)
         self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
-        self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
+        self.mu_net = mlp([obs_dim + 8] + list(hidden_sizes) + [act_dim], activation)
         self.scale = scale
         self.speed_encoder = mlp([1] + [8, 8])
 
