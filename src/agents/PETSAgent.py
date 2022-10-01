@@ -123,10 +123,10 @@ class PETSAgent(BaseAgent):
     
 
     def load_model(self, path):
-        return super().load_model(path)
+        return self
 
     def save_model(self, path):
-        return super().save_model(path)
+        pass
     
 
 #TODO: Make ensemble_size and num_ensembles agree.
