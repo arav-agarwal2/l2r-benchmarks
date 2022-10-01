@@ -110,8 +110,11 @@ class PETSAgent(BaseAgent):
             data["obs2"],
             data["done"],
         )
-        o2 = np.concatenate((o2 - o,r),axis=-1)
-        mu, log_var = self(o, return_log_var=True)
+        o2 = torch.tensor(np.concatenate((o2 - o,r.reshape((-1,1))),axis=-1))
+        o2 = o2.reshape((1,*o2.shape))
+        o = torch.tensor(np.concatenate((o,a),axis=-1))
+        o = o.reshape((1,*o.shape)).repeat((self.n_ensembles,1,1))
+        mu, log_var = self.model(o)
         assert mu.shape[1:] == o2.shape[1:]
         # Remove validate atm.
         inv_var = (-log_var).exp()
@@ -119,7 +122,6 @@ class PETSAgent(BaseAgent):
         loss += 0.01 * torch.sum(self.model.max_logvar) - 0.01 * torch.sum(self.model.min_logvar)
         loss.backward()
         self.optimizer.step()
-        return super().update(data)
     
 
     def load_model(self, path):
