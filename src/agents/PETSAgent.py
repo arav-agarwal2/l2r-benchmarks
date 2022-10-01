@@ -44,9 +44,9 @@ class PETSAgent(BaseAgent):
     def select_action(self, obs, noise=False) -> np.array:
         state = obs.detach().float()
         initial_states = state.repeat((self.n_planner, 1)).to(DEVICE)
-        rollout_actions =  torch.from_numpy(np.random.uniform(low=-1,
-                                    high=1, # TODO: Remove hardcode.
-                                    size=(self.n_planner, self.horizon, self.action_space))).to(DEVICE).float()
+        rollout_actions =  torch.from_numpy(np.random.uniform(low=self.action_space.low,
+                                    high=self.action_space.high,
+                                    size=(self.n_planner, self.horizon, self.action_space.shape[0]))).to(DEVICE).float()
         returns, all_states = self.compute_returns(initial_states, rollout_actions)
         best_action_idx = returns.argmax()
         optimal_action = rollout_actions[:, 0, :][best_action_idx]
