@@ -97,7 +97,15 @@ class PPOBuffer:
         if np.isnan(adv_std):
             pdb.set_trace()
         self.adv_buf = (self.adv_buf - adv_mean) / adv_std
-        data = dict(obs=self.obs_buf, act=self.act_buf, ret=self.ret_buf,
-                    adv=self.adv_buf, logp=self.logp_buf)
-        return {k: torch.as_tensor(v, dtype=torch.float32) for k,v in data.items()}
+        
+        idxs = np.random.choice(
+            self.size, size=min(self.batch_size, self.ptr), replace=False
+        )
+        data = dict(obs=self.obs_buf[idxs], act=self.act_buf[idxs], ret=self.rew_buf[idxs],
+                    adv=self.adv_buf[idxs], logp=self.logp_buf[idxs])
+        
+        self.weights = torch.tensor(
+            np.zeros_like(idxs), dtype=torch.float32, device=DEVICE
+        )
 
+        return {k: torch.as_tensor(v, dtype=torch.float32) for k,v in data.items()}
