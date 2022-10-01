@@ -158,11 +158,11 @@ class ModelFreeRunner(BaseRunner):
                 self.replay_buffer.store(
                     {"obs":obs_encoded, "act": action_obj, "rew":reward, "next_obs":obs_encoded_new, "done":done}
                 )
-                if (t + 1) % self.eval_every == 0 or t == self.max_episode_length:
+                if done or t == self.max_episode_length:
                     self.replay_buffer.finish_path(action_obj)
 
                 obs_encoded = obs_encoded_new
-                if (t >= self.exp_config["update_after"]) & (
+                if (t >= self.exp_config["update_after"]) and (
                     t % self.exp_config["update_every"] == 0
                 ):
                     for _ in range(self.exp_config["update_every"]): 
