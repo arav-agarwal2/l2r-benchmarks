@@ -175,7 +175,6 @@ class Ensemble_FC_Layer(nn.Module):
             self.register_parameter('bias', None)
 
     def forward(self, x) -> torch.Tensor:
-        print(x.shape, self.weight.shape)
         w_times_x = torch.bmm(x, self.weight)
         return torch.add(w_times_x, self.bias[:, None, :])  # w times x + b
 
