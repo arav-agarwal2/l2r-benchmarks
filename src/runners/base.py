@@ -4,15 +4,8 @@ from abc import ABC
 class BaseRunner(ABC):
     """ABC for BaseRunner."""
 
-    def __init__(self, env):
-        """Initialize Base Runner
-
-        Args:
-            env (gym.env): Sample gym environment
-            agent (BaseAgent): Agent Instance
-            config (dict): Config, generated from strictyaml parsing
-        """
-        self.env = env
+    def __init__(self):
+        """Initialize Base Runner"""
 
     def training(self):  # pragma: no cover
         """

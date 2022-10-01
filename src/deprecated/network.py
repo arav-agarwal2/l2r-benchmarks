@@ -1,6 +1,13 @@
 import torch
 import torch.nn as nn
-from src.deprecated.network_baselines import mlp, SquashedGaussianMLPActor
+from src.deprecated.network_baselines import (
+    MLPCategoricalActor,
+    MLPGaussianActor,
+    mlp,
+    SquashedGaussianMLPActor,
+)
+from enum import Enum
+from gym.spaces import Box, Discrete
 
 
 def resnet18(pretrained=True):
@@ -21,16 +28,16 @@ class Qfunction(nn.Module):
         self.cfg = cfg
         # pdb.set_trace()
         self.speed_encoder = mlp([1] + [8, 8])
-        self.regressor = mlp([32 + 2] + [32, 64, 64, 32, 32] + [1])
+        self.regressor = mlp([32 + 8 + 2] + [32, 64, 64, 32, 32] + [1])
         # self.lr = cfg['resnet']['LR']
 
     def forward(self, obs_feat, action):
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
-        # speed = obs_feat[..., 32:]  # n x 1
-        # spd_embed = self.speed_encoder(speed)  # n x 16
-        out = self.regressor(torch.cat([img_embed, action], dim=-1))  # n x 1
+        speed = obs_feat[..., 32:]  # n x 1
+        spd_embed = self.speed_encoder(speed)  # n x 16
+        out = self.regressor(torch.cat([img_embed, spd_embed, action], dim=-1))  # n x 1
         # pdb.set_trace()
         return out.view(-1)
 
@@ -72,6 +79,12 @@ class DuelingNetwork(nn.Module):
         return out.view(-1)
 
 
+class CriticType(Enum):
+    Q = 0
+    Safety = 1
+    Value = 2
+
+
 class ActorCritic(nn.Module):
     def __init__(
         self,
@@ -81,7 +94,7 @@ class ActorCritic(nn.Module):
         activation=nn.ReLU,
         latent_dims=None,
         device="cpu",
-        safety=False,  ## Flag to indicate architecture for Safety_actor_critic
+        critic_type=CriticType.Value,  ## Flag to indicate architecture for Safety_actor_critic
     ):
         super().__init__()
         self.cfg = cfg
@@ -94,11 +107,14 @@ class ActorCritic(nn.Module):
         self.policy = SquashedGaussianMLPActor(
             obs_dim, act_dim, [64, 64, 32], activation, act_limit
         )
-        if safety:
+        if critic_type == CriticType.Safety:
             self.q1 = DuelingNetwork(cfg)
-        else:
+        elif critic_type == CriticType.Q:
             self.q1 = Qfunction(cfg)
             self.q2 = Qfunction(cfg)
+        elif critic_type == CriticType.Value:
+            self.v = Vfunction(cfg)
+
         self.device = device
         self.to(device)
 
@@ -129,3 +145,80 @@ class ActorCritic(nn.Module):
             a, _ = self.policy(feat, deterministic, False)
             a = a.squeeze(0)
         return a.numpy() if self.device == "cpu" else a.cpu().numpy()
+
+
+class Vfunction(nn.Module):
+    """Modified from Qfunction."""
+
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+        # pdb.set_trace()
+        self.speed_encoder = mlp([1] + [8, 8])
+        self.regressor = mlp([32 + 8] + [32, 64, 64, 32, 32] + [1])
+
+    def forward(self, obs_feat):
+        # if obs_feat.ndimension() == 1:
+        #    obs_feat = obs_feat.unsqueeze(0)
+        img_embed = obs_feat[..., :32]  # n x latent_dims
+        speed = obs_feat[..., 32:]  # n x 1
+        spd_embed = self.speed_encoder(speed)  # n x 16
+        out = self.regressor(torch.cat([img_embed, spd_embed], dim=-1))  # n x 1
+        # pdb.set_trace()
+        return out.view(-1)
+
+
+class PPOMLPActorCritic(nn.Module):
+    def __init__(
+        self,
+        observation_space,
+        action_space,
+        cfg,
+        activation=nn.Tanh,
+        latent_dims=None,
+        device="cpu",
+    ):
+        super().__init__()
+
+        obs_dim = observation_space.shape[0] if latent_dims is None else latent_dims
+        act_dim = action_space.shape[0]
+        act_limit = action_space.high[0]
+
+        # build policy and value functions
+        self.speed_encoder = mlp([1] + [8, 8])
+        self.policy = SquashedGaussianMLPActor(
+            obs_dim, act_dim, [64, 64, 32], activation, act_limit
+        )
+
+        # build value function
+        self.v = Vfunction(cfg)
+
+        self.to(device)
+        self.device = device
+
+    def pi(self, obs_feat, deterministic=False):
+        # if obs_feat.ndimension() == 1:
+        #    obs_feat = obs_feat.unsqueeze(0)
+        img_embed = obs_feat[..., :32]  # n x latent_dims
+        # speed = obs_feat[..., 32:]  # n x 1
+        # spd_embed = self.speed_encoder(speed)  # n x 8
+        feat = torch.cat(
+            [
+                img_embed,
+            ],
+            dim=-1,
+        )
+        return self.policy(feat, deterministic, True)
+
+    def step(self, obs, deterministic=False):
+        with torch.no_grad():
+            img_embed = obs[..., :32]  # n x latent_dims
+            # speed = obs_feat[..., 32:] # n x 1
+            # raise ValueError(obs_feat.shape, img_embed.shape, speed.shape)
+            # pdb.set_trace()
+            # spd_embed = self.speed_encoder(speed) # n x 8
+            feat = img_embed
+            a, logp_a = self.policy(feat, deterministic, True)
+            a = a.squeeze(0)
+            v = self.v(obs)
+        return a.cpu().numpy(), v.cpu().numpy(), logp_a.cpu().numpy()

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import os, sys
 import logging, re
 import numpy as np
@@ -97,3 +98,10 @@ class RecordExperience:
             self.logger("[RecordExperience] Saving experience.")
             for record in batch:
                 self.save(record)
+
+
+@dataclass
+class ActionSample:
+    action = None
+    value = None
+    logp = None

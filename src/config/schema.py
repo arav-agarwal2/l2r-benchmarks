@@ -22,6 +22,7 @@ experiment_schema = Map(
                 "record_experience": Bool(),
                 "update_after": Int(),
                 "update_every": Int(),
+                "experiment_state_path": Str(),
             }
         )
     }
@@ -63,6 +64,9 @@ agent_schema = Map(
                 "checkpoint": Str(),
                 "load_checkpoint": Bool(),
                 "model_save_path": Str(),
+                "experiment_name": Str(),
+                "record_dir": Str(),
+                "track_name": Str(),
             }
         )
     }
@@ -75,6 +79,7 @@ runner_schema = Map(
                 "model_save_dir": Str(),
                 "experience_save_dir": Str(),
                 "num_test_episodes": Int(),
+                "num_run_episodes": Int(),
                 "save_every_nth_episode": Int(),
                 "total_environment_steps": Int(),
                 "update_model_after": Int(),

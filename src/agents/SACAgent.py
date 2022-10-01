@@ -17,9 +17,9 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic
-from src.encoders.VAE import VAE
-from src.utils.utils import RecordExperience
+from src.deprecated.network import ActorCritic, CriticType
+from src.encoders.vae import VAE
+from src.utils.utils import ActionSample, RecordExperience
 
 from src.constants import DEVICE
 
@@ -89,6 +89,7 @@ class SACAgent(BaseAgent):
             None,
             latent_dims=self.obs_dim,
             device=DEVICE,
+            critic_type=CriticType.Q,
         )
 
         if self.checkpoint and self.load_checkpoint:
@@ -115,22 +116,25 @@ class SACAgent(BaseAgent):
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
+        action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
             a = a  # numpy array...
+            action_obj.action = a
             self.record["transition_actor"] = "learner"
         else:
             a = self.action_space.sample()
+            action_obj.action = a
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
-        return a
+        return action_obj
 
     def register_reset(self, obs) -> np.array:
         """
         Same input/output as select_action, except this method is called at episodal reset.
         """
         # camera, features, state = obs
-        self.deterministic = True
+        self.deterministic = True  # TODO: Confirm that this makes sense.
         self.t = 1e6
 
     def load_model(self, path):
@@ -237,8 +241,6 @@ class SACAgent(BaseAgent):
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
 
-    ####
-
     def update_best_pct_complete(self, info):
         if self.best_pct < info["metrics"]["pct_complete"]:
             for cutoff in [93, 100]:
@@ -247,35 +249,6 @@ class SACAgent(BaseAgent):
                 ):
                     self.pi_scheduler.step()
             self.best_pct = info["metrics"]["pct_complete"]
-
-    """def checkpoint_model(self, ep_ret, n_eps):
-        # Save if best (or periodically)
-        if ep_ret > self.best_ret:  # and ep_ret > 100):
-            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger(
-                f"New best episode reward of {round(ep_ret, 1)}! Saving: {path_name}"
-            ) ## Hello
-            self.best_ret = ep_ret
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.cfg['model_save_path']}/best_{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass
-
-        elif self.cfg['save_freq'] > 0 and (n_eps + 1 % self.cfg["save_freq"] == 0):
-            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            self.file_logger(
-                f"Periodic save (save_freq of {self.cfg['save_freq']}) to {path_name}"
-            ) ## Hello
-            torch.save(self.actor_critic.state_dict(), path_name)
-            path_name = f"{self.cfg['model_save_path']}/{self.cfg['experiment_name']}_episode_{n_eps}.statedict"
-            try:
-                # Try to save Safety Actor-Critic, if present
-                torch.save(self.safety_actor_critic.state_dict(), path_name)
-            except:
-                pass """
 
     def add_experience(
         self,
@@ -351,7 +324,7 @@ class SACAgent(BaseAgent):
         except:
             pass
 
-        # TODO: Find a better way: requires knowledge of child class API :(
+        #Find a better way: requires knowledge of child class API :(
         if "safety_info" in self.metadata:
             self.tb_logger.add_scalar(
                 "val/ep_interventions",
