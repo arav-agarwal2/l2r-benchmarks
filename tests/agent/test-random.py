@@ -2,7 +2,7 @@ import numpy as np
 import gym
 from src.agents.random_agent import RandomAgent
 from src.agents.SACAgent import SACAgent
-from src.runners.sac import SACRunner
+from src.runners.ModelFreeRunner import ModelFreeRunner
 
 
 def test_random_agent():
