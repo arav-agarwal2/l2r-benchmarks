@@ -95,7 +95,7 @@ class VAE(BaseEncoder, torch.nn.Module):
         h = crop_resize_center(x).unsqueeze(0)
         v = self.representation(h)
         return v
-    
+
     def distribution(self, x, device=DEVICE):
         # expects (N, H, W, C)
         if len(x.shape) == 3:

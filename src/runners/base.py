@@ -5,9 +5,7 @@ class BaseRunner(ABC):
     """ABC for BaseRunner."""
 
     def __init__(self):
-        """Initialize Base Runner
-        """
-        
+        """Initialize Base Runner"""
 
     def training(self):  # pragma: no cover
         """
