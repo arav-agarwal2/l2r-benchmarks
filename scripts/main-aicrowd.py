@@ -96,7 +96,7 @@ if __name__ == "__main__":
     sim_config = SimulatorConfig
     env = RacingEnv(env_config.__dict__, sim_config.__dict__)
     env.make()
-    runner = create_configurable("config_files/example_sac/runner.yaml", NameToSourcePath.runner)
+    runner = create_configurable("config_files/pets_testing/runner.yaml", NameToSourcePath.runner)
 
     with open(
         f"{runner.agent.model_save_path}/{runner.exp_config['experiment_name']}/git_config",

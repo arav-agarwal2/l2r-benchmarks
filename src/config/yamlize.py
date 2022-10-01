@@ -9,6 +9,7 @@ import typing as tp
 
 def yamlize(configurable_class):
     # define a new display method
+    # TODO: Add partconfig
 
     def convert_type_to_strictyaml(val):
 
