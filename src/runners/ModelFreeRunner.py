@@ -153,13 +153,17 @@ class ModelFreeRunner(BaseRunner):
                 else:
                     obs_encoded_new, reward, done, info = env.step(action_obj.action)
                 
+                self.file_logger.log(f"Took a step")
                 ep_ret += reward
                 #self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
                     {"obs":obs_encoded, "act": action_obj, "rew":reward, "next_obs":obs_encoded_new, "done":done}
                 )
+                self.file_logger.log(f"Stored obs in data")
                 if done or t == self.max_episode_length:
+                    self.file_logger.log(f"Calling finish path")
                     self.replay_buffer.finish_path(action_obj)
+                    self.file_logger.log(f"Called finish path {done}, {t}")
 
                 obs_encoded = obs_encoded_new
                 if (t >= self.exp_config["update_after"]) and (
@@ -167,7 +171,9 @@ class ModelFreeRunner(BaseRunner):
                 ):
                     for _ in range(self.exp_config["update_every"]): 
                         batch = self.replay_buffer.sample_batch()
+                        self.file_logger.log(f"Sampled from buffer")
                         self.agent.update(data=batch)
+                    self.file_logger.log(f"Updated agent")
 
                 if(t % self.eval_every == 0):
                     self.file_logger.log(f"Episode Number before eval: {ep_number}")
