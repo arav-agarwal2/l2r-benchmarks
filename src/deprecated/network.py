@@ -160,20 +160,25 @@ class Vfunction(nn.Module):
 
 
 class PPOMLPActorCritic(nn.Module):
-    def __init__(self, observation_space, action_space, cfg,
-                 hidden_sizes=(64,64), activation=nn.Tanh, device="cpu"):
+    def __init__(
+        self, 
+        observation_space,
+        action_space,
+        cfg,
+        activation=nn.Tanh,
+        latent_dims=None,
+        device="cpu"):
         super().__init__()
 
-        obs_dim = observation_space
+        obs_dim = observation_space.shape[0] if latent_dims is None else latent_dims
+        act_dim = action_space.shape[0]
+        act_limit = action_space.high[0]
 
-        
-        # obs_dim += self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"][-1]
-        # policy builder depends on action space
-        if isinstance(action_space, Box):
-            self.pi = SquashedGaussianMLPActor(obs_dim, action_space.shape[0], [64, 64, 32], activation, action_space.high[0])
-        # Discrete might not work
-        elif isinstance(action_space, Discrete):
-            self.pi = MLPCategoricalActor(obs_dim, action_space.n, hidden_sizes, activation)
+        # build policy and value functions
+        self.speed_encoder = mlp([1] + [8, 8])
+        self.policy = SquashedGaussianMLPActor(
+            obs_dim, act_dim, [64, 64, 32], activation, act_limit
+        )
 
         # build value function
         self.v  = Vfunction(cfg)
@@ -189,7 +194,7 @@ class PPOMLPActorCritic(nn.Module):
             # pdb.set_trace()
             # spd_embed = self.speed_encoder(speed) # n x 8
             feat = img_embed
-            a, logp_a = self.pi(feat, deterministic, True)
+            a, logp_a = self.policy(feat, deterministic, True)
             a = a.squeeze(0)
             v = self.v(obs)
         return a.cpu().numpy(), v.cpu().numpy(), logp_a.cpu().numpy()
