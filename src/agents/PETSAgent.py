@@ -43,6 +43,7 @@ class PETSAgent(BaseAgent):
         
 
     def select_action(self, obs, noise=False) -> np.array:
+        action_obj = ActionSample()
         state = obs.detach().float()
         initial_states = state.repeat((self.n_planner, 1)).to(DEVICE)
         rollout_actions =  torch.from_numpy(np.random.uniform(low=self.action_space.low,
@@ -56,7 +57,8 @@ class PETSAgent(BaseAgent):
         if noise and self.action_type=="continuous":
             optimal_action += torch.normal(torch.zeros(optimal_action.shape),
                                            torch.ones(optimal_action.shape) * 0.01).to(DEVICE)
-        return optimal_action.cpu().numpy()
+        action_obj.action = optimal_action.cpu().numpy()
+        return action_obj
 
     def _compute_returns(self, states, actions):
         returns = torch.zeros((self.n_planner, 1)).to(DEVICE)
