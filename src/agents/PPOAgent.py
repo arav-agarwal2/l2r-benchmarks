@@ -97,7 +97,7 @@ class PPOAgent(BaseAgent):
 
         # Set up optimizers for policy and q-function
         self.pi_optimizer = Adam(
-            self.actor_critic.pi.parameters(), lr=self.lr
+            self.actor_critic.policy.parameters(), lr=self.lr
         )
         self.v_optimizer = Adam(self.v_params, lr=self.lr)
         self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
