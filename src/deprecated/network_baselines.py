@@ -42,6 +42,7 @@ class SquashedGaussianMLPActor(nn.Module):
         self.act_limit = act_limit
 
     def forward(self, obs, deterministic=False, with_logprob=True):
+        print(obs.shape)
         net_out = self.net(obs)
         mu = self.mu_layer(net_out)
         log_std = self.log_std_layer(net_out)
