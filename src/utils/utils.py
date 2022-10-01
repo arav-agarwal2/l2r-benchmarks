@@ -98,9 +98,10 @@ class RecordExperience:
             self.logger("[RecordExperience] Saving experience.")
             for record in batch:
                 self.save(record)
+
+
 @dataclass
 class ActionSample:
     action = None
     value = None
     logp = None
-    
