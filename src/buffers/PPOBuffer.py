@@ -3,7 +3,6 @@ import torch
 import numpy as np
 import scipy
 from scipy import signal
-import pdb
 from src.utils.utils import ActionSample
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
@@ -75,8 +74,6 @@ class PPOBuffer:
         # the next two lines implement GAE-Lambda advantage calculation
         deltas = rews[:-1] + self.gamma * vals[1:] - vals[:-1]
         self.adv_buf[path_slice] = discount_cumsum(deltas, self.gamma * self.lam)
-        if np.isnan(self.adv_buf).any():
-            pdb.set_trace()
         # the next line computes rewards-to-go, to be targets for the value function
         self.ret_buf[path_slice] = discount_cumsum(rews, self.gamma)[:-1]
         
@@ -90,12 +87,8 @@ class PPOBuffer:
         '''
         # assert self.ptr == self.max_size    # buffer has to be full before you can get
         self.ptr, self.path_start_idx = 0, 0
-        if np.isnan(self.adv_buf).any():
-            pdb.set_trace()
         # the next two lines implement the advantage normalization trick
         adv_mean, adv_std = stats_scalar(self.adv_buf)
-        if np.isnan(adv_std):
-            pdb.set_trace()
         self.adv_buf = (self.adv_buf - adv_mean) / adv_std
         
         idxs = np.random.choice(
