@@ -152,9 +152,9 @@ class Vfunction(nn.Module):
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
-        #speed = obs_feat[..., 32:]  # n x 1
-        #spd_embed = self.speed_encoder(speed)  # n x 16
-        out = self.regressor(torch.cat([img_embed], dim=-1))  # n x 1
+        speed = obs_feat[..., 32:]  # n x 1
+        spd_embed = self.speed_encoder(speed)  # n x 16
+        out = self.regressor(torch.cat([img_embed, spd_embed], dim=-1))  # n x 1
         # pdb.set_trace()
         return out.view(-1)
 
