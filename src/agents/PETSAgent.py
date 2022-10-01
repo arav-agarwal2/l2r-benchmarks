@@ -40,7 +40,7 @@ class PETSAgent(BaseAgent):
         
 
     def select_action(self, obs, noise=False) -> np.array:
-        obs = obs.numpy()
+        obs = obs.detach().numpy()
         state = torch.from_numpy(obs[None, :]).float()
         initial_states = state.repeat((self.n_planner, 1)).to(self.device)
         rollout_actions =  torch.from_numpy(np.random.uniform(low=self.action_space.low,
