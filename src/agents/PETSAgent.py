@@ -110,6 +110,7 @@ class PETSAgent(BaseAgent):
             data["obs2"],
             data["done"],
         )
+        o2 = np.concatenate((o2 - o,r),axis=-1)
         mu, log_var = self(o, return_log_var=True)
         assert mu.shape[1:] == o2.shape[1:]
         # Remove validate atm.
