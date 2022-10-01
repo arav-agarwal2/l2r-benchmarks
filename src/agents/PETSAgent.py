@@ -33,7 +33,7 @@ class PETSAgent(BaseAgent):
         self.model = DynamicsNetwork.instantiate_from_config(network_config_path)
         self.n_planner = n_planner
         self.horizon = horizon
-
+        self.model_save_path = model_save_path
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         
 
