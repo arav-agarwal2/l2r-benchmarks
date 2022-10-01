@@ -103,7 +103,6 @@ class PPOAgent(BaseAgent):
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a, v, logp = self.actor_critic.step(obs.to(DEVICE))
-            print(self.action_space.shape[0])
             a = a  # numpy array...
             action_obj.action = a
             action_obj.value = v
@@ -111,7 +110,8 @@ class PPOAgent(BaseAgent):
             self.record["transition_actor"] = "learner"
         else:
             a = self.action_space.sample()
-            logp = np.ones((self.action_space.shape[0], ))/self.action_space.shape[0]
+            #logp = np.ones((self.action_space.shape[0], ))/self.action_space.shape[0]
+            logp = np.ones((1, ))
             # TODO: add default value after getting value shape
             v = np.ones((1,))
             action_obj.action = a

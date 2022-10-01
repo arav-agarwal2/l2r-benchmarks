@@ -88,7 +88,7 @@ class PPOBuffer:
         the buffer, with advantages appropriately normalized (shifted to have
         mean zero and std one). Also, resets some pointers in the buffer.
         '''
-        assert self.ptr == self.max_size    # buffer has to be full before you can get
+        # assert self.ptr == self.max_size    # buffer has to be full before you can get
         self.ptr, self.path_start_idx = 0, 0
         if np.isnan(self.adv_buf).any():
             pdb.set_trace()
