@@ -177,7 +177,7 @@ class PPOAgent(BaseAgent):
             kl = pi_info['kl']
             if kl > 1.5 * self.target_kl:
                 # print(next(self.actor_critic.pi.mu_net.parameters()))
-                self.file_logger('Early stopping at step %d due to reaching max kl.'%i)
+                #self.file_logger('Early stopping at step %d due to reaching max kl.'%i)
                 break
             loss_pi.backward()
             self.pi_optimizer.step()
