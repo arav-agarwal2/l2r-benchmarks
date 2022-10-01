@@ -129,29 +129,6 @@ class Actor(nn.Module):
             logp_a = self._log_prob_from_distribution(pi, act)
         return pi, logp_a
 
-class MLPCritic(nn.Module):
-
-    def __init__(self, obs_dim, hidden_sizes, activation):
-        super().__init__()
-        self.v_net = mlp([obs_dim] + list(hidden_sizes) + [1], activation)
-        # self.speed_encoder = mlp(
-        #             [1] + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
-        #         )
-    def forward(self, obs):
-        
-        # img_embed = obs[
-        #     ..., : self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
-        # ]  # n x latent_dims
-        # speed = obs[
-        #     ..., self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] :
-        # ]  # n x 1
-        # # pdb.set_trace()
-        # # spd_embed = self.speed_encoder(speed)  # n x 8
-        # feat = torch.cat([img_embed, speed], dim=-1)
-
-        return torch.squeeze(self.v_net(obs), -1) # Critical to ensure v has right shape.
-
-
 
 class MLPCategoricalActor(Actor):
     
@@ -173,23 +150,16 @@ class MLPGaussianActor(Actor):
         super().__init__()
         log_std = -0.5 * np.ones(act_dim, dtype=np.float32)
         self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
-        self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
+        self.mu_net = mlp([obs_dim + 8] + list(hidden_sizes) + [act_dim], activation)
         self.scale = scale
-        # self.speed_encoder = mlp(
-        #     [1] + self.cfg[self.cfg["use_encoder_type"]]["speed_hiddens"]
-        # )
+        self.speed_encoder = mlp([1] + [8, 8])
 
     def _distribution(self, obs):
-        # img_embed = obs[
-        #         ..., : self.cfg[self.cfg["use_encoder_type"]]["latent_dims"]
-        #     ]  # n x latent_dims
-        # speed = obs[
-        #     ..., self.cfg[self.cfg["use_encoder_type"]]["latent_dims"] :
-        # ]  # n x 1
-        # # pdb.set_trace()
-        # # spd_embed = self.speed_encoder(speed)  # n x 8
-        # feat = torch.cat([img_embed, speed], dim=-1)
-        feat = obs
+        img_embed = obs[..., :32]  # n x latent_dims
+        speed = obs[..., 32:]  # n x 1
+        spd_embed = self.speed_encoder(speed) 
+        feat = torch.cat([img_embed, spd_embed], dim=-1)
+        #feat = obs
         
 
         mu = self.mu_net(feat)
@@ -211,3 +181,6 @@ class MLPGaussianActor(Actor):
         # transforms = [TanhTransform(), AffineTransform(0, scale=self.scale)]
         # transforms = [TanhTransform()]
         # return TransformedDistribution(base_dist, transforms)
+
+    def _log_prob_from_distribution(self, pi, act):
+        return pi.log_prob(act).sum(axis=-1) 

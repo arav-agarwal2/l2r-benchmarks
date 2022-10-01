@@ -12,7 +12,7 @@ import logging
 if __name__ == "__main__":
     # Build environment
     env = build_env(controller_kwargs={'quiet':True})
-    runner = create_configurable("config_files/example_sac/runner.yaml", NameToSourcePath.runner)
+    runner = create_configurable("config_files/ppo_config/runner.yaml", NameToSourcePath.runner)
 
     with open(
         f"{runner.agent.model_save_path}/{runner.exp_config['experiment_name']}/git_config",
@@ -23,5 +23,5 @@ if __name__ == "__main__":
     try: 
         runner.run(env, sys.argv[3])
     except IndexError as e:
-        logging.warning(e,e.info)
+        logging.warning(e)
         runner.run(env, "")

@@ -19,7 +19,7 @@ from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
 from src.deprecated.network import ActorCritic, CriticType
 from src.encoders.vae import VAE
-from src.utils.utils import RecordExperience
+from src.utils.utils import ActionSample, RecordExperience
 
 from src.constants import DEVICE
 
@@ -116,15 +116,18 @@ class SACAgent(BaseAgent):
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
+        action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
             a = a  # numpy array...
+            action_obj.action = a
             self.record["transition_actor"] = "learner"
         else:
             a = self.action_space.sample()
+            action_obj.action = a
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
-        return a
+        return action_obj
 
     def register_reset(self, obs) -> np.array:
         """
