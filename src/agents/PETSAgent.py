@@ -30,7 +30,7 @@ from src.constants import DEVICE
 class PETSAgent(BaseAgent):
     """Adopted from https://github.com/BY571/PETS-MPC. Currently not using CEM, but random AS."""
 
-    def __init__(self, network_config_path: str, n_planner: int = 500, n_ensembles: int = 5, horizon: int = 12, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = True):
+    def __init__(self, network_config_path: str, n_planner: int = 500, n_ensembles: int = 7, horizon: int = 12, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = True):
         super().__init__()
         self.model = DynamicsNetwork.instantiate_from_config(network_config_path)
         self.n_planner = n_planner
