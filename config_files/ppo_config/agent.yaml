@@ -6,7 +6,7 @@ config:
   lr: 0.003
   clip_ratio: 0.2
   alpha: 0.2
-  steps_to_sample_randomly: -1 # start_steps
+  steps_to_sample_randomly: 100 # start_steps
   checkpoint: '/mnt/log_dir_test/best_ppo_log_dir_test_episode_0.statedict'
   load_checkpoint: False
   model_save_path: '/mnt'
