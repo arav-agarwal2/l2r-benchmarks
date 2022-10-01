@@ -47,7 +47,7 @@ class PETSAgent(BaseAgent):
         rollout_actions =  torch.from_numpy(np.random.uniform(low=self.action_space.low,
                                     high=self.action_space.high,
                                     size=(self.n_planner, self.horizon, self.action_space.shape[0]))).to(DEVICE).float()
-        returns, all_states = self.compute_returns(initial_states, rollout_actions)
+        returns, all_states = self._compute_returns(initial_states, rollout_actions)
         best_action_idx = returns.argmax()
         optimal_action = rollout_actions[:, 0, :][best_action_idx]
         
