@@ -24,6 +24,8 @@ from src.utils.envwrapper import EnvContainer
 import torch.nn as nn
 import torch.nn.functional as F
 
+from src.constants import DEVICE
+
 @yamlize
 class PETSAgent(BaseAgent):
     """Adopted from https://github.com/BY571/PETS-MPC. Currently not using CEM, but random AS."""
@@ -41,10 +43,10 @@ class PETSAgent(BaseAgent):
 
     def select_action(self, obs, noise=False) -> np.array:
         state = obs.detach().float()
-        initial_states = state.repeat((self.n_planner, 1)).to(self.device)
+        initial_states = state.repeat((self.n_planner, 1)).to(DEVICE)
         rollout_actions =  torch.from_numpy(np.random.uniform(low=self.action_space.low,
                                     high=self.action_space.high,
-                                    size=(self.n_planner, self.horizon, self.action_space))).to(self.device).float()
+                                    size=(self.n_planner, self.horizon, self.action_space))).to(DEVICE).float()
         returns, all_states = self.compute_returns(initial_states, rollout_actions)
         best_action_idx = returns.argmax()
         optimal_action = rollout_actions[:, 0, :][best_action_idx]
@@ -52,11 +54,11 @@ class PETSAgent(BaseAgent):
         
         if noise and self.action_type=="continuous":
             optimal_action += torch.normal(torch.zeros(optimal_action.shape),
-                                           torch.ones(optimal_action.shape) * 0.01).to(self.device)
+                                           torch.ones(optimal_action.shape) * 0.01).to(DEVICE)
         return optimal_action.cpu().numpy()
 
     def _compute_returns(self, states, actions):
-        returns = torch.zeros((self.n_planner, 1)).to(self.device)
+        returns = torch.zeros((self.n_planner, 1)).to(DEVICE)
         state_list = [states.detach().cpu().numpy()]
         for t in range(self.horizon):
             with torch.no_grad():
@@ -69,7 +71,7 @@ class PETSAgent(BaseAgent):
 
     def ensemble_pred(self, states, actions):
         inputs = torch.cat((states, actions), axis=-1).cpu()
-        inputs = torch.from_numpy(inputs.numpy()).float().to(self.device)
+        inputs = torch.from_numpy(inputs.numpy()).float().to(DEVICE)
         inputs = inputs[None, :, :].repeat(self.n_ensembles, 1, 1)
         with torch.no_grad():
             mus, var = self.dynamics_model(inputs, return_log_var=False)
@@ -78,7 +80,7 @@ class PETSAgent(BaseAgent):
         assert mus.shape == (self.n_ensembles, states.shape[0], states.shape[1] + 1)
         assert var.shape == (self.n_ensembles, states.shape[0], states.shape[1] + 1)
         
-        mus[:, :, :-1] += states.to(self.device)
+        mus[:, :, :-1] += states.to(DEVICE)
         mus = mus.mean(0)
         std = torch.sqrt(var).mean(0)
 
