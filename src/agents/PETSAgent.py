@@ -28,13 +28,14 @@ import torch.nn.functional as F
 class PETSAgent(BaseAgent):
     """Adopted from https://github.com/BY571/PETS-MPC. Currently not using CEM, but random AS."""
 
-    def __init__(self, network_config_path: str, n_planner: int = 500, horizon: int = 12, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False):
+    def __init__(self, network_config_path: str, n_planner: int = 500, horizon: int = 12, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = True):
         super().__init__()
         self.model = DynamicsNetwork.instantiate_from_config(network_config_path)
         self.n_planner = n_planner
         self.horizon = horizon
         self.model_save_path = model_save_path
         self.load_checkpoint = load_checkpoint
+        self.deterministic = deterministic
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         
 
