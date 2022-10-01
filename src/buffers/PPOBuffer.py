@@ -99,7 +99,7 @@ class PPOBuffer:
         self.adv_buf = (self.adv_buf - adv_mean) / adv_std
         
         idxs = np.random.choice(
-            self.size, size=min(self.batch_size, self.ptr), replace=False
+            self.ptr, size=min(self.batch_size, self.ptr), replace=False
         )
         data = dict(obs=self.obs_buf[idxs], act=self.act_buf[idxs], ret=self.rew_buf[idxs],
                     adv=self.adv_buf[idxs], logp=self.logp_buf[idxs])
