@@ -7,15 +7,6 @@ from src.utils.utils import ActionSample
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
-def stats_scalar(x):
-    x = np.array(x, dtype=np.float32)
-    global_sum, global_n = np.sum(x), len(x)
-    mean = global_sum / global_n
-
-    global_sum_sq = np.sum((x - mean)**2)
-    std = np.sqrt(global_sum_sq / global_n)  # compute global std
-
-    return mean, std
 
 def discount_cumsum(x, discount):
     return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
@@ -28,7 +19,7 @@ class PPOBuffer:
     for calculating the advantages of state-action pairs.
     '''
 
-    def __init__(self, obs_dim: int, act_dim: int, size: int, batch_size: int, gamma=0.99, lam=0.95):
+    def __init__(self, obs_dim: int, act_dim: int, size: int, batch_size: int, gamma=0.99, lam=0.95, eps=1e-3):
         self.obs_buf = np.zeros( (size, obs_dim), dtype=np.float32)
         self.act_buf = np.zeros( (size, act_dim), dtype=np.float32)
         self.adv_buf = np.zeros(size, dtype=np.float32)
@@ -38,19 +29,21 @@ class PPOBuffer:
         self.logp_buf = np.zeros(size, dtype=np.float32)
         self.gamma, self.lam = gamma, lam
         self.ptr, self.path_start_idx, self.max_size = 0, 0, size
+        self.size = 0
         self.batch_size = batch_size
+        self.eps = eps
 
     def store(self, buffer_dict):
         '''
         Append one timestep of agent-environment interaction to the buffer.
         '''
-        assert self.ptr < self.max_size     # buffer has to have room so you can store
         self.obs_buf[self.ptr] = buffer_dict["obs"].detach().cpu()
         self.act_buf[self.ptr] = buffer_dict["act"].action
         self.rew_buf[self.ptr] = buffer_dict["rew"]
         self.val_buf[self.ptr] = buffer_dict["act"].value
         self.logp_buf[self.ptr] = buffer_dict["act"].logp
-        self.ptr += 1
+        self.ptr = (self.ptr + 1) % self.max_size
+        self.size = min(self.size + 1, self.max_size)
 
     def finish_path(self, action_obj=None):
         '''
@@ -66,10 +59,15 @@ class PPOBuffer:
         This allows us to bootstrap the reward-to-go calculation to account
         for timesteps beyond the arbitrary episode horizon (or epoch cutoff).
         '''
-
-        path_slice = slice(self.path_start_idx, self.ptr)
-        rews = np.append(self.rew_buf[path_slice], action_obj.value)
-        vals = np.append(self.val_buf[path_slice], action_obj.value)
+        if(self.path_start_idx > self.ptr):
+            path_slice1 = slice(self.path_start_idx, self.size)
+            path_slice2 = slice(0, self.ptr)
+            rews = np.append(self.rew_buf[path_slice1] + self.val_buf[path_slice2], action_obj.value)
+            vals = np.append(self.val_buf[path_slice1] + self.val_buf[path_slice2], action_obj.value)
+        else:
+            path_slice = slice(self.path_start_idx, self.ptr)
+            rews = np.append(self.rew_buf[path_slice], action_obj.value)
+            vals = np.append(self.val_buf[path_slice], action_obj.value)
         
         # the next two lines implement GAE-Lambda advantage calculation
         deltas = rews[:-1] + self.gamma * vals[1:] - vals[:-1]
@@ -86,13 +84,14 @@ class PPOBuffer:
         mean zero and std one). Also, resets some pointers in the buffer.
         '''
         # assert self.ptr == self.max_size    # buffer has to be full before you can get
-        self.ptr, self.path_start_idx = 0, 0
+        #self.ptr, self.path_start_idx = 0, 0
         # the next two lines implement the advantage normalization trick
-        adv_mean, adv_std = stats_scalar(self.adv_buf)
-        self.adv_buf = (self.adv_buf - adv_mean) / adv_std
+
+        adv_mean, adv_std = np.mean(self.adv_buf), np.std(self.adv_buf)
+        self.adv_buf = (self.adv_buf - adv_mean) / (adv_std + self.eps)
         
         idxs = np.random.choice(
-            self.ptr, size=min(self.batch_size, self.ptr), replace=False
+            self.size, size=min(self.batch_size, self.size), replace=False
         )
         data = dict(obs=self.obs_buf[idxs], act=self.act_buf[idxs], ret=self.rew_buf[idxs],
                     adv=self.adv_buf[idxs], logp=self.logp_buf[idxs])
