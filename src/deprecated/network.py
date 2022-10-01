@@ -1,8 +1,14 @@
 import torch
 import torch.nn as nn
-from src.deprecated.network_baselines import MLPCategoricalActor, MLPGaussianActor, mlp, SquashedGaussianMLPActor
+from src.deprecated.network_baselines import (
+    MLPCategoricalActor,
+    MLPGaussianActor,
+    mlp,
+    SquashedGaussianMLPActor,
+)
 from enum import Enum
 from gym.spaces import Box, Discrete
+
 
 def resnet18(pretrained=True):
     model = torch.hub.load("pytorch/vision:v0.6.0", "resnet18", pretrained=pretrained)
@@ -72,10 +78,12 @@ class DuelingNetwork(nn.Module):
         """
         return out.view(-1)
 
+
 class CriticType(Enum):
     Q = 0
     Safety = 1
     Value = 2
+
 
 class ActorCritic(nn.Module):
     def __init__(
@@ -106,7 +114,7 @@ class ActorCritic(nn.Module):
             self.q2 = Qfunction(cfg)
         elif critic_type == CriticType.Value:
             self.v = Vfunction(cfg)
-        
+
         self.device = device
         self.to(device)
 
@@ -141,6 +149,7 @@ class ActorCritic(nn.Module):
 
 class Vfunction(nn.Module):
     """Modified from Qfunction."""
+
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
@@ -161,13 +170,14 @@ class Vfunction(nn.Module):
 
 class PPOMLPActorCritic(nn.Module):
     def __init__(
-        self, 
+        self,
         observation_space,
         action_space,
         cfg,
         activation=nn.Tanh,
         latent_dims=None,
-        device="cpu"):
+        device="cpu",
+    ):
         super().__init__()
 
         obs_dim = observation_space.shape[0] if latent_dims is None else latent_dims
@@ -181,7 +191,7 @@ class PPOMLPActorCritic(nn.Module):
         )
 
         # build value function
-        self.v  = Vfunction(cfg)
+        self.v = Vfunction(cfg)
 
         self.to(device)
         self.device = device

@@ -89,7 +89,7 @@ class SACAgent(BaseAgent):
             None,
             latent_dims=self.obs_dim,
             device=DEVICE,
-            critic_type=CriticType.Q
+            critic_type=CriticType.Q,
         )
 
         if self.checkpoint and self.load_checkpoint:
@@ -134,7 +134,7 @@ class SACAgent(BaseAgent):
         Same input/output as select_action, except this method is called at episodal reset.
         """
         # camera, features, state = obs
-        self.deterministic = True #TODO: Confirm that this makes sense.
+        self.deterministic = True  # TODO: Confirm that this makes sense.
         self.t = 1e6
 
     def load_model(self, path):

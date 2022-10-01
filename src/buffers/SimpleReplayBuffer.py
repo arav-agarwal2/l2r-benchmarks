@@ -30,7 +30,7 @@ class SimpleReplayBuffer:
         self.batch_size = batch_size
         self.weights = None
 
-    def store(self,buffer_dict):
+    def store(self, buffer_dict):
         # pdb.set_trace()
 
         def convert(arraylike):
@@ -70,7 +70,7 @@ class SimpleReplayBuffer:
         }
 
     def finish_path(self, action_obj=None):
-        '''
+        """
         Call this at the end of a trajectory, or when one gets cut off
         by an epoch ending. This looks back in the buffer to where the
         trajectory started, and uses rewards and value estimates from
@@ -82,6 +82,6 @@ class SimpleReplayBuffer:
         should be V(s_T), the value function estimated for the last state.
         This allows us to bootstrap the reward-to-go calculation to account
         for timesteps beyond the arbitrary episode horizon (or epoch cutoff).
-        '''
+        """
 
         pass
