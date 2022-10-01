@@ -6,6 +6,7 @@ import wandb
 from src.loggers.WanDBLogger import WanDBLogger
 from src.runners.base import BaseRunner
 from src.utils.envwrapper import EnvContainer
+from src.utils.utils import  ActionSample
 from src.agents.SACAgent import SACAgent
 from src.loggers.TensorboardLogger import TensorboardLogger
 from src.loggers.FileLogger import FileLogger
@@ -146,22 +147,22 @@ class ModelFreeRunner(BaseRunner):
             while not done:
                 t += 1
                 self.agent.deterministic = False
-                action = self.agent.select_action(obs_encoded)
+                action_obj = self.agent.select_action(obs_encoded)
                 if self.env_wrapped:
-                    obs_encoded_new, reward, done, info = self.env_wrapped.step(action)
+                    obs_encoded_new, reward, done, info = self.env_wrapped.step(action_obj.action)
                 else:
-                    obs_encoded_new, reward, done, info = env.step(action)
+                    obs_encoded_new, reward, done, info = env.step(action_obj.action)
                 
                 ep_ret += reward
                 #self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
-                    obs_encoded, action, reward, obs_encoded_new, done
+                    {"obs":obs_encoded, "act": action_obj, "rew":reward, "next_obs":obs_encoded_new, "done":done}
                 )
-                #if (t + 1) % self.eval_every == 0 or t == self.max_episode_length:
-                #    self.replay_buffer.finish_path() # TODO: Taking default value currently, select_action needs to return value to change this
+                if done or t == self.max_episode_length:
+                    self.replay_buffer.finish_path(action_obj)
 
                 obs_encoded = obs_encoded_new
-                if (t >= self.exp_config["update_after"]) & (
+                if (t >= self.exp_config["update_after"]) and (
                     t % self.exp_config["update_every"] == 0
                 ):
                     for _ in range(self.exp_config["update_every"]): 
@@ -217,11 +218,11 @@ class ModelFreeRunner(BaseRunner):
                 # Take deterministic actions at test time
                 self.agent.deterministic = True
                 self.t = 1e6
-                eval_action = self.agent.select_action(eval_obs_encoded, encode=False)
+                eval_action_obj = self.agent.select_action(eval_obs_encoded, encode=False)
                 if self.env_wrapped:
-                    eval_obs_encoded_new, eval_reward, eval_done, eval_info = self.env_wrapped.step(eval_action)
+                    eval_obs_encoded_new, eval_reward, eval_done, eval_info = self.env_wrapped.step(eval_action_obj.action)
                 else:
-                    eval_obs_encoded_new, eval_reward, eval_done, eval_info = env.step(eval_action)
+                    eval_obs_encoded_new, eval_reward, eval_done, eval_info = env.step(eval_action_obj.action)
             
                 # Check that the camera is turned on
                 eval_ep_ret += eval_reward

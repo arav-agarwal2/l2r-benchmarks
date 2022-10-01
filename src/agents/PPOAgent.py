@@ -13,7 +13,7 @@ from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
 from src.deprecated.network import ActorCritic, CriticType, PPOMLPActorCritic
 from src.encoders.vae import VAE
-from src.utils.utils import RecordExperience
+from src.utils.utils import ActionSample, RecordExperience
 
 from src.constants import DEVICE
 
@@ -76,7 +76,13 @@ class PPOAgent(BaseAgent):
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
-        self.actor_critic = PPOMLPActorCritic(self.obs_dim, self.action_space, device=DEVICE)
+        self.actor_critic = PPOMLPActorCritic(
+            self.obs_dim,
+            self.action_space,
+            None,
+            latent_dims=self.obs_dim,
+            device=DEVICE
+        )
 
         self.target_kl = 0.01
 
@@ -91,7 +97,7 @@ class PPOAgent(BaseAgent):
 
         # Set up optimizers for policy and q-function
         self.pi_optimizer = Adam(
-            self.actor_critic.pi.parameters(), lr=self.lr
+            self.actor_critic.policy.parameters(), lr=self.lr
         )
         self.v_optimizer = Adam(self.v_params, lr=self.lr)
         self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
@@ -100,15 +106,25 @@ class PPOAgent(BaseAgent):
 
 
     def select_action(self, obs) -> np.array: 
+        action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
-            a = self.actor_critic.act(obs.to(DEVICE), self.deterministic)
+            a, v, logp = self.actor_critic.step(obs.to(DEVICE))
             a = a  # numpy array...
+            action_obj.action = a
+            action_obj.value = v
+            action_obj.logp = logp
             self.record["transition_actor"] = "learner"
         else:
             a = self.action_space.sample()
+            #logp = np.ones((self.action_space.shape[0], ))/self.action_space.shape[0]
+            logp = np.ones((1, ))
+            # TODO: add default value after getting value shape
+            v = np.ones((1,))
+            action_obj.action = a
+            action_obj.logp= logp
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
-        return a
+        return action_obj
 
     def register_reset(self, obs) -> np.array:  
         self.deterministic = True
@@ -119,7 +135,7 @@ class PPOAgent(BaseAgent):
         obs, act, adv, logp_old = data['obs'], data['act'], data['adv'], data['logp']
 
         # Policy loss
-        pi, logp = self.actor_critic.pi(obs.to(DEVICE), act.to(DEVICE))
+        pi, logp = self.actor_critic.pi(obs.to(DEVICE))
         # logp = logp.cpu().numpy()
         # pi = pi.cpu()
         logp_old = logp_old.to(DEVICE)
@@ -161,11 +177,10 @@ class PPOAgent(BaseAgent):
             kl = pi_info['kl']
             if kl > 1.5 * self.target_kl:
                 # print(next(self.actor_critic.pi.mu_net.parameters()))
-                self.file_logger('Early stopping at step %d due to reaching max kl.'%i)
+                #self.file_logger('Early stopping at step %d due to reaching max kl.'%i)
                 break
             loss_pi.backward()
             self.pi_optimizer.step()
-            print(next(self.actor_critic.pi.mu_net.parameters()))
         # print(next(self.actor_critic.pi.mu_net.parameters()))
         # logger.store(StopIter=i)
 
@@ -175,7 +190,6 @@ class PPOAgent(BaseAgent):
             loss_v = self.compute_loss_v(data)
             loss_v.backward()
             self.v_optimizer.step()
-        print(next(self.actor_critic.pi.mu_net.parameters()))
 
     def load_model(self, path):
         self.actor_critic.load_state_dict(torch.load(path))
