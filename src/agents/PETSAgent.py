@@ -30,7 +30,7 @@ from src.constants import DEVICE
 class PETSAgent(BaseAgent):
     """Adopted from https://github.com/BY571/PETS-MPC. Currently not using CEM, but random AS."""
 
-    def __init__(self, network_config_path: str, n_planner: int = 500, n_ensembles: int = 7, horizon: int = 12, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = True):
+    def __init__(self, network_config_path: str, n_planner: int = 500, n_ensembles: int = 7, horizon: int = 12, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = False):
         super().__init__()
         self.model = DynamicsNetwork.instantiate_from_config(network_config_path)
         self.n_planner = n_planner
@@ -86,7 +86,7 @@ class PETSAgent(BaseAgent):
         mus = mus.mean(0)
         std = torch.sqrt(var).mean(0)
 
-        if self.dynamics_type == "probabilistic":
+        if not self.deterministic:
             predictions = torch.normal(mean=mus, std=std)
         else:
             predictions = mus
@@ -126,7 +126,7 @@ class PETSAgent(BaseAgent):
         return super().save_model(path)
     
 
-
+#TODO: Make ensemble_size and num_ensembles agree.
 @yamlize
 class DynamicsNetwork(nn.Module):
     def __init__(self, state_size: int = 32, action_size: int = 2, ensemble_size:int = 7, hidden_layer:int = 3, hidden_size: int = 200) -> None:
