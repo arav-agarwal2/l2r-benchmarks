@@ -186,6 +186,20 @@ class PPOMLPActorCritic(nn.Module):
         self.to(device)
         self.device = device
 
+    def pi(self, obs_feat, deterministic=False):
+        # if obs_feat.ndimension() == 1:
+        #    obs_feat = obs_feat.unsqueeze(0)
+        img_embed = obs_feat[..., :32]  # n x latent_dims
+        # speed = obs_feat[..., 32:]  # n x 1
+        # spd_embed = self.speed_encoder(speed)  # n x 8
+        feat = torch.cat(
+            [
+                img_embed,
+            ],
+            dim=-1,
+        )
+        return self.policy(feat, deterministic, True)
+
     def step(self, obs, deterministic=False):
         with torch.no_grad():
             img_embed = obs[..., :32]  # n x latent_dims

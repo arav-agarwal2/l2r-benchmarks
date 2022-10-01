@@ -97,7 +97,7 @@ class PPOAgent(BaseAgent):
 
         # Set up optimizers for policy and q-function
         self.pi_optimizer = Adam(
-            self.actor_critic.policy.parameters(), lr=self.lr
+            self.actor_critic.pi.parameters(), lr=self.lr
         )
         self.v_optimizer = Adam(self.v_params, lr=self.lr)
         self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
@@ -135,7 +135,7 @@ class PPOAgent(BaseAgent):
         obs, act, adv, logp_old = data['obs'], data['act'], data['adv'], data['logp']
 
         # Policy loss
-        pi, logp = self.actor_critic.policy(obs.to(DEVICE), act.to(DEVICE))
+        pi, logp = self.actor_critic.pi(obs.to(DEVICE), act.to(DEVICE))
         # logp = logp.cpu().numpy()
         # pi = pi.cpu()
         logp_old = logp_old.to(DEVICE)
