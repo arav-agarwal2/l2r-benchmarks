@@ -135,7 +135,7 @@ class PPOAgent(BaseAgent):
         obs, act, adv, logp_old = data['obs'], data['act'], data['adv'], data['logp']
 
         # Policy loss
-        pi, logp = self.actor_critic.pi(obs.to(DEVICE), act.to(DEVICE))
+        pi, logp = self.actor_critic.pi(obs.to(DEVICE))
         # logp = logp.cpu().numpy()
         # pi = pi.cpu()
         logp_old = logp_old.to(DEVICE)
