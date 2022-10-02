@@ -8,10 +8,10 @@ import torch
 from src.planners.BasePlanner import BasePlanner
 from src.constants import DEVICE
 
-class PDDMPlanner(ABC):
+class PDDMPlanner(BasePlanner):
 
     def __init__(self, action_space=BasePlanner.default_action_space, n_planner: int = 500, horizon: int = 12, gamma: float = 1.0, beta: float = 0.5):
-        super().__init__(action_space, n_planner, horizon)
+        super().__init__( action_space, n_planner, horizon)
         self.gamma = gamma
         self.beta = beta
 
@@ -23,7 +23,7 @@ class PDDMPlanner(ABC):
             action: np.array (2,)
             action should be in the form of [\delta, a], where \delta is the normalized steering angle, and a is the normalized acceleration.
         """
-        initial_states = state.repeat((self.n_planner, 1)).to(self.device)
+        initial_states = state.repeat((self.n_planner, 1)).to(DEVICE)
             
         actions, returns, state_list = self.get_pred_trajectories(initial_states, dynamics_model)
         optimal_action = self._update_mu(actions, returns)
@@ -67,7 +67,7 @@ class PDDMPlanner(ABC):
         np.random.seed()
         past_action = self.mu[0].copy()
         actions = self._sample_actions(past_action)
-        torch_actions = torch.from_numpy(actions).float().to(self.device)
+        torch_actions = torch.from_numpy(actions).float().to(DEVICE)
         for t in range(self.horizon):
             with torch.no_grad():
                 actions_t = torch_actions[:, t, :]

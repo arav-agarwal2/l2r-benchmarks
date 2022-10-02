@@ -12,7 +12,7 @@ class RandomPlanner(BasePlanner):
         super().__init__(action_space, n_planner, horizon)
 
 
-    def get_action(self, state, dynamics_model: torch.nn.Module, noise: bool = True) -> np.array:  # pragma: no cover
+    def get_action(self, state, dynamics_model: torch.nn.Module, noise: bool = False) -> np.array:  # pragma: no cover
         """
         # Outputs action given the current state
         obs: A Numpy Array compatible with the PETSAgent and like classes.

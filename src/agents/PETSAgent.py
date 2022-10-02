@@ -13,6 +13,7 @@ from src.config.yamlize import create_configurable, yamlize
 from src.deprecated.network import ActorCritic, CriticType
 from src.encoders.vae import VAE
 from src.planners.RandomPlanner import RandomPlanner
+from src.planners.CEMPlanner import CEMPlanner
 from src.utils.utils import ActionSample, RecordExperience
 
 from src.constants import DEVICE
@@ -39,7 +40,7 @@ class PETSAgent(BaseAgent):
         self.deterministic = deterministic
         self.n_ensembles = n_ensembles
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
-        self.planner = RandomPlanner()
+        self.planner = CEMPlanner()
         
 
     def select_action(self, obs, noise=False) -> np.array:
@@ -114,23 +115,23 @@ class DynamicsNetwork(nn.Module):
         return mu, log_var
     
 
-    def predict(self, states, actions):
+    def predict(self, states, actions, deterministic=False):
         inputs = torch.cat((states, actions), axis=-1).cpu()
         inputs = torch.from_numpy(inputs.numpy()).float().to(DEVICE)
-        inputs = inputs[None, :, :].repeat(self.n_ensembles, 1, 1)
+        inputs = inputs[None, :, :].repeat(self.ensemble_size, 1, 1)
         with torch.no_grad():
-            mus, var = self.model(inputs)
+            mus, var = self(inputs)
             var = torch.exp(var)
 
         # [ensembles, batch, prediction_shape]
-        assert mus.shape == (self.n_ensembles, states.shape[0], states.shape[1] + 1)
-        assert var.shape == (self.n_ensembles, states.shape[0], states.shape[1] + 1)
+        assert mus.shape == (self.ensemble_size, states.shape[0], states.shape[1] + 1)
+        assert var.shape == (self.ensemble_size, states.shape[0], states.shape[1] + 1)
         
         mus[:, :, :-1] += states.to(DEVICE)
         mus = mus.mean(0)
         std = torch.sqrt(var).mean(0)
 
-        if not self.deterministic:
+        if not deterministic:
             predictions = torch.normal(mean=mus, std=std)
         else:
             predictions = mus

@@ -166,7 +166,7 @@ class ModelFreeRunner(BaseRunner):
                 if (t >= self.exp_config["update_after"]) and (
                     t % self.exp_config["update_every"] == 0
                 ):
-                    for _ in range(self.exp_config["update_every"]):
+                    for _ in range(100):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
 
@@ -229,7 +229,7 @@ class ModelFreeRunner(BaseRunner):
                 self.agent.deterministic = True
                 self.t = 1e6
                 eval_action_obj = self.agent.select_action(
-                    eval_obs_encoded, encode=False
+                    eval_obs_encoded
                 )
                 if self.env_wrapped:
                     (
@@ -240,7 +240,7 @@ class ModelFreeRunner(BaseRunner):
                     ) = self.env_wrapped.step(eval_action_obj.action)
                 else:
                     eval_obs_encoded_new, eval_reward, eval_done, eval_info = env.step(
-                        eval_action_obj.action
+                        eval_action_obj.action, encode=True
                     )
 
                 # Check that the camera is turned on
