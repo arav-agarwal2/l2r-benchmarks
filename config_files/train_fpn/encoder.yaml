@@ -1,4 +1,4 @@
-name: FPN
+name: FPNSegmentation
 config:
   image_channels: 3
   image_height: 42
