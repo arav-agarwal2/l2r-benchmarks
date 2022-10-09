@@ -27,7 +27,8 @@ def yamlize(configurable_class):
         elif val == bool:
             return sl.Bool()
         elif val == list:
-            return sl.Seq()
+            # Might need to be extended to strings sometime
+            return sl.Seq(sl.Int())
         else:
             raise ValueError(
                 f"Type {val} could not be converted to StrictYAML type. Please add to the convert_type_to_strictyaml function."
