@@ -1,8 +1,4 @@
 name: FPNSegmentation
 config:
-  image_channels: 3
-  image_height: 42
-  image_width: 144
-  z_dim: 32
-  load_checkpoint_from: ''
+  out_channels: 128
 
