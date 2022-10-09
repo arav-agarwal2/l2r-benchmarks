@@ -98,14 +98,7 @@ class VAE(BaseEncoder, torch.nn.Module):
 
     def distribution(self, x, device=DEVICE):
         # expects (N, H, W, C)
-#         if len(x.shape) == 3:
-#             p = torch.zeros([1, self.im_c, self.im_h, self.im_w]).to(device)
-#             p[0] = crop_resize_center(x)
-#         else:
-#             p = torch.zeros([x.shape[0], self.im_c, self.im_h, self.im_w]).to(device)
-#             for i in range(x.shape[0]):
-#                 p[i] = crop_resize_center(x[i])
-        h = self.encoder(p)
+        h = self.encoder(x)
         z, mu, logvar = self.bottleneck(h)
         return z, mu, logvar
 
