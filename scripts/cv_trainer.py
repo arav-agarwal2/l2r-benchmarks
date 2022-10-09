@@ -57,13 +57,13 @@ if __name__ == "__main__":
 
     # this is a stopgap - get_expert_demo_dataloaders has 1 value (autoencoding objective)
     # get_expert_demo_dataloaders has 1 value (autoencoding objective)
-    num_inputs = len(val_ds[0])
+    multiple_inputs = type(val_ds[0]) == tuple
 
     for epoch in range(num_epochs):
         train_loss = []
         encoder.train()
         for batch in tqdm.tqdm(train_dl, desc=f"Epoch #{epoch + 1} train"):
-            if num_inputs > 1:
+            if multiple_inputs:
                 x = batch[:-1]
                 y = batch[-1]
                 loss = encoder.loss(y, encoder(x))
