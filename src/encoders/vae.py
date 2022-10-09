@@ -119,7 +119,8 @@ class VAE(BaseEncoder, torch.nn.Module):
         z = self.decode(z)
         return z, mu, logvar
 
-    def loss(self, actual, recon, mu, logvar, kld_weight=1.0):
+    def loss(self, actual, pred, kld_weight=1.0):
+        recon, mu, logvar = pred
         bce = F.binary_cross_entropy(recon, actual, reduction="sum")
         kld = -0.5 * torch.sum(1 + logvar - mu**2 - logvar.exp())
         return bce + kld * kld_weight
