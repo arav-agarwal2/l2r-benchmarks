@@ -61,7 +61,7 @@ class SegmDataset(Dataset):
 
 @yamlize
 class SegmDataFetcher(BaseDataFetcher):
-    def __init__(self, train_path, val_path ):
+    def __init__(self, train_path: str, val_path: str):
         self.train_path = train_path
         self.val_path = val_path
 
