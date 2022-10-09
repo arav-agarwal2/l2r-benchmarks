@@ -58,7 +58,7 @@ class SegmDataset(Dataset):
         rgb, label = self.data[idx]
         return self.prepare_rgb(rgb), self.prepare_segm(label)
 
-
+@yamlize
 class SegmDataFetcher(BaseDataFetcher):
     def __init__(self, train_path, val_path ):
         self.train_path = train_path
