@@ -63,6 +63,8 @@ if __name__ == "__main__":
         train_loss = []
         encoder.train()
         for batch in tqdm.tqdm(train_dl, desc=f"Epoch #{epoch + 1} train"):
+            print(f"multiple_inputs {multiple_inputs}")
+            print(f"batch.shape {batch.shape}"
             if multiple_inputs:
                 x = batch[:-1]
                 y = batch[-1]
