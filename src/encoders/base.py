@@ -10,11 +10,3 @@ class BaseEncoder(ABC):
         # image: np.array (H, W, C)
         # returns torch.Tensor(*) where * depends on the encoder
         pass
-
-    @abstractmethod
-    def decode(self, image):
-        pass
-
-    @abstractmethod
-    def update(self, batch_of_images):
-        pass
