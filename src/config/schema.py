@@ -116,3 +116,15 @@ cv_trainer_schema = Map(
         )
     }
 )
+
+
+data_fetcher_schema = Map(
+    {
+        "data_fetcher_config": Map(
+            {
+                "train_path": Str(),
+                "val_path": Str(),
+            }
+        )
+    }
+)
