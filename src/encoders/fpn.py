@@ -4,6 +4,8 @@ from torch import nn
 import torch.nn.functional as F
 from collections import OrderedDict
 from src.encoders.base import BaseEncoder
+from src.config.yamlize import yamlize
+
 
 class DiceLoss(nn.Module):
     def __init__(self):
@@ -71,6 +73,7 @@ class SegmentationBranch(nn.Module):
         x = self.softmax(x)
         return x
         
+@yamlize
 class FPNSegmentation(BaseEncoder, nn.Module):
     def __init__(
             self,
