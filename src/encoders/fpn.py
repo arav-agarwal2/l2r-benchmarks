@@ -12,6 +12,7 @@ class DiceLoss(nn.Module):
         super(DiceLoss, self).__init__()
 
     def forward(self, inputs, targets, eps=1):
+        raise ValueError(f"Dice loss inputs: {inputs.shape}, targets {targets.shape}")
         inputs = nn.Flatten()(inputs[:, 0])
         targets = nn.Flatten()(targets)
         dice = 1 - (2*(inputs * targets).sum() + eps)/(inputs.sum() + targets.sum() + eps)  
