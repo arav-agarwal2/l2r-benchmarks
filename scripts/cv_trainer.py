@@ -3,13 +3,10 @@ import tqdm
 import torch
 import cv2
 
-from src.encoders.vae import VAE
-from src.encoders.dataloaders.expert_demo_dataloader import get_expert_demo_dataloaders
 from src.config.parser import read_config
 from src.config.schema import cv_trainer_schema
 import os
 from src.config.yamlize import create_configurable, NameToSourcePath
-import sys
 import argparse
 
 if __name__ == "__main__":
