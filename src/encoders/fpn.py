@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from collections import OrderedDict
 from src.encoders.base import BaseEncoder
 from src.config.yamlize import yamlize
-
+from src.constants import DEVICE
 
 class DiceLoss(nn.Module):
     def __init__(self):
@@ -58,7 +58,7 @@ class SegmentationBranch(nn.Module):
     # Had to use these num_upsample values to get the right dimensions for efficientnetv2_s
     def __init__(self, channels, n_classes, num_upsamples=[1,2,2,3]):
         super().__init__()
-        self.layers = [nn.Sequential(*[UpsampleBlock(channels, channels) for _ in range(i)]) for i in num_upsamples]
+        self.layers = [nn.Sequential(*[UpsampleBlock(channels, channels).to(DEVICE) for _ in range(i)]) for i in num_upsamples]
         self.head = nn.Conv2d(channels, n_classes, 1, padding=0)
         self.softmax = nn.Softmax2d()
         
