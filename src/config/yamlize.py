@@ -26,7 +26,7 @@ def yamlize(configurable_class):
             return sl.Float()
         elif val == bool:
             return sl.Bool()
-        elif val == List:
+        elif val == list:
             return sl.Seq()
         else:
             raise ValueError(
