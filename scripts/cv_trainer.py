@@ -22,7 +22,6 @@ if __name__ == "__main__":
                         help='api key for weights and biases')                        
     args = parser.parse_args()
     
-    raise ValueError(f"{args.yaml_dir}/training.yaml")
     training_config = read_config(
         f"{args.yaml_dir}/training.yaml", cv_trainer_schema
     )
