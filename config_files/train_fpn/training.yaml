@@ -3,5 +3,3 @@ cv_trainer_config:
   lr: 0.001
   batch_size: 32
   model_save_path: '/mnt/fpn/'
-  train_data_path: '/mnt/data/train'
-  val_data_path: '/mnt/data/val'
