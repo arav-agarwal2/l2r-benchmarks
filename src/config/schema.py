@@ -112,8 +112,6 @@ cv_trainer_schema = Map(
                 "num_epochs": Int(),
                 "lr": Float(),
                 "model_save_path": Str(),
-                "train_data_path": Str(),
-                "val_data_path": Str(),
             }
         )
     }
