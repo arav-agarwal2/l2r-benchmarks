@@ -20,8 +20,6 @@ if __name__ == "__main__":
                         help='ex. ../config_files/train_vae')
     parser.add_argument('--wandb_key', type=str, dest='wandb_key',
                         help='api key for weights and biases')                        
-    import os
-    raise ValueError(os.getcwd())
     args = parser.parse_args()
 
     training_config = read_config(
