@@ -26,6 +26,9 @@ if __name__ == "__main__":
         f"{args.yaml_dir}/training.yaml", cv_trainer_schema
     )
 
+    if not os.path.exists(training_config['model_save_path']):
+        os.mkdir(training_config['model_save_path'])
+    
     with open(
         f"{training_config['model_save_path']}/git_config",
         "w+",
