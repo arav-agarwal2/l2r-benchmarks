@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import cv2
 from collections import OrderedDict
 from src.encoders.dataloaders.base import BaseDataFetcher
+from src.config.yamlize import yamlize
 
 
 
