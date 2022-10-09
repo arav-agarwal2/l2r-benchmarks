@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     data_fetcher = create_configurable(
         f"{args.yaml_dir}/data_fetcher.yaml", NameToSourcePath.encoder_dataloader
-    ).to(device)
+    )
     optim = torch.optim.Adam(encoder.parameters(), lr=lr)
     num_epochs = training_config["num_epochs"]
     best_loss = 1e10
