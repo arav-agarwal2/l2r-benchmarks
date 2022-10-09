@@ -82,7 +82,13 @@ if __name__ == "__main__":
         encoder.eval()
         for batch in tqdm.tqdm(val_dl, desc=f"Epoch #{epoch + 1} test"):
             # vae had a kld_weight=0.0 here... but yeah not sure how to parameterize that
-            loss = encoder.loss(batch, encoder(batch)) 
+            if multiple_inputs:
+                # todo expand to more than 1, or 2 things passed by dataloader?
+                x = batch[0]
+                y = batch[-1]
+                loss = encoder.loss(y, encoder(x))
+            else:
+                loss = encoder.loss(batch, encoder(batch))
             test_loss.append(loss.item())
         test_loss = np.mean(test_loss)
         print(f"#{epoch + 1} train_loss: {train_loss:.6f}, test_loss: {test_loss:.6f}")
