@@ -21,7 +21,8 @@ if __name__ == "__main__":
     parser.add_argument('--wandb_key', type=str, dest='wandb_key',
                         help='api key for weights and biases')                        
     args = parser.parse_args()
-
+    
+    raise ValueError(f"{args.yaml_dir}/training.yaml")
     training_config = read_config(
         f"{args.yaml_dir}/training.yaml", cv_trainer_schema
     )
