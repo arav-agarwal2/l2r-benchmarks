@@ -67,7 +67,8 @@ if __name__ == "__main__":
         encoder.train()
         for batch in tqdm.tqdm(train_dl, desc=f"Epoch #{epoch + 1} train"):
             if multiple_inputs:
-                x = batch[:-1]
+                # todo expand to more than 1, or 2 things passed by dataloader?
+                x = batch[0]
                 y = batch[-1]
                 loss = encoder.loss(y, encoder(x))
             else:
