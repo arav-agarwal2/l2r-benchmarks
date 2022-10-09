@@ -5,6 +5,7 @@ import os
 from src.encoders.dataloaders.base import BaseDataFetcher
 
 from src.encoders.transforms.preprocessing import crop_resize_center
+from src.config.yamlize import yamlize
 
 
 class ExpertDemoDataset(torch.utils.data.Dataset):
