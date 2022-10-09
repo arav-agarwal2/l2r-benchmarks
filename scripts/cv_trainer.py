@@ -12,11 +12,11 @@ import argparse
 if __name__ == "__main__":
     # TODO: data augmentation
     parser = argparse.ArgumentParser(description='CV Trainer')
-    parser.add_argument('git-repository', type=str, dest='repo',
+    parser.add_argument('git-repository', type=str,
                         help='repository for git')
-    parser.add_argument('git-commit', type=str, dest='commit',
+    parser.add_argument('git-commit', type=str,
                         help='branch/commit for git')
-    parser.add_argument('yaml-dir', type=str, dest='yaml',
+    parser.add_argument('yaml-dir', type=str,
                         help='ex. ../config_files/train_vae')
     parser.add_argument('--wandb-key', type=str, dest='wandb_key',
                         help='api key for weights and biases')                        
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     training_config = read_config(
-        f"{args.yaml}/training.yaml", cv_trainer_schema
+        f"{args.yaml-dir}/training.yaml", cv_trainer_schema
     )
 
     with open(
@@ -41,11 +41,11 @@ if __name__ == "__main__":
     bsz = training_config["batch_size"]
     lr = training_config["lr"]
     encoder = create_configurable(
-        f"{args.yaml}/encoder.yaml", NameToSourcePath.encoder
+        f"{args.yaml-dir}/encoder.yaml", NameToSourcePath.encoder
     ).to(device)
 
     data_fetcher = create_configurable(
-        f"{args.yaml}/data_fetcher.yaml", NameToSourcePath.encoder_dataloader
+        f"{args.yaml-dir}/data_fetcher.yaml", NameToSourcePath.encoder_dataloader
     ).to(device)
     optim = torch.optim.Adam(encoder.parameters(), lr=lr)
     num_epochs = training_config["num_epochs"]
