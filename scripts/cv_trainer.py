@@ -8,6 +8,7 @@ from src.config.schema import cv_trainer_schema
 import os
 from src.config.yamlize import create_configurable, NameToSourcePath
 import argparse
+from src.constants import DEVICE
 
 if __name__ == "__main__":
     # TODO: data augmentation
@@ -39,12 +40,11 @@ if __name__ == "__main__":
         os.umask(0)
         os.makedirs(training_config["model_save_path"], mode=0o777, exist_ok=True)
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     bsz = training_config["batch_size"]
     lr = training_config["lr"]
     encoder = create_configurable(
         f"{args.yaml_dir}/encoder.yaml", NameToSourcePath.encoder
-    ).to(device)
+    ).to(DEVICE)
 
     data_fetcher = create_configurable(
         f"{args.yaml_dir}/data_fetcher.yaml", NameToSourcePath.encoder_dataloader
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     train_ds, val_ds, train_dl, val_dl = data_fetcher.get_dataloaders(
         bsz,
-        device,
+        DEVICE,
     )
 
     # this is a stopgap - get_expert_demo_dataloaders has 1 value (autoencoding objective)
