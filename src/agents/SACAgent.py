@@ -47,8 +47,8 @@ class SACAgent(BaseAgent):
         load_checkpoint: bool,
         model_save_path: str,
         lr: float,
-        update_lr_every: int = None,
-        lr_update_rate: float = None
+        update_lr_every: int,
+        lr_update_rate: float
     ):
         super(SACAgent, self).__init__()
 
