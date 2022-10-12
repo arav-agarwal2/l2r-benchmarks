@@ -9,7 +9,22 @@ import logging
 
 if __name__ == "__main__":
     # Build environment
-    env = build_env(controller_kwargs={"quiet": True})
+    env = build_env(controller_kwargs={"quiet": True},
+    env_kwargs=
+            {
+                "multimodal": True,
+                "eval_mode": True,
+                "n_eval_laps": 1,
+                "max_timesteps": 5000,
+                "obs_delay": 0.1,
+                "not_moving_timeout": 100,
+                "reward_pol": "custom",
+                "provide_waypoints": False,
+                "active_sensors": [
+                    "CameraFrontRGB", "CameraRightRGB", "CameraLeftRGB"
+                ],
+                "vehicle_params":False,
+            })
     runner = create_configurable(
         "config_files/example_sac/runner.yaml", NameToSourcePath.runner
     )
