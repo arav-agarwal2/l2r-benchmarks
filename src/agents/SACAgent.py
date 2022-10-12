@@ -64,7 +64,7 @@ class SACAgent(BaseAgent):
         self.load_checkpoint = load_checkpoint
         self.model_save_path = model_save_path
         self.lr = lr
-        self.update_lr_every = update_lr_every
+        self.update_lr_every = None
         self.lr_update_rate = lr_update_rate
 
         self.save_episodes = True
