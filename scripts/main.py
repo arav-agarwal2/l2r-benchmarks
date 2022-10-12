@@ -14,14 +14,14 @@ if __name__ == "__main__":
             {
                 "multimodal": True,
                 "eval_mode": True,
-                "n_eval_laps": 1,
+                "n_eval_laps": 5,
                 "max_timesteps": 5000,
                 "obs_delay": 0.1,
-                "not_moving_timeout": 100,
+                "not_moving_timeout": 50000,
                 "reward_pol": "custom",
                 "provide_waypoints": False,
                 "active_sensors": [
-                    "CameraFrontRGB", "CameraRightRGB", "CameraLeftRGB"
+                    "CameraFrontRGB"
                 ],
                 "vehicle_params":False,
             })
