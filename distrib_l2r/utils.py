@@ -40,6 +40,7 @@ def send_data(
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.connect(addr)
             send_bytes_with_prefix_size(msg=data, sock=sock)
+            print("sent data! waiting for server...")
             return wait_for_response(sock=sock) if reply else None
 
 
