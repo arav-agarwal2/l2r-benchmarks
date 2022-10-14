@@ -2,6 +2,7 @@ from distrib_l2r.asynchron.learner import AsyncLearningNode
 from tianshou.policy import DQNPolicy
 import torch
 from torch import nn
+import threading
 import numpy as np
 import time
 
@@ -30,5 +31,8 @@ optim = torch.optim.Adam(net.parameters(), lr=1e-3)
 if __name__ == '__main__':
     learner = AsyncLearningNode(policy=DQNPolicy(model=net, optim=optim))
     print("Initialized!!.")
-    learner.serve_forever(0.01)
-    print("Do I get here??")
+    server_thread = threading.Thread(target=learner.serve_forever)
+
+    # exit the server thread when the main thread terminates
+    server_thread.daemon = True
+    server_thread.start()
