@@ -157,7 +157,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
             # Update policy without blocking
             self.update_policy()
-
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
