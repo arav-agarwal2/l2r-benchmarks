@@ -33,11 +33,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if isinstance(msg, BufferMsg):
             logging.info("Received replay buffer")
             self.server.buffer_queue.put(msg.data)
-            #Bad sync learner
-            if self.server.buffer_queue.qsize() >= self.server.buffer_size:
-                self.server.learn()
-            else:
-                print(f'{self.server.buffer_queue.qsize()} of {self.server.buffer_size}')
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy

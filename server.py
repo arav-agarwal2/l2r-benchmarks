@@ -32,7 +32,4 @@ if __name__ == '__main__':
     learner = AsyncLearningNode(policy=DQNPolicy(model=net, optim=optim))
     print("Initialized!!.")
     server_thread = threading.Thread(target=learner.serve_forever)
-
-    # exit the server thread when the main thread terminates
-    server_thread.daemon = True
-    server_thread.start()
+    learner.learn()
