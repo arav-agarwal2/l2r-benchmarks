@@ -121,10 +121,10 @@ class AsnycWorker:
         self.buffer_size = buffer_size
 
         # start the simulator
-        subprocess.Popen(
-            ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
-            stdout=subprocess.DEVNULL,
-        )
+        #subprocess.Popen(
+        #    ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
+        #    stdout=subprocess.DEVNULL,
+        #)
 
         # create the racing environment
         #env_config = EnvConfig
