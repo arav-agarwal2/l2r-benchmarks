@@ -77,7 +77,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         epochs: int = 500, # Originally 500
         buffer_size: int = 1_000_000, # Originally 1M
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
-        eval_freq: float = 0.08,
+        eval_prob: float = 0.08,
         save_func: Optional[Callable] = None,
         save_freq: Optional[int] = None,
     ) -> None:
@@ -87,7 +87,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.update_steps = update_steps
         self.batch_size = batch_size
         self.epochs = epochs
-        self.eval_freq = eval_freq
+        self.eval_prob = eval_prob
 
         # Create a replay buffer
         self.buffer_size = buffer_size
@@ -125,7 +125,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         return {
             "policy_id": self.policy_id,
             "policy": self.updated_policy,
-            "is_train": random.random() < self.eval_freq,
+            "is_train": random.random() >= self.eval_prob,
         }
 
     def update_policy(self) -> None:
