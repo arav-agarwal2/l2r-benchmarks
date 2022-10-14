@@ -58,7 +58,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if self.server.buffer_queue.qsize() >= self.server.buffer_size:
             self.server.learn()
         else:
-            print(f'{self.server_buffer_queue.qsize()} of {self.server.buffer_size}')
+            print(f'{self.server.buffer_queue.qsize()} of {self.server.buffer_size}')
 
 
 class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
