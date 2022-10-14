@@ -117,7 +117,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         if not self.policy_queue.empty():
             try:
                 self.updated_policy = self.policy_queue.get_nowait()
-                print("Updated policy!")
             except queue.Empty:
                 # non-blocking
                 pass
