@@ -108,10 +108,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.save_func = save_func
         self.save_freq = save_freq
 
-        while True:
-            import time
-            time.sleep(1)
-
     def get_policy_dict(self) -> Dict[str, Any]:
         """Get the most up-to-date version of the policy without blocking"""
         if not self.policy_queue.empty():
