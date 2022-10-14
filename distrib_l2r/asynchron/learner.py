@@ -28,8 +28,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         msg = receive_data(self.request)
 
         # Received a replay buffer from a worker
-        # Add this buff
-
+        # Add this to buff
         if isinstance(msg, BufferMsg):
             logging.info("Received replay buffer")
             self.server.buffer_queue.put(msg.data)
@@ -115,7 +114,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """Get the most up-to-date version of the policy without blocking"""
         if not self.policy_queue.empty():
             try:
-                self.updated_policy = self.policy_bytes_queue.get_nowait()
+                self.updated_policy = self.policy_queue.get_nowait()
             except queue.Empty:
                 # non-blocking
                 pass
