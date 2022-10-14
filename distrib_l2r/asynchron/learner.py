@@ -98,7 +98,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.policy_id = 1
 
         # The bytes of the policy to reply to requests with
-        self.updated_policy = self.policy.state_dict()
+        self.updated_policy = {k: v.cpu() for k, v in self.policy.state_dict()} 
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -120,7 +120,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 # non-blocking
                 pass
-        self.updated_policy.to('cpu')
+
         return {
             "policy_id": self.policy_id,
             "policy": self.updated_policy,
@@ -136,7 +136,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 pass
 
-        self.policy_queue.put(self.policy.state_dict())
+        self.policy_queue.put({k: v.cpu() for k, v in self.policy.state_dict()} )
         self.policy_id += 1
 
     def learn(self) -> None:
@@ -147,7 +147,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             batch = self.buffer_queue.get()
             # Add new data to the primary replay buffer
             self.replay_buffer.update(batch)
-            self.policy.to('cuda')
+
             # Learning steps for the policy
             for _ in range(self.update_steps):
                 _ = self.policy.update(
