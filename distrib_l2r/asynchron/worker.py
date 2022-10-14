@@ -122,6 +122,7 @@ class AsnycWorker:
         self.learner_address = learner_address
         self.buffer_size = buffer_size
         self.policy = policy
+        self.mean_reward = 0.0
         # start the simulator
         #subprocess.Popen(
         #    ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
@@ -159,6 +160,8 @@ class AsnycWorker:
                 )
 
             else:
+                self.mean_reward = self.mean_reward*(0.8) + result['rew']*0.2
+                logging.warn(f"reward: {self.mean_reward}")
                 response = send_data(
                     data=EvalResultsMsg(data=result),
                     addr=self.learner_address,
@@ -179,6 +182,5 @@ class AsnycWorker:
             policy=self.policy, env=self.env, buffer=buffer, exploration_noise=is_train
         )
         result = collector.collect(n_episode=1)
-        logging.warn(f"reward: {result['rew']}")
         result["policy_id"] = policy_id
         return buffer, result
