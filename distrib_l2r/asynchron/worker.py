@@ -141,7 +141,7 @@ class AsnycWorker:
         """Continously collect data"""
 
         is_train = True
-        logging.info("Trying to send data.")
+        logging.warn("Trying to send data.")
         response = send_data(data=InitMsg(), addr=self.learner_address, reply=True)
         policy_id, policy = response.data["policy_id"], response.data["policy"]
 
@@ -169,12 +169,12 @@ class AsnycWorker:
         self, policy: BasePolicy, policy_id: int, is_train: bool = True
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
-        logging.info(f"[is_train={is_train}] Collecting data")
+        logging.warn(f"[is_train={is_train}] Collecting data")
         buffer = ReplayBuffer(buf_size=self.buffer_size)
         collector = Collector(
             policy=self.policy, env=self.env, buffer=buffer, exploration_noise=is_train
         )
         result = collector.collect(n_episode=1)
-        logging.info(f"reward: {result['rew']}")
+        logging.warn(f"reward: {result['rew']}")
         result["policy_id"] = policy_id
         return buffer, result
