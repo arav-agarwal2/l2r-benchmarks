@@ -29,7 +29,7 @@ net = Net(state_shape, action_shape)
 optim = torch.optim.Adam(net.parameters(), lr=1e-3)
 
 if __name__ == '__main__':
-    learner = AsyncLearningNode(policy=DQNPolicy(model=net, optim=optim))
+    learner = AsyncLearningNode(policy=DQNPolicy(net, optim, discount_factor=0.9, estimation_step=3, target_update_freq=320), )
     print("Initialized!!.")
     server_thread = threading.Thread(target=learner.serve_forever)
     server_thread.start()
