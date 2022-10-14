@@ -120,7 +120,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 # non-blocking
                 pass
-        self.update_policy.to('cpu')
+        self.updated_policy.to('cpu')
         return {
             "policy_id": self.policy_id,
             "policy": self.updated_policy,
