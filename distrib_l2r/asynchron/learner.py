@@ -7,6 +7,7 @@ from typing import Callable
 from typing import Dict
 from typing import Optional
 from typing import Tuple
+from tqdm import tqdm
 
 from tianshou.data import ReplayBuffer
 from tianshou.policy import BasePolicy
@@ -28,6 +29,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received a replay buffer from a worker
         # Add this buff
+
         if isinstance(msg, BufferMsg):
             logging.info("Received replay buffer")
             self.server.buffer_queue.put(msg.data)
@@ -138,12 +140,10 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
-        for epoch in range(self.epochs):
+        for epoch in tqdm(range(self.epochs)):
 
             # block until new data is received
-            print("Am I here??")
             batch = self.buffer_queue.get()
-            print("Unblocking...")
             # Add new data to the primary replay buffer
             self.replay_buffer.update(batch)
 

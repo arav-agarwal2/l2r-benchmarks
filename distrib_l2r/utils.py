@@ -6,6 +6,7 @@ from select import POLLIN
 from typing import Any
 from typing import Tuple
 from typing import Union
+import time
 
 
 INT_SIZE = 4
@@ -48,12 +49,16 @@ def wait_for_response(sock: socket.socket) -> Any:
     response = None
     polly = poll()
     polly.register(sock.fileno(), POLLIN)
+    start_time = time.time()
 
     while not response:
         events = polly.poll(1)
         for fileno, event in events:
             if fileno == sock.fileno():
                 return receive_data(sock=sock)
+        total_time = time.time() - start_time
+        if total_time > 10:
+            print("WARNING: BLOCKING CALL IN SERVER.")
 
 
 def receive_data(sock: socket.socket) -> Any:
