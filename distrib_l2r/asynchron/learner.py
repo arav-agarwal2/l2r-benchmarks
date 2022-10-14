@@ -120,7 +120,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 # non-blocking
                 pass
-
+        self.update_policy.to('cpu')
         return {
             "policy_id": self.policy_id,
             "policy": self.updated_policy,
@@ -147,7 +147,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             batch = self.buffer_queue.get()
             # Add new data to the primary replay buffer
             self.replay_buffer.update(batch)
-
+            self.policy.to('cuda')
             # Learning steps for the policy
             for _ in range(self.update_steps):
                 _ = self.policy.update(
