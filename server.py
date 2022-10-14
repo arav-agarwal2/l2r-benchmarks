@@ -25,7 +25,7 @@ class Net(nn.Module):
         logits = self.model(obs.view(batch, -1))
         return logits, state
 
-net = Net(state_shape, action_shape)
+net = Net(state_shape, action_shape, device=torch.device('cuda'))
 net.to('cuda')
 optim = torch.optim.Adam(net.parameters(), lr=1e-3)
 
