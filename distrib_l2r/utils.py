@@ -51,6 +51,7 @@ def wait_for_response(sock: socket.socket) -> Any:
     polly.register(sock.fileno(), POLLIN)
 
     while not response:
+        print("Polling!!!")
         events = polly.poll(1)
         for fileno, event in events:
             if fileno == sock.fileno():
