@@ -12,6 +12,7 @@ import gym
 from tianshou.data import ReplayBuffer
 from tianshou.data import Collector
 from tianshou.policy import BasePolicy
+from tianshou.utils.net.common import Net
 
 from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import EvalResultsMsg
