@@ -98,7 +98,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.policy_id = 1
 
         # The bytes of the policy to reply to requests with
-        self.updated_policy = {k: v.cpu() for k, v in self.policy.state_dict()} 
+        
+        self.updated_policy = {k: v.cpu() for k, v in self.policy.state_dict().items()} 
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -136,7 +137,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 pass
 
-        self.policy_queue.put({k: v.cpu() for k, v in self.policy.state_dict()} )
+        self.policy_queue.put({k: v.cpu() for k, v in self.policy.state_dict().items()} )
         self.policy_id += 1
 
     def learn(self) -> None:
