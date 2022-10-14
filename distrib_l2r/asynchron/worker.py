@@ -160,7 +160,7 @@ class AsnycWorker:
                 )
 
             else:
-                self.mean_reward = self.mean_reward*(0.8) + result['rew']*0.2
+                self.mean_reward = self.mean_reward*(0.2) + result['rew']*0.8
                 logging.warn(f"reward: {self.mean_reward}")
                 response = send_data(
                     data=EvalResultsMsg(data=result),
