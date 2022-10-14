@@ -31,5 +31,6 @@ optim = torch.optim.Adam(net.parameters(), lr=1e-3)
 if __name__ == '__main__':
     learner = AsyncLearningNode(policy=DQNPolicy(model=net, optim=optim))
     print("Initialized!!.")
-    server_thread = threading.Thread(target=learner.serve_forever)
-    learner.learn()
+    server_thread = threading.Thread(target=learner.learn)
+    print("Run foreva!")
+    learner.serve_forever()
