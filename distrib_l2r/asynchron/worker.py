@@ -141,6 +141,7 @@ class AsnycWorker:
         """Continously collect data"""
 
         is_train = True
+        logging.info("Trying to send data.")
         response = send_data(data=InitMsg(), addr=self.learner_address, reply=True)
         policy_id, policy = response.data["policy_id"], response.data["policy"]
 
@@ -174,5 +175,6 @@ class AsnycWorker:
             policy=self.policy, env=self.env, buffer=buffer, exploration_noise=is_train
         )
         result = collector.collect(n_episode=1)
+        logging.info(f"reward: {result['rew']}")
         result["policy_id"] = policy_id
         return buffer, result
