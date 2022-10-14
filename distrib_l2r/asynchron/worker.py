@@ -111,6 +111,7 @@ class AsnycWorker:
 
     def __init__(
         self,
+        policy: BasePolicy,
         learner_address: Tuple[str, int],
         buffer_size: int = 5000,
         env_wrapper: Optional[Wrapper] = None,
@@ -119,7 +120,7 @@ class AsnycWorker:
 
         self.learner_address = learner_address
         self.buffer_size = buffer_size
-
+        self.policy = policy
         # start the simulator
         #subprocess.Popen(
         #    ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
@@ -147,7 +148,7 @@ class AsnycWorker:
 
         while True:
             buffer, result = self.collect_data(
-                policy=policy, policy_id=policy_id, is_train=is_train
+                policy_weights=policy, policy_id=policy_id, is_train=is_train
             )
 
             if is_train:
@@ -166,14 +167,14 @@ class AsnycWorker:
             policy_id, policy = response.data["policy_id"], response.data["policy"]
 
     def collect_data(
-        self, policy: BasePolicy, policy_id: int, is_train: bool = True
+        self, policy_weights: BasePolicy, policy_id: int, is_train: bool = True
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
         logging.warn(f"[is_train={is_train}] Collecting data")
         buffer = ReplayBuffer(size=self.buffer_size)
-        print(policy)
+        self.policy.load_state_dict(policy_weights)
         collector = Collector(
-            policy=policy, env=self.env, buffer=buffer, exploration_noise=is_train
+            policy=self.policy, env=self.env, buffer=buffer, exploration_noise=is_train
         )
         result = collector.collect(n_episode=1)
         logging.warn(f"reward: {result['rew']}")
