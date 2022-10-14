@@ -26,6 +26,7 @@ class Net(nn.Module):
         return logits, state
 
 net = Net(state_shape, action_shape)
+net.to('cuda')
 optim = torch.optim.Adam(net.parameters(), lr=1e-3)
 
 if __name__ == '__main__':
