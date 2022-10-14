@@ -24,7 +24,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self) -> None:
         """ReplayBuffers are not thread safe - pass data via thread-safe queues"""
-        print("Trying to get data")
         msg = receive_data(self.request)
 
         # Received a replay buffer from a worker
@@ -32,6 +31,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if isinstance(msg, BufferMsg):
             logging.info("Received replay buffer")
             self.server.buffer_queue.put(msg.data)
+            if self.server.buffer_queue.qsize() > 100:
+                self.server.learn()
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
