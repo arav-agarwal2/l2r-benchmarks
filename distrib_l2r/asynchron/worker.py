@@ -175,7 +175,6 @@ class AsnycWorker:
         self, policy_weights: BasePolicy, policy_id: int, is_train: bool = True
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
-        logging.warn(f"[is_train={is_train}] Collecting data")
         buffer = ReplayBuffer(size=self.buffer_size)
         self.policy.load_state_dict(policy_weights)
         collector = Collector(
