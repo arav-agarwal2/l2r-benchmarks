@@ -5,7 +5,7 @@ from torch import nn
 import numpy as np
 import time
 
-state_shape = (32,)
+state_shape = (4,)
 action_shape = (2,)
 
 class Net(nn.Module):

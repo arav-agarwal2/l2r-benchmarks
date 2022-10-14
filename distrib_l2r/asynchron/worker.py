@@ -7,6 +7,7 @@ from typing import Tuple
 
 from gym import Wrapper
 from l2r.envs.env import RacingEnv
+import gym
 
 from tianshou.data import ReplayBuffer
 from tianshou.data import Collector
@@ -126,10 +127,12 @@ class AsnycWorker:
         )
 
         # create the racing environment
-        env_config = EnvConfig
-        sim_config = SimulatorConfig
-        self.env = RacingEnv(env_config.__dict__, sim_config.__dict__)
-        self.env.make()
+        #env_config = EnvConfig
+        #sim_config = SimulatorConfig
+        #self.env = RacingEnv(env_config.__dict__, sim_config.__dict__)
+        #self.env.make()
+        self.env = gym.make('CartPole-v0')
+
 
         if env_wrapper:
             self.env = env_wrapper(self.env, **kwargs)
