@@ -170,7 +170,7 @@ class AsnycWorker:
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
         logging.warn(f"[is_train={is_train}] Collecting data")
-        buffer = ReplayBuffer(buf_size=self.buffer_size)
+        buffer = ReplayBuffer(size=self.buffer_size)
         collector = Collector(
             policy=self.policy, env=self.env, buffer=buffer, exploration_noise=is_train
         )
