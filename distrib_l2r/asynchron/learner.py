@@ -51,6 +51,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Reply to the request with an up-to-date policy
         send_data(data=PolicyMsg(data=self.server.get_policy_dict()), sock=self.request)
+    
+    def finish(self) -> None:
+        """Allow Async Learning to Happen."""
+        if self.server.buffer_queue.qsize() >= self.server.buffer_size:
+            self.server.learn()
+        else:
+            print(f'{self.server_buffer_queue.qsize()} of {self.server.buffer_size}')
 
 
 class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -73,7 +80,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         policy: BasePolicy,
         update_steps: int = 64,
         batch_size: int = 128,
-        epochs: int = 5, # Originally 500
+        epochs: int = 500, # Originally 500
         buffer_size: int = 1_000_000,
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
         eval_freq: float = 0.08,
