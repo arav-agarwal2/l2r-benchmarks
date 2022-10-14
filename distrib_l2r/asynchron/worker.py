@@ -121,7 +121,7 @@ class AsnycWorker:
 
         # start the simulator
         subprocess.Popen(
-            ["sudo", "-u", "ubuntu", "/home/LinuxNoEditor/ArrivalSim.sh"],
+            ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
             stdout=subprocess.DEVNULL,
         )
 
@@ -163,7 +163,7 @@ class AsnycWorker:
 
     def collect_data(
         self, policy: BasePolicy, policy_id: int, is_train: bool = True
-    ) -> Tuple[ReplayBuffer, Dict[Any]]:
+    ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
         logging.info(f"[is_train={is_train}] Collecting data")
         buffer = ReplayBuffer(buf_size=self.buffer_size)

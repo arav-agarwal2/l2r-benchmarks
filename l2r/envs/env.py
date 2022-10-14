@@ -26,7 +26,6 @@ from l2r.envs.reward import GranTurismo
 from l2r.core.tracker import ProgressTracker
 from racetracks.mapping import level_2_trackmap
 
-import ipdb as pdb
 
 # Simulator Lag Delay
 MEDIUM_DELAY = 3
