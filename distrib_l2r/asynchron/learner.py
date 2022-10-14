@@ -33,8 +33,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if isinstance(msg, BufferMsg):
             logging.info("Received replay buffer")
             self.server.buffer_queue.put(msg.data)
-            if self.server.buffer_queue.qsize() > 100:
-                self.server.learn()
 
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
