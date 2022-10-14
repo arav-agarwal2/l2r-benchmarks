@@ -139,8 +139,9 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         for epoch in range(self.epochs):
 
             # block until new data is received
+            print("Am I here??")
             batch = self.buffer_queue.get()
-
+            print("Unblocking...")
             # Add new data to the primary replay buffer
             self.replay_buffer.update(batch)
 
