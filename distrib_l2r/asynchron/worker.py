@@ -171,6 +171,7 @@ class AsnycWorker:
         """Collect 1 episode of data in the environment"""
         logging.warn(f"[is_train={is_train}] Collecting data")
         buffer = ReplayBuffer(size=self.buffer_size)
+        print(policy)
         collector = Collector(
             policy=policy, env=self.env, buffer=buffer, exploration_noise=is_train
         )
