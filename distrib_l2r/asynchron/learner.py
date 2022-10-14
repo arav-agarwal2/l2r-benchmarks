@@ -24,6 +24,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self) -> None:
         """ReplayBuffers are not thread safe - pass data via thread-safe queues"""
+        print("Trying to get data")
         msg = receive_data(self.request)
 
         # Received a replay buffer from a worker
@@ -106,6 +107,10 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # Save function, called optionally
         self.save_func = save_func
         self.save_freq = save_freq
+
+        while True:
+            import time
+            time.sleep(1)
 
     def get_policy_dict(self) -> Dict[str, Any]:
         """Get the most up-to-date version of the policy without blocking"""
