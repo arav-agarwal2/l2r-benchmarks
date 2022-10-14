@@ -35,6 +35,6 @@ optim = torch.optim.Adam(net.parameters(), lr=1e-3)
 
 
 if __name__ == '__main__':
-    worker = AsnycWorker(policy=DQNPolicy(model=net, optim=optim),learner_address=learner_address)
+    worker = AsnycWorker(policy=DQNPolicy(net, optim, discount_factor=0.9, estimation_step=3, target_update_freq=320),learner_address=learner_address)
     print("Worker inited!!!")
     worker.work()
