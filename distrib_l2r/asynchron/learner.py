@@ -36,11 +36,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received an init message from a worker
         # Immediately reply with the most up-to-date policy
         elif isinstance(msg, InitMsg):
-            logging.info("Receieved init message")
+            logging.info("Received init message")
 
-        # Receieved evaluation results from a worker
+        # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            logging.info("Received evalution results message")
+            logging.info("Received evaluation results message")
 
         # unexpected
         else:

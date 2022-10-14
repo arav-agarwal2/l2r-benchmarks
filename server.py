@@ -31,3 +31,4 @@ if __name__ == '__main__':
     learner = AsyncLearningNode(policy=DQNPolicy(model=net, optim=optim))
     print("Initialized!!.")
     learner.serve_forever(0.01)
+    print("Do I get here??")
