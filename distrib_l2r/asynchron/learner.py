@@ -8,6 +8,7 @@ from typing import Dict
 from typing import Optional
 from typing import Tuple
 from tqdm import tqdm
+import socket
 
 from tianshou.data import ReplayBuffer
 from tianshou.policy import BasePolicy
@@ -79,8 +80,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self,
         policy: BasePolicy,
         update_steps: int = 64,
-        batch_size: int = 128,
-        epochs: int = 500, # Originally 500
+        batch_size: int = 1024, # Originally 128
+        epochs: int = 5, # Originally 500
         buffer_size: int = 1_000_000,
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
         eval_freq: float = 0.08,
@@ -96,6 +97,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.eval_freq = eval_freq
 
         # Create a replay buffer
+        self.buffer_size = buffer_size
         self.replay_buffer = ReplayBuffer(size=buffer_size)
 
         # Inital policy to use
@@ -166,3 +168,9 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
+
+    def server_bind(self):
+        # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817. 
+        # Tries to ensure reuse. Might be wrong.
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind(self.server_address)
