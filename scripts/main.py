@@ -31,8 +31,8 @@ if __name__ == "__main__":
                 "port": 7077,
                 "max_steer": 0.3,
                 "min_steer": -0.3,
-                "max_accel": 4,
-                "min_accel": -0.1,
+                "max_accel": 6,
+                "min_accel": -1,
             })
     runner = create_configurable(
         "config_files/example_sac/runner.yaml", NameToSourcePath.runner
