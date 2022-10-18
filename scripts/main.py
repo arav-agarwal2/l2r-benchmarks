@@ -24,6 +24,15 @@ if __name__ == "__main__":
                     "CameraFrontRGB"
                 ],
                 "vehicle_params":False,
+            },
+    action_cfg=
+            {
+                "ip": "0.0.0.0",
+                "port": 7077,
+                "max_steer": 0.3,
+                "min_steer": -0.3,
+                "max_accel": 4,
+                "min_accel": -0.1,
             })
     runner = create_configurable(
         "config_files/example_sac/runner.yaml", NameToSourcePath.runner
