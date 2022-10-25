@@ -89,7 +89,7 @@ class AsnycWorker:
         #                "min_accel": -1,
         #            })
 
-        self.env = gym.make('Pendulum-v0')
+        self.env = gym.make('Pendulum-v1')
 
         self.encoder = create_configurable(
             'config_files/example_sac/encoder.yaml', NameToSourcePath.encoder
