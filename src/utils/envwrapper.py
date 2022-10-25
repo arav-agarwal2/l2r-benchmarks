@@ -7,8 +7,9 @@ from src.constants import DEVICE
 class EnvContainer:
     """Container for L2R Environment."""
 
-    def __init__(self, encoder=None):
+    def __init__(self, encoder=None, env=None):
         self.encoder = encoder
+        self.env = env
 
     def _process_obs(self, obs: dict):
         obs_camera = obs["images"]["CameraFrontRGB"]

@@ -93,7 +93,7 @@ class AsnycWorker:
         )
         self.encoder.to(DEVICE)
 
-        self.env = EnvContainer(self.env, self.encoder)
+        self.env = EnvContainer(self.encoder, self.env)
 
     def work(self) -> None:
         """Continously collect data"""
