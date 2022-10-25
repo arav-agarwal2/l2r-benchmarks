@@ -26,7 +26,7 @@ from l2r import RacingEnv
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
 from src.utils.envwrapper import EnvContainer
-
+import numpy as np
 
 class AsnycWorker:
     """An asynchronous worker"""
@@ -94,7 +94,8 @@ class AsnycWorker:
         self.encoder.to(DEVICE)
 
         self.env = EnvContainer(self.encoder, self.env)
-        
+        self.env.action_space = gym.spaces.Box(np.array([-0.3, -1]), np.array([0.3, 6]))
+
         raise ValueError(self.env.action_space)
     def work(self) -> None:
         """Continously collect data"""
