@@ -6,7 +6,6 @@ from typing import Optional
 from typing import Tuple
 
 from gym import Wrapper
-from l2r.envs.env import RacingEnv
 import gym
 
 from tianshou.data import ReplayBuffer
