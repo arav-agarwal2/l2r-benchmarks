@@ -25,7 +25,8 @@ class EnvContainer:
 
     def step(self, action, env=None):
         import logging
-        logging.warn(action, type(action), action.shape)
+        logging.warn((action, type(action), action.shape))
+        action = action.reshape((2,))
         if env:
             self.env = env
         obs, reward, done, info = self.env.step(action)
