@@ -2,9 +2,9 @@ import numpy as np
 import torch
 import itertools
 from src.constants import DEVICE
+import gym
 
-
-class EnvContainer:
+class EnvContainer(gym.Env):
     """Container for L2R Environment."""
 
     def __init__(self, encoder=None, env=None):
@@ -48,8 +48,6 @@ class EnvContainer:
     #    camera, feat, _, _, _, _ = self.step([0, 1])
     #    return camera, ep_len, ep_ret, experience, feat, state, t_start
 
-    def __len__(self):
-        return 1
 
     def __getattr__(self, name):
         try:
