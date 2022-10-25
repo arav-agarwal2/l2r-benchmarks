@@ -24,6 +24,8 @@ class EnvContainer:
         return torch.cat((obs_encoded, speed), 1).to(DEVICE)
 
     def step(self, action, env=None):
+        import logging
+        logging.warn(action)
         if env:
             self.env = env
         obs, reward, done, info = self.env.step(action)
