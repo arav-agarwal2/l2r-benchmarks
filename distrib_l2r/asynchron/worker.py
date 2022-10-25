@@ -93,9 +93,10 @@ class AsnycWorker:
         )
         self.encoder.to(DEVICE)
 
-        self.env = EnvContainer(self.encoder, self.env)
         self.env.action_space = gym.spaces.Box(np.array([-0.3, -1]), np.array([0.3, 6]))
-
+        self.env = EnvContainer(self.encoder, self.env)
+        
+        print(self.env.action_space)
     def work(self) -> None:
         """Continously collect data"""
 
