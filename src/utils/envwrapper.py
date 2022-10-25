@@ -25,14 +25,14 @@ class EnvContainer(gym.Env):
 
     def step(self, action, env=None):
         import logging
-        logging.warn((action, type(action), action.shape))
+        #logging.warn((action, type(action), action.shape))
         action = action.reshape((2,))
         if env:
             self.env = env
         obs, reward, terminated, info = self.env.step(action)
         #terminated = int(terminated)
         info["TimeLimit.truncated"] = False # Tianshou's making me add this; need to check TODO
-        logging.warn((info, np.array(terminated)))
+        logging.warn((reward, info))
         return self._process_obs(obs), reward, terminated, info
 
     def reset(self, random_pos=False, env=None):
