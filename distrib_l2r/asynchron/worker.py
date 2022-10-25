@@ -62,7 +62,31 @@ class AsnycWorker:
             stdout=subprocess.DEVNULL,
         )
 
-        self.env = build_env(controller_kwargs={"quiet": True})
+        env = build_env(controller_kwargs={"quiet": True},
+            env_kwargs=
+                    {
+                        "multimodal": True,
+                        "eval_mode": True,
+                        "n_eval_laps": 5,
+                        "max_timesteps": 5000,
+                        "obs_delay": 0.1,
+                        "not_moving_timeout": 50000,
+                        "reward_pol": "custom",
+                        "provide_waypoints": False,
+                        "active_sensors": [
+                            "CameraFrontRGB"
+                        ],
+                        "vehicle_params":False,
+                    },
+            action_cfg=
+                    {
+                        "ip": "0.0.0.0",
+                        "port": 7077,
+                        "max_steer": 0.3,
+                        "min_steer": -0.3,
+                        "max_accel": 6,
+                        "min_accel": -1,
+                    })
 
 
         if env_wrapper:
