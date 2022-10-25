@@ -18,13 +18,13 @@ from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import InitMsg
 from distrib_l2r.utils import send_data
 
+
 # pip install git+https://github.com/learn-to-race/l2r.git@aicrowd-environment
 from l2r import build_env
 from l2r import RacingEnv
 
-
-
-
+from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
+from src.constants import DEVICE
 
 
 
@@ -88,9 +88,13 @@ class AsnycWorker:
                         "min_accel": -1,
                     })
 
+        self.encoder = create_configurable(
+            'config_files/example_sac/encoder.yaml', NameToSourcePath.encoder
+        )
+        self.encoder.to(DEVICE)
 
         if env_wrapper:
-            self.env = env_wrapper(self.env, **kwargs)
+            self.env = env_wrapper(self.env, self.encoder)
 
     def work(self) -> None:
         """Continously collect data"""
