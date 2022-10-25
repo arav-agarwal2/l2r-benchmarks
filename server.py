@@ -7,7 +7,7 @@ import threading
 import numpy as np
 import time
 
-state_shape = (4,)
+state_shape = (33,)
 action_shape = (2,)
 
 

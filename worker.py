@@ -12,7 +12,7 @@ import time
 learner_ip = socket.gethostbyname('learner-service')
 learner_address = (learner_ip, 4444)
 
-state_shape = (4,)
+state_shape = (33,)
 action_shape = (2,)
 
 
