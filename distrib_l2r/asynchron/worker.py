@@ -56,8 +56,9 @@ class AsnycWorker:
         #self.env = RacingEnv(env_config.__dict__, sim_config.__dict__)
         #self.env.make()
 
+        #TODO: Make arg.
         subprocess.Popen(
-            ["sudo", "-u", "ubuntu", "/home/LinuxNoEditor/ArrivalSim.sh"],
+            ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
             stdout=subprocess.DEVNULL,
         )
 
