@@ -62,7 +62,7 @@ class AsnycWorker:
             stdout=subprocess.DEVNULL,
         )
 
-        env = build_env(controller_kwargs={"quiet": True},
+        self.env = build_env(controller_kwargs={"quiet": True},
             env_kwargs=
                     {
                         "multimodal": True,
