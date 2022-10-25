@@ -8,7 +8,7 @@ import threading
 import numpy as np
 import time
 
-state_shape = (3,)
+state_shape = (33,)
 action_shape = (2,)
 
 hidden_sizes=[128,128,128,128]
