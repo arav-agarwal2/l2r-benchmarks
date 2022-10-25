@@ -21,7 +21,7 @@ class EnvContainer:
             .reshape((-1, 1))
             .float()
         )
-        return torch.cat((obs_encoded, speed), 1).to(DEVICE).numpy()
+        return torch.cat((obs_encoded, speed), 1).to(DEVICE).detach().numpy()
 
     def step(self, action, env=None):
         import logging
