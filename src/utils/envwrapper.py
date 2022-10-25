@@ -43,3 +43,9 @@ class EnvContainer:
 
     def __len__(self):
         return 1
+
+    def __getattr__(self, name):
+        try:
+            return self.env.name
+        except Exception as e:
+            raise e
