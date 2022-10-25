@@ -58,36 +58,38 @@ class AsnycWorker:
         #self.env.make()
 
         #TODO: Make arg.
-        subprocess.Popen(
-            ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
-            stdout=subprocess.DEVNULL,
-        )
+        #subprocess.Popen(
+        #    ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
+        #    stdout=subprocess.DEVNULL,
+        #)
 
-        self.env = build_env(controller_kwargs={"quiet": True},
-            env_kwargs=
-                    {
-                        "multimodal": True,
-                        "eval_mode": True,
-                        "n_eval_laps": 5,
-                        "max_timesteps": 5000,
-                        "obs_delay": 0.1,
-                        "not_moving_timeout": 50000,
-                        "reward_pol": "custom",
-                        "provide_waypoints": False,
-                        "active_sensors": [
-                            "CameraFrontRGB"
-                        ],
-                        "vehicle_params":False,
-                    },
-            action_cfg=
-                    {
-                        "ip": "0.0.0.0",
-                        "port": 7077,
-                        "max_steer": 1.0,
-                        "min_steer": -1.0,
-                        "max_accel": 1.0,
-                        "min_accel": -1,
-                    })
+        #self.env = build_env(controller_kwargs={"quiet": True},
+        #    env_kwargs=
+        #            {
+        #                "multimodal": True,
+        #                "eval_mode": True,
+        #                "n_eval_laps": 5,
+        #                "max_timesteps": 5000,
+        #                "obs_delay": 0.1,
+        #                "not_moving_timeout": 50000,
+        #                "reward_pol": "custom",
+        #                "provide_waypoints": False,
+        #                "active_sensors": [
+        #                    "CameraFrontRGB"
+        #                ],
+        #                "vehicle_params":False,
+        #            },
+        #    action_cfg=
+        #            {
+        #                "ip": "0.0.0.0",
+        #                "port": 7077,
+        #                "max_steer": 1.0,
+        #                "min_steer": -1.0,
+        #                "max_accel": 1.0,
+        #                "min_accel": -1,
+        #            })
+
+        self.env = gym.make('Pendulum-v0')
 
         self.encoder = create_configurable(
             'config_files/example_sac/encoder.yaml', NameToSourcePath.encoder
