@@ -82,9 +82,9 @@ class AsnycWorker:
                     {
                         "ip": "0.0.0.0",
                         "port": 7077,
-                        "max_steer": 0.3,
-                        "min_steer": -0.3,
-                        "max_accel": 6,
+                        "max_steer": 1.0,
+                        "min_steer": -1.0,
+                        "max_accel": 1.0,
                         "min_accel": -1,
                     })
 
@@ -93,7 +93,7 @@ class AsnycWorker:
         )
         self.encoder.to(DEVICE)
 
-        self.env.action_space = gym.spaces.Box(np.array([-0.3, -1]), np.array([0.3, 6]))
+        #self.env.action_space = gym.spaces.Box(np.array([-0.3, -1]), np.array([0.3, 6]))
         self.env = EnvContainer(self.encoder, self.env)
         
         print(self.env.action_space)
