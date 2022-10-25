@@ -40,3 +40,6 @@ class EnvContainer:
         t_start = t + 1
         camera, feat, _, _, _, _ = self.step([0, 1])
         return camera, ep_len, ep_ret, experience, feat, state, t_start
+
+    def __len__(self):
+        return 1
