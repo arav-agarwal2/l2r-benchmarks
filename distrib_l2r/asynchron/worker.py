@@ -25,7 +25,7 @@ from l2r import RacingEnv
 
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
-
+from src.utils.envwrapper import EnvContainer
 
 
 class AsnycWorker:
@@ -93,8 +93,7 @@ class AsnycWorker:
         )
         self.encoder.to(DEVICE)
 
-        if env_wrapper:
-            self.env = env_wrapper(self.env, self.encoder)
+        self.env = EnvContainer(self.env, self.encoder)
 
     def work(self) -> None:
         """Continously collect data"""
