@@ -10,6 +10,7 @@ class EnvContainer:
     def __init__(self, encoder=None, env=None):
         self.encoder = encoder
         self.env = env
+        self.is_async = False
 
     def _process_obs(self, obs: dict):
         obs_camera = obs["images"]["CameraFrontRGB"]
