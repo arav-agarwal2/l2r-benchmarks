@@ -56,6 +56,12 @@ class AsnycWorker:
         #sim_config = SimulatorConfig
         #self.env = RacingEnv(env_config.__dict__, sim_config.__dict__)
         #self.env.make()
+
+        subprocess.Popen(
+            ["sudo", "-u", "ubuntu", "/home/LinuxNoEditor/ArrivalSim.sh"],
+            stdout=subprocess.DEVNULL,
+        )
+
         self.env = build_env(controller_kwargs={"quiet": True})
 
 
