@@ -46,6 +46,6 @@ class EnvContainer:
 
     def __getattr__(self, name):
         try:
-            return self.env.name
+            return getattr(self.env,name)
         except Exception as e:
             raise e
