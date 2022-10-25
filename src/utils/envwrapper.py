@@ -10,7 +10,6 @@ class EnvContainer(gym.Env):
     def __init__(self, encoder=None, env=None):
         self.encoder = encoder
         self.env = env
-        self.is_async = False
 
     def _process_obs(self, obs: dict):
         obs_camera = obs["images"]["CameraFrontRGB"]
@@ -24,15 +23,10 @@ class EnvContainer(gym.Env):
         return torch.cat((obs_encoded, speed), 1).to(DEVICE).detach().numpy()
 
     def step(self, action, env=None):
-        import logging
-        #logging.warn((action, type(action), action.shape))
         action = action.reshape((2,))
         if env:
             self.env = env
         obs, reward, terminated, info = self.env.step(action)
-        #terminated = int(terminated)
-        info["TimeLimit.truncated"] = False # Tianshou's making me add this; need to check TODO
-        logging.warn((reward, info))
         return self._process_obs(obs), reward, terminated, info
 
     def reset(self, random_pos=False, env=None):
@@ -41,18 +35,9 @@ class EnvContainer(gym.Env):
         obs = self.env.reset(random_pos=random_pos)
         return self._process_obs(obs)
 
-    #def reset_episode(self, t):
-    #    camera, feat, state, _, _ = self.reset(random_pos=True)
-    #    ep_ret, ep_len, experience = 0, 0, []
-    #    t_start = t + 1
-    #    camera, feat, _, _, _, _ = self.step([0, 1])
-    #    return camera, ep_len, ep_ret, experience, feat, state, t_start
-
-
     def __getattr__(self, name):
         try:
             import logging
-            logging.warn(name)
             return getattr(self.env,name)
         except Exception as e:
             raise e
