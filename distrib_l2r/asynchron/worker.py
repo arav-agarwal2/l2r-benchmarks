@@ -94,7 +94,8 @@ class AsnycWorker:
         self.encoder.to(DEVICE)
 
         self.env = EnvContainer(self.encoder, self.env)
-
+        
+        raise ValueError(self.env.action_space)
     def work(self) -> None:
         """Continously collect data"""
 
