@@ -21,7 +21,7 @@ hidden_sizes=[128,128,128,128]
 device='cpu'
 
 
-net = Net(state_shape, action_shape, hidden_sizes=[128,128,128,128], device=torch.device('cuda'))
+net = Net(state_shape, action_shape, hidden_sizes=[128,128], device=torch.device('cuda'))
 net.to('cpu')
 net_a = Net(state_shape, hidden_sizes=hidden_sizes, device=device)
 actor = ActorProb(
