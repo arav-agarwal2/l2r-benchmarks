@@ -41,18 +41,20 @@ class EnvContainer:
         obs = self.env.reset(random_pos=random_pos)
         return self._process_obs(obs)
 
-    def reset_episode(self, t):
-        camera, feat, state, _, _ = self.reset(random_pos=True)
-        ep_ret, ep_len, experience = 0, 0, []
-        t_start = t + 1
-        camera, feat, _, _, _, _ = self.step([0, 1])
-        return camera, ep_len, ep_ret, experience, feat, state, t_start
+    #def reset_episode(self, t):
+    #    camera, feat, state, _, _ = self.reset(random_pos=True)
+    #    ep_ret, ep_len, experience = 0, 0, []
+    #    t_start = t + 1
+    #    camera, feat, _, _, _, _ = self.step([0, 1])
+    #    return camera, ep_len, ep_ret, experience, feat, state, t_start
 
     def __len__(self):
         return 1
 
     def __getattr__(self, name):
         try:
+            import logging
+            logging.warn(name)
             return getattr(self.env,name)
         except Exception as e:
             raise e
