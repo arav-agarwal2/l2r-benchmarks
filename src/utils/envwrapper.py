@@ -30,9 +30,10 @@ class EnvContainer:
         if env:
             self.env = env
         obs, reward, terminated, info = self.env.step(action)
+        terminated = int(terminated)
         info["TimeLimit.truncated"] = False # Tianshou's making me add this; need to check TODO
-        logging.warn(info, np.array(terminated))
-        return self._process_obs(obs), reward, np.array(terminated), info
+        logging.warn((info, np.array(terminated)))
+        return self._process_obs(obs), reward, terminated, info
 
     def reset(self, random_pos=False, env=None):
         if env:
