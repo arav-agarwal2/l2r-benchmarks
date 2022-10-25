@@ -12,6 +12,7 @@ from tianshou.data import ReplayBuffer
 from tianshou.data import Collector
 from tianshou.policy import BasePolicy
 from tianshou.utils.net.common import Net
+from tianshou.env import DummyVectorEnv
 
 from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import EvalResultsMsg
@@ -94,9 +95,9 @@ class AsnycWorker:
         self.encoder.to(DEVICE)
 
         #self.env.action_space = gym.spaces.Box(np.array([-0.3, -1]), np.array([0.3, 6]))
-        self.env = EnvContainer(self.encoder, self.env)
+        self.env = self.DummyVectorEnv([EnvContainer(self.encoder, self.env)])
         
-        print(self.env.action_space)
+        #print(self.env.action_space)
     def work(self) -> None:
         """Continously collect data"""
 
