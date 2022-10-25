@@ -106,7 +106,6 @@ class AsnycWorker:
         policy_id, policy = response.data["policy_id"], response.data["policy"]
 
         while True:
-            self.policy.set_eps(0.1 if is_train else 0.05)
             buffer, result = self.collect_data(
                 policy_weights=policy, policy_id=policy_id, is_train=is_train
             )
