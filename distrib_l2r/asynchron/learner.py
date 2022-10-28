@@ -77,7 +77,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         epochs: int = 500, # Originally 500
         buffer_size: int = 1_000_000, # Originally 1M
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
-        eval_prob: float = 0.08,
+        eval_prob: float = 0.20,
         save_func: Optional[Callable] = None,
         save_freq: Optional[int] = None,
     ) -> None:
