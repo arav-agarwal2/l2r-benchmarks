@@ -43,6 +43,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         elif isinstance(msg, EvalResultsMsg):
             logging.info("Received evaluation results message")
             logging.info(msg.data)
+            print(msg.data)
+            logging.warn(msg.data)
 
         # unexpected
         else:
