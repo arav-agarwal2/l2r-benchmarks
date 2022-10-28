@@ -42,6 +42,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
             logging.info("Received evaluation results message")
+            logging.info(msg.data)
 
         # unexpected
         else:
