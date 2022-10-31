@@ -20,7 +20,7 @@ class EnvContainer(gym.Env):
             .reshape((-1, 1))
             .float()
         )
-        return torch.cat((obs_encoded, speed), 1).to(DEVICE).detach().numpy()
+        return torch.cat((obs_encoded, speed), 1).to(DEVICE)
 
     def step(self, action, env=None):
         action = action.reshape((2,))
