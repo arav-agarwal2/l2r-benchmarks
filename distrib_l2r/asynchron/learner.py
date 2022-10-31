@@ -53,7 +53,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return
 
         # Reply to the request with an up-to-date policy
-        send_data(data=PolicyMsg(data=self.server.get_policy_dict()), sock=self.request)
+        send_data(data=PolicyMsg(data=self.server.get_agent_dict()), sock=self.request)
     
 
 
