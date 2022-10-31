@@ -49,7 +49,7 @@ class WorkerRunner(BaseRunner):
         self.agent.load_model(agent_params)
         t = 0
         done = False
-        env.reset()
+        state_encoded = env.reset()
 
         ep_ret = 0
         self.replay_buffer = create_configurable(
@@ -58,7 +58,7 @@ class WorkerRunner(BaseRunner):
         while not done:
             t += 1
             self.agent.deterministic = False
-            action_obj = self.agent.select_action(obs_encoded)
+            action_obj = self.agent.select_action(state_encoded)
             if self.env_wrapped:
                 next_state_encoded, reward, done, info = self.env_wrapped.step(
                     action_obj.action
@@ -69,7 +69,7 @@ class WorkerRunner(BaseRunner):
             ep_ret += reward
             self.replay_buffer.store(
                 {
-                    "obs": obs_encoded,
+                    "obs": state_encoded,
                     "act": action_obj,
                     "rew": reward,
                     "next_obs": next_state_encoded,
@@ -79,7 +79,7 @@ class WorkerRunner(BaseRunner):
             if done or t == self.max_episode_length:
                 self.replay_buffer.finish_path(action_obj)
 
-            obs_encoded = next_state_encoded
+            state_encoded = next_state_encoded
         from copy import deepcopy
         return deepcopy(self.replay_buffer), ep_ret
 
