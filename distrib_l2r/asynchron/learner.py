@@ -103,7 +103,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         # The bytes of the policy to reply to requests with
         
-        self.updated_policy = {k: v.cpu() for k, v in self.agent.state_dict().items()} 
+        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()} 
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
