@@ -110,6 +110,7 @@ class AsnycWorker:
             buffer, result = self.collect_data(
                 policy_weights=policy, is_train=is_train
             )
+            logging.warn('Data collection finished! Sending.')
 
             if is_train:
                 response = send_data(
