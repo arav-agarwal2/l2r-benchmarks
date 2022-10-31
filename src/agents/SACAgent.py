@@ -74,9 +74,7 @@ class SACAgent(BaseAgent):
         self.t_start = 0
         self.best_pct = 0
 
-        # This is important: it allows child classes (that extend this one) to "push up" information
-        # that this parent class should log
-        self.metadata = {}
+
         self.record = {"transition_actor": ""}
 
         self.action_space = Box(-1, 1, (2,))
@@ -112,7 +110,7 @@ class SACAgent(BaseAgent):
         for p in self.actor_critic_target.parameters():
             p.requires_grad = False
 
-    def select_action(self, obs, encode=False):
+    def select_action(self, obs):
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
@@ -137,24 +135,20 @@ class SACAgent(BaseAgent):
         self.deterministic = True  # TODO: Confirm that this makes sense.
         self.t = 1e6
 
-    def load_model(self, path):
-        self.actor_critic.load_state_dict(torch.load(path))
+
+    def load_model(self, path_or_checkpoint):
+        if isinstance(path_or_checkpoint, str):
+            self.actor_critic.load_state_dict(torch.load(path_or_checkpoint))
+        else:
+            self.actor_critic.load_state_dict(path_or_checkpoint)
+
+    def state_dict(self):
+        """Emulate torch behavior; note to self to remove once better refactor comes in."""
+        return self.actor_critic.state_dict()
+
 
     def save_model(self, path):
         torch.save(self.actor_critic.state_dict(), path)
-
-    def setup_experience_recorder(self, file_logger):
-        self.save_queue = queue.Queue()
-        self.save_batch_size = 256
-        self.record_experience = RecordExperience(
-            self.record_dir,
-            self.track_name,
-            self.experiment_name,
-            file_logger,
-            self,
-        )  ##When called in the runner make sure to add the file logger from the logger object
-        self.save_thread = threading.Thread(target=self.record_experience.save_thread)
-        self.save_thread.start()
 
     def compute_loss_q(self, data):
 
@@ -283,90 +277,3 @@ class SACAgent(BaseAgent):
             "metadata": info,
         }
         return self.recording
-
-    """def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
-        self.tb_logger.add_scalar("val/episodic_return", ep_ret, n_eps)
-        self.tb_logger.add_scalar("val/ep_n_steps", n_val_steps, n_eps)
-
-        try:
-            self.tb_logger.add_scalar(
-                "val/ep_pct_complete", info["metrics"]["pct_complete"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_total_time", info["metrics"]["total_time"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_total_distance", info["metrics"]["total_distance"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_avg_speed", info["metrics"]["average_speed_kph"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_avg_disp_err",
-                info["metrics"]["average_displacement_error"],
-                n_eps,
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_traj_efficiency",
-                info["metrics"]["trajectory_efficiency"],
-                n_eps,
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_traj_admissibility",
-                info["metrics"]["trajectory_admissibility"],
-                n_eps,
-            )
-            self.tb_logger.add_scalar(
-                "val/movement_smoothness",
-                info["metrics"]["movement_smoothness"],
-                n_eps,
-            )
-        except:
-            pass
-
-        #Find a better way: requires knowledge of child class API :(
-        if "safety_info" in self.metadata:
-            self.tb_logger.add_scalar(
-                "val/ep_interventions",
-                self.metadata["safety_info"]["ep_interventions"],
-                n_eps,
-            )
-
-    def log_train_metrics_to_tensorboard(self, ep_ret, t, t_start):
-        self.tb_logger.add_scalar("train/episodic_return", ep_ret, self.episode_num)
-        self.tb_logger.add_scalar(
-            "train/ep_total_time",
-            self.metadata["info"]["metrics"]["total_time"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_total_distance",
-            self.metadata["info"]["metrics"]["total_distance"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_avg_speed",
-            self.metadata["info"]["metrics"]["average_speed_kph"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_avg_disp_err",
-            self.metadata["info"]["metrics"]["average_displacement_error"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_traj_efficiency",
-            self.metadata["info"]["metrics"]["trajectory_efficiency"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_traj_admissibility",
-            self.metadata["info"]["metrics"]["trajectory_admissibility"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/movement_smoothness",
-            self.metadata["info"]["metrics"]["movement_smoothness"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)"""

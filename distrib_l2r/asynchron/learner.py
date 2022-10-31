@@ -9,6 +9,7 @@ from typing import Optional
 from typing import Tuple
 from tqdm import tqdm
 import socket
+from src.agents.base import BaseAgent
 
 from tianshou.data import ReplayBuffer
 from tianshou.policy import BasePolicy
@@ -74,7 +75,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
     def __init__(
         self,
-        policy: BasePolicy,
+        agent: BaseAgent,
         update_steps: int = 64,
         batch_size: int = 128, # Originally 128
         epochs: int = 500, # Originally 500
@@ -97,16 +98,16 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.replay_buffer = ReplayBuffer(size=buffer_size)
 
         # Inital policy to use
-        self.policy = policy
-        self.policy_id = 1
+        self.agent = agent
+        self.agent_id = 1
 
         # The bytes of the policy to reply to requests with
         
-        self.updated_policy = {k: v.cpu() for k, v in self.policy.state_dict().items()} 
+        self.updated_policy = {k: v.cpu() for k, v in self.agent.state_dict().items()} 
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
-        self.policy_queue = queue.Queue(maxsize=1)
+        self.agent_queue = queue.Queue(maxsize=1)
 
         # A queue of buffers that have been received but not yet added to the learner's
         # main replay buffer
@@ -116,51 +117,50 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.save_func = save_func
         self.save_freq = save_freq
 
-    def get_policy_dict(self) -> Dict[str, Any]:
+    def get_agent_dict(self) -> Dict[str, Any]:
         """Get the most up-to-date version of the policy without blocking"""
-        if not self.policy_queue.empty():
+        if not self.agent_queue.empty():
             try:
-                self.updated_policy = self.policy_queue.get_nowait()
+                self.updated_agent = self.agent_queue.get_nowait()
             except queue.Empty:
                 # non-blocking
                 pass
 
         return {
             "policy_id": self.policy_id,
-            "policy": self.updated_policy,
+            "policy": self.updated_agent,
             "is_train": random.random() >= self.eval_prob,
         }
 
-    def update_policy(self) -> None:
+    def update_agent(self) -> None:
         """Update policy that will be sent to workers without blocking"""
-        if not self.policy_queue.empty():
+        if not self.agent_queue.empty():
             try:
                 # empty queue for safe put()
-                _ = self.policy_queue.get_nowait()
+                _ = self.agent_queue.get_nowait()
             except queue.Empty:
                 pass
 
-        self.policy_queue.put({k: v.cpu() for k, v in self.policy.state_dict().items()} )
-        self.policy_id += 1
+        self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()} )
+        self.agent_id += 1
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
             # block until new data is received
-            batch = self.buffer_queue.get()
+            semibuffer = self.buffer_queue.get()
             print(f"Received something {epoch}")
 
             # Add new data to the primary replay buffer
-            self.replay_buffer.update(batch)
+            #self.replay_buffer.update(batch)
 
             # Learning steps for the policy
             for _ in range(self.update_steps):
-                _ = self.policy.update(
-                    sample_size=self.batch_size, buffer=self.replay_buffer
-                )
+                batch = semibuffer.sample_batch()
+                self.agent.update(data=batch)
 
             # Update policy without blocking
-            self.update_policy()
+            self.update_agent()
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())

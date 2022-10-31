@@ -34,7 +34,6 @@ class AsnycWorker:
 
     def __init__(
         self,
-        policy: BasePolicy,
         learner_address: Tuple[str, int],
         buffer_size: int = 5000,
         env_wrapper: Optional[Wrapper] = None,
@@ -43,7 +42,6 @@ class AsnycWorker:
 
         self.learner_address = learner_address
         self.buffer_size = buffer_size
-        self.policy = policy
         self.mean_reward = 0.0
         # start the simulator
         #subprocess.Popen(
@@ -92,7 +90,7 @@ class AsnycWorker:
         #self.env = gym.make('Pendulum-v1')
 
         self.encoder = create_configurable(
-           'config_files/example_sac/encoder.yaml', NameToSourcePath.encoder
+           'config_files/async_sac/encoder.yaml', NameToSourcePath.encoder
         )
         self.encoder.to(DEVICE)
 
@@ -131,14 +129,11 @@ class AsnycWorker:
             policy_id, policy = response.data["policy_id"], response.data["policy"]
 
     def collect_data(
-        self, policy_weights: BasePolicy, policy_id: int, is_train: bool = True
+        self, policy_weights: dict, is_train: bool = True
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
-        buffer = ReplayBuffer(size=self.buffer_size)
-        self.policy.load_state_dict(policy_weights)
-        collector = Collector(
-            policy=self.policy, env=self.env, buffer=buffer, exploration_noise=is_train
-        )
-        result = collector.collect(n_episode=1)
-        result["policy_id"] = policy_id
+        runner = create_configurable(
+        "config_files/async_sac/worker.yaml", NameToSourcePath.runner)
+        buffer, ep_ret = runner.run(self.env, policy_weights)
+        result = {'reward':ep_ret}
         return buffer, result
