@@ -59,12 +59,7 @@ class WorkerRunner(BaseRunner):
             t += 1
             self.agent.deterministic = False
             action_obj = self.agent.select_action(state_encoded)
-            if self.env_wrapped:
-                next_state_encoded, reward, done, info = self.env_wrapped.step(
-                    action_obj.action
-                )
-            else:
-                next_state_encoded, reward, done, info = env.step(action_obj.action)
+            next_state_encoded, reward, done, info = env.step(action_obj.action)
 
             ep_ret += reward
             self.replay_buffer.store(
