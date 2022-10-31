@@ -108,7 +108,7 @@ class AsnycWorker:
 
         while True:
             buffer, result = self.collect_data(
-                policy_weights=policy, policy_id=policy_id, is_train=is_train
+                policy_weights=policy, is_train=is_train
             )
 
             if is_train:
