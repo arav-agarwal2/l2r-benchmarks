@@ -116,6 +116,7 @@ class AsnycWorker:
                 response = send_data(
                     data=BufferMsg(data=buffer), addr=self.learner_address, reply=True
                 )
+                logging.warn("Sent!")
 
             else:
                 self.mean_reward = self.mean_reward*(0.2) + result['rew']*0.8
@@ -125,6 +126,7 @@ class AsnycWorker:
                     addr=self.learner_address,
                     reply=True,
                 )
+                logging.warn("Sent!")
 
             is_train = response.data["is_train"]
             policy_id, policy = response.data["policy_id"], response.data["policy"]
