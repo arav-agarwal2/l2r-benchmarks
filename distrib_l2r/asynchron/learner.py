@@ -127,7 +127,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 pass
 
         return {
-            "policy_id": self.policy_id,
+            "policy_id": self.agent_id,
             "policy": self.updated_agent,
             "is_train": random.random() >= self.eval_prob,
         }
