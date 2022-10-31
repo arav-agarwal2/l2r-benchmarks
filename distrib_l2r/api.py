@@ -25,7 +25,7 @@ class BufferMsg(BaseMsg):
 
     def __post_init__(self):
         #assert isinstance(self.data, ReplayBuffer)
-
+        assert True
 
 @dataclass
 class EvalResultsMsg(BaseMsg):
