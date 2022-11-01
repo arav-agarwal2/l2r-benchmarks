@@ -37,7 +37,7 @@ class SimpleReplayBuffer:
             action = values["act"].action  # .detach().cpu().numpy()
             reward = values["rew"]
             done = values["done"]
-            currdict = {"obs": obs, "next_obs":next_obs, "action":action, "reward":reward, "done":done}
+            currdict = {"obs": obs, "obs2":next_obs, "act":action, "rew":reward, "done":done}
             self.buffer.append(currdict)
         
         elif(type(values) == self.__class__):

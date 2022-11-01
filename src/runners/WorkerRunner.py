@@ -57,7 +57,7 @@ class WorkerRunner(BaseRunner):
             )
         while not done:
             t += 1
-            print(f't:{t}')
+            #print(f't:{t}')
             self.agent.deterministic = False
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
