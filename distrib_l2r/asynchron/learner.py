@@ -43,8 +43,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            logging.info("Received evaluation results message")
-            logging.info(msg.data)
+            logging.warn("Received evaluation results message")
+            logging.warn(msg.data)
             self.server.wandb_logger.eval_log(
                     (
                         msg.data['reward'],
