@@ -37,7 +37,6 @@ class Qfunction(nn.Module):
         img_embed = obs_feat[..., :32]  # n x latent_dims
         speed = obs_feat[..., 32:]  # n x 1
         spd_embed = self.speed_encoder(speed)  # n x 16
-        print("In network",spd_embed.shape, img_embed.shape, action.shape)
         out = self.regressor(torch.cat([img_embed, spd_embed, action], dim=-1))  # n x 1
         # pdb.set_trace()
         return out.view(-1)
