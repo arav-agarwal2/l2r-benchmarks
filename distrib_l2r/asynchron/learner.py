@@ -156,7 +156,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # Learning steps for the policy
             for _ in range(self.update_steps):
                 batch = semibuffer.sample_batch()
-                print(batch)
+                for k,v in batch.items():
+                    print(k, v.shape)
                 self.agent.update(data=batch)
 
             # Update policy without blocking
