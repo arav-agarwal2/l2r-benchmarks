@@ -126,6 +126,6 @@ class AsnycWorker:
         """Collect 1 episode of data in the environment"""
         runner = create_configurable(
         "config_files/async_sac/worker.yaml", NameToSourcePath.runner)
-        buffer, ep_ret = runner.run(self.env, policy_weights)
-        result = {'reward':ep_ret}
+        buffer, result = runner.run(self.env, policy_weights, is_train)
+    
         return buffer, result

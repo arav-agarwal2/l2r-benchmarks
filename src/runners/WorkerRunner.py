@@ -34,13 +34,14 @@ class WorkerRunner(BaseRunner):
 
 
 
-    def run(self, env, agent_params):
+    def run(self, env, agent_params, is_train):
         """Grab data for system that's needed, and send a buffer accordingly. Note: does a single 'episode'
            which might not be more than a segment in l2r's case.
 
         Args:
             env (_type_): _description_
             agent (_type_): some agent
+            is_train: Whether to collect data in train mode or eval mode
         """
         self.agent.load_model(agent_params)
         t = 0
@@ -54,10 +55,11 @@ class WorkerRunner(BaseRunner):
         while not done:
             t += 1
             print(f't:{t}')
-            self.agent.deterministic = False
+            self.agent.deterministic = is_train
+            env.evaluate = is_train
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
-            print(f'info{info}')
+            #print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
                 {
@@ -73,48 +75,7 @@ class WorkerRunner(BaseRunner):
 
             state_encoded = next_state_encoded
         from copy import deepcopy
-        return deepcopy(self.replay_buffer), ep_ret
+        info['metrics']['reward'] = ep_ret
+        print(info['metrics'])
+        return deepcopy(self.replay_buffer), info['metrics']
 
-
-    def eval(self, env):
-        print("Evaluation:")
-        val_ep_rets = []
-
-        # Not implemented for logging multiple test episodes
-        # assert self.cfg["num_test_episodes"] == 1
-        env.reset()
-
-        eval_done = False
-        eval_ep_len = 0
-
-        while (not eval_done) & (eval_ep_len <= self.max_episode_length):
-            # Take deterministic actions at test time
-            self.agent.deterministic = True
-            self.t = 1e6
-            eval_action_obj = self.agent.select_action(
-                eval_obs_encoded
-            )
-            if self.env_wrapped:
-                (
-                    eval_obs_encoded_new,
-                    eval_reward,
-                    eval_done,
-                    eval_info,
-                ) = self.env_wrapped.step(eval_action_obj.action)
-            else:
-                eval_obs_encoded_new, eval_reward, eval_done, eval_info = env.step(
-                    eval_action_obj.action
-                )
-
-            # Check that the camera is turned on
-            eval_ep_ret += eval_reward
-            eval_ep_len += 1
-            eval_n_val_steps += 1
-
-
-            eval_obs_encoded = eval_obs_encoded_new
-            t_eval += 1
-
-
-
-        return eval_info, eval_ep_ret
