@@ -54,7 +54,7 @@ class WorkerRunner(BaseRunner):
             )
         while not done:
             t += 1
-            print(f't:{t}')
+            #print(f't:{t}')
             self.agent.deterministic = is_train
             env.evaluate = is_train
             action_obj = self.agent.select_action(state_encoded)
