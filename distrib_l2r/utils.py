@@ -29,8 +29,7 @@ def send_data(
     """
     if not isinstance(data, bytes):
         data = pickle.dumps(data)
-        print('Data Size:', len(data))
-
+        
     if sock:
         send_bytes_with_prefix_size(msg=data, sock=sock)
         return wait_for_response(sock=sock) if reply else None
@@ -74,7 +73,6 @@ def send_bytes_with_prefix_size(msg: bytes, sock: socket.socket) -> None:
 
     # Prefix message with length and send
     sock.sendall(struct.pack(">I", len(msg)) + msg)
-    print("Sent!")
 
 
 def recv_bytes_with_prefix_size(sock: socket.socket) -> bytes:
