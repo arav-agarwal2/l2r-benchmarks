@@ -150,9 +150,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # block until new data is received
             semibuffer = self.buffer_queue.get()
             print(f"Received something {epoch}")
-            #print("Worker Buffer: ", semibuffer)
             # Add new data to the primary replay buffer
-            self.replay_buffer.update(semibuffer)
+            self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
             for _ in range(self.update_steps):
