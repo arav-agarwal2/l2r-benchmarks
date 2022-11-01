@@ -57,7 +57,10 @@ class SimpleReplayBuffer:
         for idx in idxs:
             currdict = self.buffer[idx]
             for k,v in currdict.items():
-                batch[k].append(v)
+                if(k in batch):
+                    batch[k].append(v)
+                else:
+                    batch[k] = [v]
 
         self.weights = torch.tensor(
             np.zeros_like(idxs), dtype=torch.float32, device=DEVICE
