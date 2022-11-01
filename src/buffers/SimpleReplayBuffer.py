@@ -32,8 +32,8 @@ class SimpleReplayBuffer:
             return obs
         if(type(values) is dict):
             # convert to deque
-            obs = convert(values["obs"])
-            next_obs = convert(values["next_obs"])
+            obs = convert(values["obs"]).squeeze()
+            next_obs = convert(values["next_obs"]).squeeze()
             action = values["act"].action  # .detach().cpu().numpy()
             reward = values["rew"]
             done = values["done"]
@@ -58,9 +58,9 @@ class SimpleReplayBuffer:
             currdict = self.buffer[idx]
             for k,v in currdict.items():
                 if(k in batch):
-                    batch[k].append(v.squeeze())
+                    batch[k].append(v)
                 else:
-                    batch[k] = [v.squeeze()]
+                    batch[k] = [v]
 
         self.weights = torch.tensor(
             np.zeros_like(idxs), dtype=torch.float32, device=DEVICE
