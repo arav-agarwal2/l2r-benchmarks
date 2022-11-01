@@ -10,9 +10,7 @@ from typing import Tuple
 from tqdm import tqdm
 import socket
 from src.agents.base import BaseAgent
-
-from tianshou.data import ReplayBuffer
-from tianshou.policy import BasePolicy
+from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 
 from distrib_l2r.api import BufferMsg
 from distrib_l2r.api import InitMsg
@@ -95,7 +93,9 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         # Create a replay buffer
         self.buffer_size = buffer_size
-        self.replay_buffer = ReplayBuffer(size=buffer_size)
+        self.replay_buffer = create_configurable(
+                "config_files/async_sac/worker.yaml", NameToSourcePath.buffer
+            )
 
         # Inital policy to use
         self.agent = agent
@@ -150,7 +150,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # block until new data is received
             semibuffer = self.buffer_queue.get()
             print(f"Received something {epoch}")
-
+            print("Worker Buffer: ", semibuffer)
             # Add new data to the primary replay buffer
             #self.replay_buffer.update(batch)
 
