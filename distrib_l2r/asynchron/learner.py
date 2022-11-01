@@ -94,7 +94,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # Create a replay buffer
         self.buffer_size = buffer_size
         self.replay_buffer = create_configurable(
-                "config_files/async_sac/worker.yaml", NameToSourcePath.buffer
+                "config_files/async_sac/buffer.yaml", NameToSourcePath.buffer
             )
 
         # Inital policy to use
