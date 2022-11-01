@@ -10,6 +10,7 @@ from typing import Tuple
 from tqdm import tqdm
 import socket
 from src.agents.base import BaseAgent
+from src.loggers.WanDBLogger import WanDBLogger
 
 from tianshou.data import ReplayBuffer
 from tianshou.policy import BasePolicy
@@ -44,8 +45,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         elif isinstance(msg, EvalResultsMsg):
             logging.info("Received evaluation results message")
             logging.info(msg.data)
-            print(msg.data)
-            logging.warn(msg.data)
+            self.server.wandb_logger.eval_log(
+                    (
+                        msg.data['reward'],
+                        msg.data["total_distance"],
+                        msg.data["total_time"],
+                        msg.data["num_infractions"],
+                        msg.data["average_speed_kph"],
+                        msg.data["average_displacement_error"],
+                        msg.data["trajectory_efficiency"],
+                        msg.data["trajectory_admissibility"],
+                        msg.data["movement_smoothness"],
+                        msg.data["timestep/sec"],
+                        msg.data["laps_completed"],
+                    )
+                )
 
         # unexpected
         else:
@@ -84,6 +98,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         eval_prob: float = 0.20,
         save_func: Optional[Callable] = None,
         save_freq: Optional[int] = None,
+        api_key: str = ''
     ) -> None:
 
         super().__init__(server_address, ThreadedTCPRequestHandler)
@@ -113,6 +128,9 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # main replay buffer
         self.buffer_queue = queue.Queue()
 
+        self.wandb_logger = WanDBLogger(
+                api_key=api_key, project_name="test-project"
+            )
         # Save function, called optionally
         self.save_func = save_func
         self.save_freq = save_freq
