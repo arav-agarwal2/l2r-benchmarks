@@ -34,10 +34,6 @@ class WorkerRunner(BaseRunner):
 
 
 
-
-
-
-
     def run(self, env, agent_params):
         """Grab data for system that's needed, and send a buffer accordingly. Note: does a single 'episode'
            which might not be more than a segment in l2r's case.
@@ -61,7 +57,7 @@ class WorkerRunner(BaseRunner):
             self.agent.deterministic = False
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
-
+            print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
                 {

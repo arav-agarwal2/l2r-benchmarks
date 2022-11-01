@@ -43,17 +43,6 @@ class AsnycWorker:
         self.learner_address = learner_address
         self.buffer_size = buffer_size
         self.mean_reward = 0.0
-        # start the simulator
-        #subprocess.Popen(
-        #    ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
-        #    stdout=subprocess.DEVNULL,
-        #)
-
-        # create the racing environment
-        #env_config = EnvConfig
-        #sim_config = SimulatorConfig
-        #self.env = RacingEnv(env_config.__dict__, sim_config.__dict__)
-        #self.env.make()
 
         #TODO: Make arg.
         subprocess.Popen(
