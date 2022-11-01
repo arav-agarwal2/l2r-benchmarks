@@ -29,7 +29,7 @@ class SimpleReplayBuffer:
         self.batch_size = batch_size
         self.weights = None
 
-    def store(self, buffer_dict):
+    def store(self, values):
         # pdb.set_trace()
 
         def convert(arraylike):
@@ -39,14 +39,21 @@ class SimpleReplayBuffer:
                     obs = obs.detach()
                 obs = obs.cpu().numpy()
             return obs
+        if(type(values) is dict):
+            # convert to deque
+            self.obs_buf[self.ptr] = convert(values["obs"])
+            self.obs2_buf[self.ptr] = convert(values["next_obs"])
+            self.act_buf[self.ptr] = values["act"].action  # .detach().cpu().numpy()
+            self.rew_buf[self.ptr] = values["rew"]
+            self.done_buf[self.ptr] = values["done"]
+            self.ptr = (self.ptr + 1) % self.max_size
+            self.size = min(self.size + 1, self.max_size)
+        
+        elif(type(values) == self.__class__):
+            print("Updating buffer using buffer object")
+        else:
+            raise Exception("Sorry, invalid input type. Please input dict or buffer of same type")
 
-        self.obs_buf[self.ptr] = convert(buffer_dict["obs"])
-        self.obs2_buf[self.ptr] = convert(buffer_dict["next_obs"])
-        self.act_buf[self.ptr] = buffer_dict["act"].action  # .detach().cpu().numpy()
-        self.rew_buf[self.ptr] = buffer_dict["rew"]
-        self.done_buf[self.ptr] = buffer_dict["done"]
-        self.ptr = (self.ptr + 1) % self.max_size
-        self.size = min(self.size + 1, self.max_size)
 
     def sample_batch(self):
 
