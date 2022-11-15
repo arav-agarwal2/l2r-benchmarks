@@ -1,4 +1,3 @@
-
 import copy
 import json
 import os
@@ -61,7 +60,7 @@ class MPCAgent(BaseAgent):
         Load model checkpoints.
         """
         raise NotImplementedError
-    
+
     def load_segmentation_model():
         ## Load the Segmentation model here check with Kevin
         # model = EfficientNetV2_FPN_Segmentation(version="efficientnet_v2_s", im_c=3, n_classes=2).to(self.device)
@@ -70,7 +69,6 @@ class MPCAgent(BaseAgent):
 
         # return model
         raise NotImplementedError
-
 
     def save_model(self, path):  # pragma: no cover
         """
