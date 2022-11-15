@@ -48,7 +48,7 @@ class SACAgent(BaseAgent):
         model_save_path: str,
         lr: float,
         update_lr_every: int,
-        lr_update_rate: float
+        lr_update_rate: float,
     ):
         super(SACAgent, self).__init__()
 
@@ -289,17 +289,17 @@ class SACAgent(BaseAgent):
         return self.recording
 
     def update_lr(self, episode=None):
-        if(self.update_lr_every is None or self.lr_update_rate is None):
+        if self.update_lr_every is None or self.lr_update_rate is None:
             self.lr = self.lr
         else:
-            #if(episode//100%2 == 1):
+            # if(episode//100%2 == 1):
             #    if(episode%self.update_lr_every == 0):
             #        self.lr *= (1 - self.lr_update_rate)
-            #else: 
+            # else:
             #    if(episode%self.update_lr_every == 0):
             #        self.lr *= (1 + self.lr_update_rate)
-            if(episode%self.update_lr_every==0):
-                self.lr *= (1 - self.lr_update_rate)
+            if episode % self.update_lr_every == 0:
+                self.lr *= 1 - self.lr_update_rate
 
     """def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
         self.tb_logger.add_scalar("val/episodic_return", ep_ret, n_eps)

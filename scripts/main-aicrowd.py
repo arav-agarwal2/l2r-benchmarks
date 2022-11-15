@@ -30,8 +30,8 @@ class EnvConfig(object):
     action_if_kwargs = {
         "max_accel": 6,
         "min_accel": -16,
-        "max_steer": .3,
-        "min_steer": -.3,
+        "max_steer": 0.3,
+        "min_steer": -0.3,
         "ip": "0.0.0.0",
         "port": 7077,
     }
@@ -43,18 +43,9 @@ class EnvConfig(object):
         "ip": "0.0.0.0",
         "port": 8008,
     }
-    segm_if_kwargs = {
-        "ip": 'tcp://127.0.0.1',
-        "port": 8009
-    }
-    birdseye_if_kwargs = {
-        "ip": 'tcp://127.0.0.1',
-        "port": 8010
-    }
-    birdseye_segm_if_kwargs = {
-        "ip": 'tcp://127.0.0.1',
-        "port": 8011
-    }
+    segm_if_kwargs = {"ip": "tcp://127.0.0.1", "port": 8009}
+    birdseye_if_kwargs = {"ip": "tcp://127.0.0.1", "port": 8010}
+    birdseye_segm_if_kwargs = {"ip": "tcp://127.0.0.1", "port": 8011}
     logger_kwargs = {
         "default": True,
     }
@@ -96,7 +87,9 @@ if __name__ == "__main__":
     sim_config = SimulatorConfig
     env = RacingEnv(env_config.__dict__, sim_config.__dict__)
     env.make()
-    runner = create_configurable("config_files/example_sac/runner.yaml", NameToSourcePath.runner)
+    runner = create_configurable(
+        "config_files/example_sac/runner.yaml", NameToSourcePath.runner
+    )
 
     with open(
         f"{runner.agent.model_save_path}/{runner.exp_config['experiment_name']}/git_config",
@@ -104,7 +97,7 @@ if __name__ == "__main__":
     ) as f:
         f.write(" ".join(sys.argv[1:3]))
     # Race!
-    try: 
+    try:
         runner.run(env, sys.argv[3])
     except IndexError as e:
         logging.warning(e)

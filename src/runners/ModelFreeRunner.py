@@ -149,7 +149,7 @@ class ModelFreeRunner(BaseRunner):
                     )
                 else:
                     obs_encoded_new, reward, done, info = env.step(action_obj.action)
-                ep_ret = (1 - self.reward_decay_rate)*ep_ret + reward
+                ep_ret = (1 - self.reward_decay_rate) * ep_ret + reward
                 # self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
                     {
@@ -196,7 +196,7 @@ class ModelFreeRunner(BaseRunner):
                 )
 
             self.agent.update_lr(ep_number)
-            
+
             self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             self.file_logger.log(f"info: {info}")
             self.file_logger.log(
@@ -247,7 +247,7 @@ class ModelFreeRunner(BaseRunner):
                     )
 
                 # Check that the camera is turned on
-                eval_ep_ret = (1 - self.reward_decay_rate)*eval_ep_ret + eval_reward
+                eval_ep_ret = (1 - self.reward_decay_rate) * eval_ep_ret + eval_reward
                 eval_ep_len += 1
                 eval_n_val_steps += 1
 
