@@ -21,6 +21,7 @@ from distrib_l2r.api import PolicyMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 
+import time
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     """Request handler thread created for every request"""
@@ -167,15 +168,23 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
             # block until new data is received
+            bufferQStartTime = time.time()
             semibuffer = self.buffer_queue.get()
+            bufferQEndTime = time.time()
+            print("TIME TAKEN TO GET BUFFER: ", (bufferQEndTime - bufferQStartTime))
+            print("LENGTH OF BUFFER: ", len(semibuffer))
+            print("BUFFER THAT CAME FROM THE QUEUE: ", semibuffer)
             print(f"Received something {epoch}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
+            updateStart = time.time()
             for _ in range(self.update_steps):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
+            updateEnd = time.time()
+            print("TIME TO UPDATE: ", (updateEnd - updateStart)/(self.update_steps))
 
             # Update policy without blocking
             self.update_agent()
