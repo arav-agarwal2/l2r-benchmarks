@@ -96,9 +96,21 @@ class FPNSegmentation(BaseEncoder, nn.Module):
 
     def encode(self, x):
         # assume x is RGB image with shape (H, W, 3)
+
+        # Code heavily inspired by https://gitlab.aicrowd.com/matthew_howe/aiml-l2r/-/blob/main/agents/MrMPC.py#L484
+
         x = torch.Tensor(x.transpose(2, 0, 1)) / 255
         segm = self.forward(x.unsqueeze(0))
-        return segm
+        tmp_mask = 1 - segm.detach().cpu().numpy().astype(np.uint8)
+        tmp_mask = cv2.resize(tmp_mask, (144, 144))[68:110]  # Crop away sky and car hood
+        tmp_mask = cv2.resize(tmp_mask, (144, 32)) # Resize to create 32 len vector
+        
+        right_outline = tmp_mask.shape[1] - np.argmax(np.flip(tmp_mask, 1), axis=1) - 1
+        right_outline[right_outline == tmp_mask.shape[1] - 1] = 0
+        left_outline = np.argmax(tmp_mask, axis=1)
+        drivable_center = (right_outline + left_outline) / 2
+        return torch.Tensor(drivable_center).to(DEVICE)
+
 
 
 
