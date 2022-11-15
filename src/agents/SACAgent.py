@@ -81,7 +81,7 @@ class SACAgent(BaseAgent):
 
         self.action_space = Box(-1, 1, (2,))
         self.act_dim = self.action_space.shape[0]
-        self.obs_dim = 32
+        self.obs_dim = 32 # TODO: THIS SHOULD BE PARAMETERIZED
 
         self.actor_critic = ActorCritic(
             self.obs_dim,
