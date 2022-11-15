@@ -196,7 +196,7 @@ class SpatialMPC:
             # Fill operator matrix
             # dynamics of acceleration
             if i < N - 1:
-                D1[i, i: i + 2] = np.array([-1 / (2 * li), 1 / (2 * li)])
+                D1[i, i : i + 2] = np.array([-1 / (2 * li), 1 / (2 * li)])
 
             # Compute dynamic constraint on velocity
             v_max_dyn = np.sqrt(ay_max / (np.abs(ki) + self.eps))
