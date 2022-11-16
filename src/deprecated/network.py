@@ -11,6 +11,9 @@ from gym.spaces import Box, Discrete
 
 
 def resnet18(pretrained=True):
+    """
+    Return a pre-trained resnet model from Pytorch. Pre-trained on ImageNet.
+    """
     model = torch.hub.load("pytorch/vision:v0.6.0", "resnet18", pretrained=pretrained)
     for param in model.parameters():
         param.requires_grad = False
@@ -24,6 +27,10 @@ class Qfunction(nn.Module):
     """
 
     def __init__(self, cfg):
+        """
+        Initialize the layers for the Value Function Network
+        """
+        
         super().__init__()
         self.cfg = cfg
         # pdb.set_trace()
@@ -32,6 +39,10 @@ class Qfunction(nn.Module):
         # self.lr = cfg['resnet']['LR']
 
     def forward(self, obs_feat, action):
+        """
+        Get the image and speed embeddings and then pass it through an MLP. Output the Q-value.
+        """
+        
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
@@ -51,6 +62,10 @@ class DuelingNetwork(nn.Module):
     """
 
     def __init__(self, cfg):
+        """
+        Initialize the layers for the Dueling Network
+        """
+        
         super().__init__()
         self.cfg = cfg
 
@@ -61,8 +76,12 @@ class DuelingNetwork(nn.Module):
         # self.V_network = mlp([n_obs] + [32,64,64,32,32] + [1])
         self.A_network = mlp([n_obs + [64, 64, 32][-1]] + [32, 64, 64, 32, 32] + [1])
         # self.lr = cfg['resnet']['LR']
-
+    # TODO: We're not currently using the advantage????
     def forward(self, obs_feat, action, advantage_only=False):
+        """
+        Get image, speed and action encoding and get the Value by passing through an MLP
+        """
+        
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
@@ -80,12 +99,21 @@ class DuelingNetwork(nn.Module):
 
 
 class CriticType(Enum):
+    """
+    Enum class to indicate the type of Critic
+    """
     Q = 0
     Safety = 1
     Value = 2
 
 
 class ActorCritic(nn.Module):
+    """
+    The actor-critic class that allows the basic A2C to be initialized and used in the agent files. This initializes the
+    actor and critic netoworks and then defines a wrapper function for the policy and a function to get an action from the
+    action network.
+    """
+    
     def __init__(
         self,
         observation_space,
@@ -96,6 +124,10 @@ class ActorCritic(nn.Module):
         device="cpu",
         critic_type=CriticType.Value,  ## Flag to indicate architecture for Safety_actor_critic
     ):
+        """
+        Initialize the observation dimension and action space dimensions, as well as the actor and critic networks.
+        """
+
         super().__init__()
         self.cfg = cfg
         obs_dim = observation_space.shape[0] if latent_dims is None else latent_dims
@@ -119,6 +151,10 @@ class ActorCritic(nn.Module):
         self.to(device)
 
     def pi(self, obs_feat, deterministic=False):
+        """
+        Wrapper around the policy. Helps manage dimensions and add/remove features from the input space.
+        """
+
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
@@ -133,6 +169,9 @@ class ActorCritic(nn.Module):
         return self.policy(feat, deterministic, True)
 
     def act(self, obs_feat, deterministic=False):
+        """
+        Uses the policy to get and return an action on the appropriate device in the right format.
+        """
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         with torch.no_grad():
@@ -151,6 +190,9 @@ class Vfunction(nn.Module):
     """Modified from Qfunction."""
 
     def __init__(self, cfg):
+        """
+        Initialize the layers for the state-value function
+        """
         super().__init__()
         self.cfg = cfg
         # pdb.set_trace()
@@ -158,6 +200,10 @@ class Vfunction(nn.Module):
         self.regressor = mlp([32 + 8] + [32, 64, 64, 32, 32] + [1])
 
     def forward(self, obs_feat):
+        """
+        Pass the image and speed embedding through the MLP to get the state-value
+        """
+
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
@@ -169,6 +215,11 @@ class Vfunction(nn.Module):
 
 
 class PPOMLPActorCritic(nn.Module):
+    """
+    The Actor-Critic for PPO. Like class ActorCritic, it initializes action and observation space dimensions and the actor
+    and critic networks. It also defines the wrapper for the policy and a function to get action.
+    """
+    
     def __init__(
         self,
         observation_space,
@@ -178,6 +229,10 @@ class PPOMLPActorCritic(nn.Module):
         latent_dims=None,
         device="cpu",
     ):
+        """
+        Initialize the observation and action space dimensions and the actor and critic networks.
+        """
+
         super().__init__()
 
         obs_dim = observation_space.shape[0] if latent_dims is None else latent_dims
@@ -197,6 +252,10 @@ class PPOMLPActorCritic(nn.Module):
         self.device = device
 
     def pi(self, obs_feat, deterministic=False):
+        """
+        Wrapper around the policy. Helps manage dimensions and add/remove features from the input space.
+        """
+
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         img_embed = obs_feat[..., :32]  # n x latent_dims
@@ -211,6 +270,9 @@ class PPOMLPActorCritic(nn.Module):
         return self.policy(feat, deterministic, True)
 
     def step(self, obs, deterministic=False):
+        """
+        Uses the policy to get and return an action on the appropriate device in the right format.
+        """
         with torch.no_grad():
             img_embed = obs[..., :32]  # n x latent_dims
             # speed = obs_feat[..., 32:] # n x 1
