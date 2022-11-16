@@ -93,6 +93,7 @@ class FPNSegmentation(BaseEncoder, nn.Module):
             self.load_state_dict(torch.load(load_checkpoint_from))
 
     def forward(self, x):
+        x.to(DEVICE)
         x = self.encoder(x)
         x = self.feature_pyramid(self.encoder.hiddens)
         x = self.segmentation_branch(list(x.values()))
@@ -103,8 +104,9 @@ class FPNSegmentation(BaseEncoder, nn.Module):
         # assume x is RGB image with shape (H, W, 3)
 
         # Code heavily inspired by https://gitlab.aicrowd.com/matthew_howe/aiml-l2r/-/blob/main/agents/MrMPC.py#L484
-
+        
         x = torch.Tensor(x.transpose(2, 0, 1)) / 255
+        x.to(DEVICE)
         segm = self.forward(x.unsqueeze(0))
         tmp_mask = 1 - segm.detach().cpu().numpy().astype(np.uint8)
         tmp_mask = cv2.resize(tmp_mask, (144, 144))[68:110]  # Crop away sky and car hood
