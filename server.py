@@ -14,7 +14,7 @@ state_shape = (33,)
 action_shape = (2,)
 
 if __name__ == '__main__':
-    learner = AsyncLearningNode(agent = create_configurable("config_files/async_sac/agent.yaml", NameToSourcePath.agent), api_key=sys.argv[1])
+    learner = AsyncLearningNode(agent = create_configurable("config_files/async_sac/agent.yaml", NameToSourcePath.agent), api_key="")
     print("Initialized!!.")
     server_thread = threading.Thread(target=learner.serve_forever)
     server_thread.start()
