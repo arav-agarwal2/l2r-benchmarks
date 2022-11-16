@@ -32,7 +32,7 @@ if __name__ == "__main__":
         datefmt='%m/%d/%Y %I:%M:%S %p', 
         level=logging.INFO,
         handlers=[
-            logging.FileHandler(os.path.join(experiment_dir_path, 'debug.log')),
+            logging.FileHandler(os.path.join(f"{training_config['model_save_path']}", 'debug.log')),
             logging.StreamHandler()
         ],
         force=True
