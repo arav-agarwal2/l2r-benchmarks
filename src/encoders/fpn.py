@@ -6,6 +6,11 @@ from collections import OrderedDict
 from src.encoders.base import BaseEncoder
 from src.config.yamlize import yamlize
 from src.constants import DEVICE
+import numpy as np
+import cv2
+import logging
+import sys
+
 
 class DiceLoss(nn.Module):
     def __init__(self):
@@ -80,12 +85,19 @@ class FPNSegmentation(BaseEncoder, nn.Module):
             n_classes: int = 2,
             fpn_filters: list = [64, 128, 160, 256],
             out_channels: int = 128,
+            load_checkpoint_from: str = ""
     ):
         super().__init__()
         self.encoder = EfficientNetV2Backbone()
         self.feature_pyramid =  torchvision.ops.FeaturePyramidNetwork(fpn_filters, out_channels)
         self.segmentation_branch = SegmentationBranch(out_channels, n_classes)
         self.loss = DiceLoss()
+        if load_checkpoint_from == "":
+            logging.info("Not loading any visual encoder checkpoint")
+            sys.exit(-1)
+        else:
+            self.load_state_dict(torch.load(load_checkpoint_from))
+            logging.info(f"Successfully loaded model from {load_checkpoint_from}")
 
     def forward(self, x):
         x = self.encoder(x)
@@ -98,10 +110,15 @@ class FPNSegmentation(BaseEncoder, nn.Module):
         # assume x is RGB image with shape (H, W, 3)
 
         # Code heavily inspired by https://gitlab.aicrowd.com/matthew_howe/aiml-l2r/-/blob/main/agents/MrMPC.py#L484
-
+        logging.info(x)
+        cv2.imwrite("/home/kevin/Documents/l2r-benchmarks/before.png", x)
         x = torch.Tensor(x.transpose(2, 0, 1)) / 255
-        segm = self.forward(x.unsqueeze(0))
-        tmp_mask = 1 - segm.detach().cpu().numpy().astype(np.uint8)
+        segm = self.forward(x.unsqueeze(0).to(DEVICE))
+        out_mask = torch.argmax(segm, dim=1)[0]
+        tmp_mask = 1 - out_mask.detach().cpu().numpy().astype(np.uint8)
+        # logging.info(tmp_mask)
+        cv2.imwrite("/home/kevin/Documents/l2r-benchmarks/after.png", tmp_mask * 255)
+
         tmp_mask = cv2.resize(tmp_mask, (144, 144))[68:110]  # Crop away sky and car hood
         tmp_mask = cv2.resize(tmp_mask, (144, 32)) # Resize to create 32 len vector
         
@@ -109,7 +126,8 @@ class FPNSegmentation(BaseEncoder, nn.Module):
         right_outline[right_outline == tmp_mask.shape[1] - 1] = 0
         left_outline = np.argmax(tmp_mask, axis=1)
         drivable_center = (right_outline + left_outline) / 2
-        return torch.Tensor(drivable_center).to(DEVICE)
+        logging.info(f"vision encoding output: {drivable_center}")
+        return torch.Tensor(drivable_center).to(DEVICE).unsqueeze(0)
 
 
 

@@ -1,6 +1,6 @@
 encoder_config:
   encoder_type: 'fpn'
-  load_checkpoint_from: 'fpn_best.pth'
+  load_checkpoint_from: '/home/kevin/Documents/l2r-benchmarks/fpn.pth'
   latent_dims: 32
   hiddens: 
     - 32

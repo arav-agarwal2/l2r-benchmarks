@@ -136,3 +136,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*.pth
+sac_fpn
+wandb
+nohup.out

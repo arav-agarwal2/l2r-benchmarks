@@ -1,3 +1,3 @@
 name: FPNSegmentation
 config:
-  load_checkpoint_from: 'fpn_best.pth'
+  load_checkpoint_from: '/home/kevin/Documents/l2r-benchmarks/fpn.pth'
