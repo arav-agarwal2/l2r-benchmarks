@@ -56,7 +56,6 @@ class WorkerRunner(BaseRunner):
             t += 1
             #print(f't:{t}')
             self.agent.deterministic = is_train
-            env.evaluate = is_train
             actionselectionStart = time.time()
             action_obj = self.agent.select_action(state_encoded)
             actionselectionEnd = time.time()
