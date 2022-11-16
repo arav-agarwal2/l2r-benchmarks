@@ -7,6 +7,7 @@ from src.deprecated.network_baselines import (
 )
 from enum import Enum
 from typing import List
+from src.config.yamlize import yamlize
 
 def mlp(sizes, activation=nn.ReLU, output_activation=nn.Identity):
     layers = []
@@ -15,7 +16,7 @@ def mlp(sizes, activation=nn.ReLU, output_activation=nn.Identity):
         layers += [nn.Linear(sizes[j], sizes[j + 1]), act()]
     return nn.Sequential(*layers)
 
-
+@yamlize
 class Qfunction(nn.Module):
     """"Multimodal Architecture Fusing State, Action, and a Speed Embedding together to regress rewards."""
 
@@ -45,10 +46,10 @@ class Qfunction(nn.Module):
 
         Args:
             obs_feat (torch.Tensor): Input encoded and concatenated with speed (bs, dim)
-            action (torch.Tensor): _description_
+            action (torch.Tensor): Action tensor (bs, action_dim)
 
         Returns:
-            _type_: _description_
+            value: torch.Tensor of dim (bs,)
         """
 
         if self.use_speed:
