@@ -80,12 +80,17 @@ class FPNSegmentation(BaseEncoder, nn.Module):
             n_classes: int = 2,
             fpn_filters: list = [64, 128, 160, 256],
             out_channels: int = 128,
+            load_checkpoint_from: str = "",
     ):
         super().__init__()
         self.encoder = EfficientNetV2Backbone()
         self.feature_pyramid =  torchvision.ops.FeaturePyramidNetwork(fpn_filters, out_channels)
         self.segmentation_branch = SegmentationBranch(out_channels, n_classes)
         self.loss = DiceLoss()
+        if load_checkpoint_from == "":
+            logging.info("Not loading any visual encoder checkpoint")
+        else:
+            self.load_state_dict(torch.load(load_checkpoint_from))
 
     def forward(self, x):
         x = self.encoder(x)
