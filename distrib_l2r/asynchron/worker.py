@@ -74,7 +74,17 @@ class AsnycWorker:
                        "min_steer": -0.3,
                        "max_accel": 6.0,
                        "min_accel": -1,
-                   })
+                   },
+            camera_cfg=[
+                {
+                    "name": "CameraFrontRGB",
+                    "Addr": "tcp://0.0.0.0:8008",
+                    "Width": 512,
+                    "Height": 384,
+                    "sim_addr": "tcp://0.0.0.0:8008",
+                }
+            ]
+                   )
 
         #self.env = gym.make('Pendulum-v1')
 
