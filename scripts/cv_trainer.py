@@ -9,6 +9,7 @@ import os
 from src.config.yamlize import create_configurable, NameToSourcePath
 import argparse
 from src.constants import DEVICE
+import logging
 
 if __name__ == "__main__":
     # TODO: data augmentation
