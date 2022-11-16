@@ -17,6 +17,10 @@ def yamlize(configurable_class):
             args = tp.get_args(val)
             arg_list = [convert_type_to_strictyaml(arg) for arg in args]
             return sl.FixedSeq(arg_list)
+        if type_container == list:
+            args = tp.get_args(val)
+            arg_list = [convert_type_to_strictyaml(arg) for arg in args]
+            return sl.Seq(arg_list, arg_list[0])
 
         if val == int:
             return sl.Int()

@@ -46,6 +46,8 @@ class SimpleReplayBuffer:
             print(type(values), self.__class__)
             raise Exception("Sorry, invalid input type. Please input dict or buffer of same type")
 
+    def __len__(self):
+        return len(self.buffer)
 
     def sample_batch(self):
 

@@ -3,42 +3,62 @@ import torch.nn as nn
 from src.deprecated.network_baselines import (
     MLPCategoricalActor,
     MLPGaussianActor,
-    mlp,
     SquashedGaussianMLPActor,
 )
 from enum import Enum
-from gym.spaces import Box, Discrete
+from typing import List
 
-
-def resnet18(pretrained=True):
-    model = torch.hub.load("pytorch/vision:v0.6.0", "resnet18", pretrained=pretrained)
-    for param in model.parameters():
-        param.requires_grad = False
-    model.fc = nn.Identity()
-    return model
+def mlp(sizes, activation=nn.ReLU, output_activation=nn.Identity):
+    layers = []
+    for j in range(len(sizes) - 1):
+        act = activation if j < len(sizes) - 2 else output_activation
+        layers += [nn.Linear(sizes[j], sizes[j + 1]), act()]
+    return nn.Sequential(*layers)
 
 
 class Qfunction(nn.Module):
-    """
-    Modified from the core MLPQFunction and MLPActorCritic to include a speed encoder
-    """
+    """"Multimodal Architecture Fusing State, Action, and a Speed Embedding together to regress rewards."""
 
-    def __init__(self, cfg):
+    def __init__(self, state_dim: int = 32, action_dim: int = 2, speed_encoder_hiddens: List[int] = [8,8], fusion_hiddens: List[int] = [32,64,64,32,32], use_speed=True):
+        """Initialize Q (State, Action) -> Value Regressor
+
+        Args:
+            state_dim (int, optional): State dimension. Defaults to 32.
+            action_dim (int, optional): Action dimension. Defaults to 2.
+            speed_encoder_hiddens (List[int], optional): List of hidden layer dims for the speed encoder. Defaults to [1,8,8].
+            fusion_hiddens (List[int], optional): List of hidden layer dims for the fusion section. Defaults to [32,64,64,32,32].
+            use_speed (bool, optional): Whether to include a speed encoder or not. Defaults to True.
+        """
         super().__init__()
-        self.cfg = cfg
-        # pdb.set_trace()
-        self.speed_encoder = mlp([1] + [8, 8])
-        self.regressor = mlp([32 + 8 + 2] + [32, 64, 64, 32, 32] + [1])
-        # self.lr = cfg['resnet']['LR']
 
-    def forward(self, obs_feat, action):
-        # if obs_feat.ndimension() == 1:
-        #    obs_feat = obs_feat.unsqueeze(0)
-        img_embed = obs_feat[..., :32]  # n x latent_dims
-        speed = obs_feat[..., 32:]  # n x 1
-        spd_embed = self.speed_encoder(speed)  # n x 16
-        out = self.regressor(torch.cat([img_embed, spd_embed, action], dim=-1))  # n x 1
-        # pdb.set_trace()
+        self.state_dim = state_dim
+        self.use_speed = use_speed
+
+        self.speed_encoder = mlp([1] + speed_encoder_hiddens)
+        if use_speed:
+            self.regressor = mlp([state_dim + speed_encoder_hiddens[-1] + action_dim] + fusion_hiddens + [1])
+        else:
+            self.regressor = mlp([state_dim + action_dim] + fusion_hiddens + [1])
+
+    def forward(self, obs_feat:torch.Tensor, action:torch.Tensor) -> torch.Tensor:
+        """Get (s,a) value estimates
+
+        Args:
+            obs_feat (torch.Tensor): Input encoded and concatenated with speed (bs, dim)
+            action (torch.Tensor): _description_
+
+        Returns:
+            _type_: _description_
+        """
+
+        if self.use_speed:
+            img_embed = obs_feat[..., :self.state_dim]  # n x latent_dims
+            speed = obs_feat[..., self.state_dim:]  # n x 1
+            spd_embed = self.speed_encoder(speed)  # n x 16
+            out = self.regressor(torch.cat([img_embed, spd_embed, action], dim=-1))  # n x 1
+        else:
+            out = self.regressor(torch.cat([obs_feat, action], dim=-1))
+
         return out.view(-1)
 
 
