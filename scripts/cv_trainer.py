@@ -66,6 +66,7 @@ if __name__ == "__main__":
         train_loss = []
         encoder.train()
         for batch in tqdm.tqdm(train_dl, desc=f"Epoch #{epoch + 1} train"):
+            optim.zero_grad()
             if multiple_inputs:
                 # todo expand to more than 1, or 2 things passed by dataloader?
                 x = batch[0]
@@ -73,7 +74,6 @@ if __name__ == "__main__":
                 loss = encoder.loss(y, encoder(x))
             else:
                 loss = encoder.loss(batch, encoder(batch))
-            optim.zero_grad()
             loss.backward()
             optim.step()
             train_loss.append(loss.item())
@@ -98,3 +98,6 @@ if __name__ == "__main__":
             torch.save(
                 encoder.state_dict(), f"{training_config['model_save_path']}/best.pth"
             )
+        torch.save(
+            encoder.state_dict(), f"{training_config['model_save_path']}/epoch{epoch + 1}.pth"
+        )

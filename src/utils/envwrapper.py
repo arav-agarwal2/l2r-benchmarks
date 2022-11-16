@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import itertools
 from src.constants import DEVICE
-
+import logging
 
 class EnvContainer:
     """Container for L2R Environment."""
@@ -13,6 +13,8 @@ class EnvContainer:
     def _process_obs(self, obs: dict):
         obs_camera = obs["images"]["CameraFrontRGB"]
         assert np.any(obs_camera!=0), "Camera obs should have a value != 0 (black screen)"
+        # if np.all(obs_camera==0):
+        #     logging.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         obs_encoded = self.encoder.encode(obs_camera).to(DEVICE)
         speed = (
             torch.tensor(np.linalg.norm(obs["pose"][3:6], ord=2))

@@ -141,3 +141,4 @@ dmypy.json
 sac_fpn
 wandb
 nohup.out
+experimentState.json

@@ -110,14 +110,19 @@ class FPNSegmentation(BaseEncoder, nn.Module):
         # assume x is RGB image with shape (H, W, 3)
 
         # Code heavily inspired by https://gitlab.aicrowd.com/matthew_howe/aiml-l2r/-/blob/main/agents/MrMPC.py#L484
-        logging.info(x)
         cv2.imwrite("/home/kevin/Documents/l2r-benchmarks/before.png", x)
         x = torch.Tensor(x.transpose(2, 0, 1)) / 255
         segm = self.forward(x.unsqueeze(0).to(DEVICE))
+        print(segm.shape)
+        print(list(segm))
         out_mask = torch.argmax(segm, dim=1)[0]
+        print(out_mask.shape)
+
         tmp_mask = 1 - out_mask.detach().cpu().numpy().astype(np.uint8)
         # logging.info(tmp_mask)
         cv2.imwrite("/home/kevin/Documents/l2r-benchmarks/after.png", tmp_mask * 255)
+        assert np.any(tmp_mask!=0), "Segmentation output should have a value != 0 (black screen)"
+
 
         tmp_mask = cv2.resize(tmp_mask, (144, 144))[68:110]  # Crop away sky and car hood
         tmp_mask = cv2.resize(tmp_mask, (144, 32)) # Resize to create 32 len vector

@@ -1,3 +1,10 @@
 name: FPNSegmentation
 config:
   load_checkpoint_from: '/home/kevin/Documents/l2r-benchmarks/fpn.pth'
+# name: VAE
+# config:
+#   image_channels: 3
+#   image_height: 42
+#   image_width: 144
+#   z_dim: 32
+#   load_checkpoint_from: '/home/kevin/Documents/l2r-benchmarks/best_vae.pth'
