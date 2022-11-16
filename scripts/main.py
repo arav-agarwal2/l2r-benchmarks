@@ -11,6 +11,15 @@ if __name__ == "__main__":
     # Build environment
     env = build_env(
         controller_kwargs={"quiet": True},
+        camera_cfg=[
+                {
+                    "name": "CameraFrontRGB",
+                    "Addr": "tcp://0.0.0.0:8008",
+                    "Width": 256,
+                    "Height": 192,
+                    "sim_addr": f"tcp://{ARRIVAL_SIM_HOST}:8008",
+                }
+            ],
         env_kwargs={
             "multimodal": True,
             "eval_mode": True,
