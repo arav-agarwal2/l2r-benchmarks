@@ -1,6 +1,6 @@
 encoder_config:
-  encoder_type: 'vae'
-  load_checkpoint_from: 'l2r/common/models/vae_144w_42h_32latent.pth'
+  encoder_type: 'fpn'
+  load_checkpoint_from: 'fpn_best.pth'
   latent_dims: 32
   hiddens: 
     - 32
