@@ -71,10 +71,10 @@ if __name__ == "__main__":
                 # todo expand to more than 1, or 2 things passed by dataloader?
                 x = batch[0]
                 y = batch[-1]
-                cv2.imwrite(f"{training_config['model_save_path']}/debug_input.png", x[0].transpose(1,2,0).detach().cpu().numpy() * 255)
+                cv2.imwrite(f"{training_config['model_save_path']}/debug_input{epoch+1}.png", x[0].detach().cpu().numpy().transpose(1, 2, 0) * 255)
                 pred = encoder(x)
                 out_mask = torch.argmax(pred, dim=1)[0]
-                cv2.imwrite(f"{training_config['model_save_path']}/debug_output.png", out_mask.detach().cpu().numpy() * 255)
+                cv2.imwrite(f"{training_config['model_save_path']}/debug_output{epoch+1}.png", out_mask.detach().cpu().numpy() * 255)
                 loss = encoder.loss(y, pred)
             else:
                 loss = encoder.loss(batch, encoder(batch))
