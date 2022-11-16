@@ -38,7 +38,6 @@ def yamlize(configurable_class):
         for k, v in init_signature.parameters.items()
         if v.default is not inspect.Parameter.empty
     }
-    print(init_defaults)
     schema = {}
     for key, val in init_types.items():
         if key == "return":
@@ -69,7 +68,6 @@ def yamlize(configurable_class):
             import logging
 
             logging.info(config_dict)
-            print(config_dict)
             raise ValueError(config_dict)
 
     configurable_class.instantiate_from_config = classmethod(init_from_config)
