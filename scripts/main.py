@@ -32,15 +32,6 @@ if __name__ == "__main__":
             "active_sensors": ["CameraFrontRGB"],
             "vehicle_params": False,
         },
-        camera_cfg=[
-            {
-                "name": "CameraFrontRGB",
-                "Addr": "tcp://0.0.0.0:8008",
-                "Width": 512,
-                "Height": 384,
-                "sim_addr": f"tcp://0.0.0.0:8008",
-            }
-        ],
         action_cfg={
             "ip": "0.0.0.0",
             "port": 7077,

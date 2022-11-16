@@ -26,6 +26,19 @@ if __name__ == "__main__":
     training_config = read_config(
         f"{args.yaml_dir}/training.yaml", cv_trainer_schema
     )
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p', 
+        level=logging.INFO,
+        handlers=[
+            logging.FileHandler(os.path.join(experiment_dir_path, 'debug.log')),
+            logging.StreamHandler()
+        ],
+        force=True
+    )
+    if not torch.cuda.is_available():
+        logging.info("cuda not available, exiting")
+        sys.exit(-1)
 
     if not os.path.exists(training_config['model_save_path']):
         os.mkdir(training_config['model_save_path'])
