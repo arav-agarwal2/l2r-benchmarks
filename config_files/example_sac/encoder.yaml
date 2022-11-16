@@ -1,7 +1,3 @@
-name: VAE
+name: FPNSegmentation
 config:
-  image_channels: 3
-  image_height: 42
-  image_width: 144
-  z_dim: 32
-  load_checkpoint_from: '/mnt/vae/best_vae.pth'
+  load_checkpoint_from: 'fpn_best.pth'
