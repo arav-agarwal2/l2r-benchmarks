@@ -17,7 +17,7 @@ if __name__ == "__main__":
                     "Addr": "tcp://0.0.0.0:8008",
                     "Width": 256,
                     "Height": 192,
-                    "sim_addr": f"tcp://{ARRIVAL_SIM_HOST}:8008",
+                    "sim_addr": f"tcp://0.0.0.0:8008",
                 }
             ],
         env_kwargs={
