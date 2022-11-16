@@ -94,7 +94,6 @@ class FPNSegmentation(BaseEncoder, nn.Module):
         self.loss = DiceLoss()
         if load_checkpoint_from == "":
             logging.info("Not loading any visual encoder checkpoint")
-            sys.exit(-1)
         else:
             self.load_state_dict(torch.load(load_checkpoint_from))
             logging.info(f"Successfully loaded model from {load_checkpoint_from}")
