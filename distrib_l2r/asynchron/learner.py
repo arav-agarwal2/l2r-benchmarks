@@ -67,7 +67,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Reply to the request with an up-to-date policy
         send_data(data=PolicyMsg(data=self.server.get_agent_dict()), sock=self.request)
-    
+
 
 
 
@@ -118,8 +118,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.agent_id = 1
 
         # The bytes of the policy to reply to requests with
-        
-        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()} 
+
+        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()}
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -173,7 +173,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
-            for _ in range(self.update_steps):
+            for _ in range(len(self.replay_buffer)):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
@@ -184,7 +184,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
 
     def server_bind(self):
-        # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817. 
+        # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817.
         # Tries to ensure reuse. Might be wrong.
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(self.server_address)
