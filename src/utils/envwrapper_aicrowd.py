@@ -7,9 +7,8 @@ from src.constants import DEVICE
 class EnvContainer:
     """Container for L2R Environment. """
 
-    def __init__(self, encoder=None, env=None):
+    def __init__(self, encoder=None):
         self.encoder = encoder
-        self.env = env
 
     def _process_obs(self,obs_camera, obs_state):
         if type(obs_camera) == list and len(obs_camera) == 1:
