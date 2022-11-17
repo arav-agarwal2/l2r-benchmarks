@@ -20,7 +20,7 @@ from src.constants import DEVICE
 from src.config.parser import read_config
 from src.config.schema import agent_schema
 
-from src.utils.envwrapper_aicrowd import EnvContainer
+# from src.utils.envwrapper_aicrowd import EnvContainer
 
 
 @yamlize
