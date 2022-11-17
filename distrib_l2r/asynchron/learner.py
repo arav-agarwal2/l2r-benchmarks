@@ -141,7 +141,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         if not self.agent_queue.empty():
             try:
                 self.updated_agent = self.agent_queue.get_nowait()
-                print(f"Difference {sum((x - y).abs().sum() for x, y in zip(self.agent.state_dict().values(), self.updated_agent.state_dict().values()))}")
+                print(f"Difference {sum((x - y).abs().sum() for x, y in zip(self.agent.state_dict().values(), self.updated_agent.values()))}")
             except queue.Empty:
                 # non-blocking
                 pass
