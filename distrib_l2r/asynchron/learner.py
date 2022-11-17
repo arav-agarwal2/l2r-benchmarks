@@ -167,7 +167,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
             semibuffer = self.buffer_queue.get()
-            print(f"Received something {len(semibuffer)}")
+            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
