@@ -45,10 +45,10 @@ class AsnycWorker:
         self.mean_reward = 0.0
 
         #TODO: Make arg.
-        subprocess.Popen(
-           ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
-           stdout=subprocess.DEVNULL,
-        )
+        #subprocess.Popen(
+        #   ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
+        #   stdout=subprocess.DEVNULL,
+        #)
 
         self.env = build_env(controller_kwargs={"quiet": True},
            env_kwargs=

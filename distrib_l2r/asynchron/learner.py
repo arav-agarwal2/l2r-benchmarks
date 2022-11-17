@@ -171,9 +171,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             bufferQStartTime = time.time()
             semibuffer = self.buffer_queue.get()
             bufferQEndTime = time.time()
-            print("TIME TAKEN TO GET BUFFER: ", (bufferQEndTime - bufferQStartTime))
-            print("LENGTH OF BUFFER: ", len(semibuffer))
-            print("BUFFER THAT CAME FROM THE QUEUE: ", semibuffer)
             print(f"Received something {epoch}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
@@ -184,7 +181,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
             updateEnd = time.time()
-            print("TIME TO UPDATE: ", (updateEnd - updateStart)/(self.update_steps))
 
             # Update policy without blocking
             self.update_agent()
