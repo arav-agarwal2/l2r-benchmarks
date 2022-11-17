@@ -55,9 +55,3 @@ class BaseAgent(ABC):
         Save model checkpoints.
         """
         raise NotImplementedError
-
-    def update_lr(self, episode=None):
-        """
-        If lr exists, update it
-        """
-        return None

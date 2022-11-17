@@ -1,4 +1,3 @@
 import torch
 
-# Make cpu as torch.
-DEVICE = "cpu"
+DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"

@@ -5,8 +5,6 @@ config:
   polyak: 0.995
   lr: 0.003
   alpha: 0.2
-  update_lr_every: 1000
-  lr_update_rate: 0.0
   steps_to_sample_randomly: 10000 # start_steps
   checkpoint: '/mnt/SAC_VAE/best_SAC_VAE_episode_200.statedict'
   load_checkpoint: False
