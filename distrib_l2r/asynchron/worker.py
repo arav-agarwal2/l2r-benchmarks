@@ -5,7 +5,6 @@ from typing import Dict
 from typing import Optional
 from typing import Tuple
 
-from gym import Wrapper
 import gym
 
 from tianshou.data import ReplayBuffer
