@@ -47,7 +47,7 @@ class AsnycWorker:
 
         # TODO: Make arg.
         subprocess.Popen(
-           ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
+           ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh", "-openGL"],
            stdout=subprocess.PIPE
         )
 
