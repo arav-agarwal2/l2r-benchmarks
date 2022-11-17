@@ -24,8 +24,9 @@ class BufferMsg(BaseMsg):
     """A replay buffer message sent from a worker"""
 
     def __post_init__(self):
-        #assert isinstance(self.data, ReplayBuffer)
+        # assert isinstance(self.data, ReplayBuffer)
         assert True
+
 
 @dataclass
 class EvalResultsMsg(BaseMsg):

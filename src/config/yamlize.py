@@ -1,4 +1,4 @@
-from typing import get_type_hints
+from typing import get_type_hints, TypedDict
 import inspect
 import strictyaml as sl
 import yaml
@@ -17,10 +17,14 @@ def yamlize(configurable_class):
             args = tp.get_args(val)
             arg_list = [convert_type_to_strictyaml(arg) for arg in args]
             return sl.FixedSeq(arg_list)
-        if type_container == list:
+        elif type_container == list:
             args = tp.get_args(val)
             arg_list = [convert_type_to_strictyaml(arg) for arg in args]
-            return sl.Seq(arg_list, arg_list[0])
+            return sl.Seq(arg_list[0])
+        elif type_container is not None:
+            raise ValueError(
+                f"Type origin {type_container} could not be converted to StrictYAML type. Please add to the convert_type_to_strictyaml function."
+            )
 
         if val == int:
             return sl.Int()
@@ -30,6 +34,8 @@ def yamlize(configurable_class):
             return sl.Float()
         elif val == bool:
             return sl.Bool()
+        elif val == ConfigurableDict:
+            return sl.Map({"name": sl.Str(), "config": sl.Any()})
         else:
             raise ValueError(
                 f"Type {val} could not be converted to StrictYAML type. Please add to the convert_type_to_strictyaml function."
@@ -85,6 +91,12 @@ class NameToSourcePath(Enum):
     logger = "src.loggers"
     runner = "src.runners"
     agent = "src.agents"
+    network = "src.networks"
+
+
+class ConfigurableDict(TypedDict):
+    name: str
+    config: dict
 
 
 def create_configurable(config_yaml, name_to_path):
@@ -95,4 +107,13 @@ def create_configurable(config_yaml, name_to_path):
         config_dict = sl.load(yaml_contents, schema).data
     cls = getattr(importlib.import_module(name_to_path), config_dict["name"])
 
+    return cls.instantiate_from_config_dict(config_dict["config"])
+
+
+def create_configurable_from_dict(config_dict, name_to_path):
+    name_to_path = str(name_to_path.value)
+    schema = sl.Map({"name": sl.Str(), "config": sl.Any()})
+    yaml_contents = yaml.dump(config_dict)
+    config_dict = sl.load(yaml_contents, schema).data
+    cls = getattr(importlib.import_module(name_to_path), config_dict["name"])
     return cls.instantiate_from_config_dict(config_dict["config"])

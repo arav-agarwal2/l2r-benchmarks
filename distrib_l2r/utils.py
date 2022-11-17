@@ -29,7 +29,7 @@ def send_data(
     """
     if not isinstance(data, bytes):
         data = pickle.dumps(data)
-        
+
     if sock:
         send_bytes_with_prefix_size(msg=data, sock=sock)
         return wait_for_response(sock=sock) if reply else None
