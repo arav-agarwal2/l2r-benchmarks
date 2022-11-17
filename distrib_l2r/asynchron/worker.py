@@ -44,12 +44,6 @@ class AsnycWorker:
         self.buffer_size = buffer_size
         self.mean_reward = 0.0
 
-        #TODO: Make arg.
-        #subprocess.Popen(
-        #   ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
-        #   stdout=subprocess.DEVNULL,
-        #)
-
         self.env = build_env(controller_kwargs={"quiet": True},
            env_kwargs=
                    {
@@ -85,8 +79,6 @@ class AsnycWorker:
                 }
             ]
                    )
-
-        #self.env = gym.make('Pendulum-v1')
 
         self.encoder = create_configurable(
            'config_files/async_sac/encoder.yaml', NameToSourcePath.encoder
