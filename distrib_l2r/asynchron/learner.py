@@ -119,7 +119,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         # The bytes of the policy to reply to requests with
 
-        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()}
+        self.agent_params = {k: v.cpu() for k, v in self.agent.state_dict().items()}
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -140,15 +140,15 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """Get the most up-to-date version of the policy without blocking"""
         if not self.agent_queue.empty():
             try:
-                self.updated_agent = self.agent_queue.get_nowait()
-                print(f"Difference {sum((x - y).abs().sum() for x, y in zip(self.agent.state_dict().values(), self.updated_agent.values()))}")
+                self.agent_params = self.agent_queue.get_nowait()
+                print(f"Difference {sum((x.cpu() - y).abs().sum() for x, y in zip(self.agent.state_dict().values(), self.agent_params.values()))}")
             except queue.Empty:
                 # non-blocking
                 pass
 
         return {
             "policy_id": self.agent_id,
-            "policy": self.updated_agent,
+            "policy": self.agent_params,
             "is_train": random.random() >= self.eval_prob,
         }
 
