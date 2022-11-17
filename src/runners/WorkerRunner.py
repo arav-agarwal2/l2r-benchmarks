@@ -4,7 +4,6 @@ from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
 
 from torch.optim import Adam
-import time
 
 @yamlize
 class WorkerRunner(BaseRunner):
@@ -56,9 +55,7 @@ class WorkerRunner(BaseRunner):
             t += 1
             #print(f't:{t}')
             self.agent.deterministic = is_train
-            actionselectionStart = time.time()
             action_obj = self.agent.select_action(state_encoded)
-            actionselectionEnd = time.time()
             next_state_encoded, reward, done, info = env.step(action_obj.action)
             #print(f'info{info}')
             ep_ret += reward
