@@ -6,6 +6,7 @@ from typing import Optional
 from typing import Tuple
 
 import gym
+from gym import Wrapper
 
 from tianshou.data import ReplayBuffer
 from tianshou.data import Collector
