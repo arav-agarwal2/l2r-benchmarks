@@ -147,6 +147,7 @@ class ModelFreeRunner(BaseRunner):
                     )
                 else:
                     obs_encoded_new, reward, done, info = env.step(action_obj.action)
+
                 ep_ret += reward
                 # self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
@@ -192,8 +193,6 @@ class ModelFreeRunner(BaseRunner):
                         info["metrics"]["laps_completed"],
                     )
                 )
-
-
 
             self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             self.file_logger.log(f"info: {info}")
