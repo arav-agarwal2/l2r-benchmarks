@@ -47,8 +47,8 @@ class AsnycWorker:
 
         # TODO: Make arg.
         subprocess.Popen(
-            ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
-            capture_output=True,
+           ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
+           stdout=subprocess.PIPE
         )
 
         self.env = build_env(
