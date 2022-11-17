@@ -151,7 +151,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             "is_train": random.random() >= self.eval_prob,
         }
 
-    def update_agent(self) -> None:
+    def update_agent_queue(self) -> None:
         """Update policy that will be sent to workers without blocking"""
         if not self.agent_queue.empty():
             try:
@@ -171,18 +171,14 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
-            print(f"Pre {sum((x.cpu()).mean() for x in self.agent.state_dict().values())}")
-            
 
             # Learning steps for the policy
             for _ in range(len(self.replay_buffer)):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
-            print(f"Post {sum((x.cpu()).mean() for x in self.agent.state_dict().values())}")
-           
             # Update policy without blocking
-            self.update_agent()
+            self.update_agent_queue()
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())

@@ -43,6 +43,9 @@ class WorkerRunner(BaseRunner):
             is_train: Whether to collect data in train mode or eval mode
         """
         self.agent.load_model(agent_params)
+        
+        print(f"Mean {sum((x.cpu()).mean() for x in self.agent.state_dict().values())}")
+           
         self.agent.deterministic = not is_train
         t = 0
         done = False
