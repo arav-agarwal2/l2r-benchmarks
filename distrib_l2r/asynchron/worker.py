@@ -44,12 +44,6 @@ class AsnycWorker:
         self.buffer_size = buffer_size
         self.mean_reward = 0.0
 
-        #TODO: Make arg.
-        subprocess.Popen(
-           ["sudo", "-u", "ubuntu", "/workspace/LinuxNoEditor/ArrivalSim.sh"],
-           stdout=subprocess.DEVNULL,
-        )
-
         self.env = build_env(controller_kwargs={"quiet": True},
            env_kwargs=
                    {
@@ -74,9 +68,17 @@ class AsnycWorker:
                        "min_steer": -0.3,
                        "max_accel": 6.0,
                        "min_accel": -1,
-                   })
-
-        #self.env = gym.make('Pendulum-v1')
+                   },
+            camera_cfg=[
+                {
+                    "name": "CameraFrontRGB",
+                    "Addr": "tcp://0.0.0.0:8008",
+                    "Width": 512,
+                    "Height": 384,
+                    "sim_addr": "tcp://0.0.0.0:8008",
+                }
+            ]
+                   )
 
         self.encoder = create_configurable(
            'config_files/async_sac/encoder.yaml', NameToSourcePath.encoder
