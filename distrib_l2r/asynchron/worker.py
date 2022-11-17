@@ -19,7 +19,7 @@ from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import InitMsg
 from distrib_l2r.utils import send_data
 
-from l2r import RacingEnv
+from l2r.envs.env import RacingEnv
 
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
