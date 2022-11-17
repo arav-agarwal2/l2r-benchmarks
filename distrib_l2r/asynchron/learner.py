@@ -167,20 +167,15 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
-            # block until new data is received
-            bufferQStartTime = time.time()
             semibuffer = self.buffer_queue.get()
-            bufferQEndTime = time.time()
             print(f"Received something {epoch}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
-            updateStart = time.time()
             for _ in range(self.update_steps):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
-            updateEnd = time.time()
 
             # Update policy without blocking
             self.update_agent()
