@@ -1,7 +1,6 @@
-from hashlib import md5
-import subprocess
 from l2r import build_env
-from l2r import RacingEnv
+
+# from l2r import RacingEnv
 from src.config.yamlize import NameToSourcePath, create_configurable
 import sys
 import logging
@@ -11,6 +10,15 @@ if __name__ == "__main__":
     # Build environment
     env = build_env(
         controller_kwargs={"quiet": True},
+        camera_cfg=[
+            {
+                "name": "CameraFrontRGB",
+                "Addr": "tcp://0.0.0.0:8008",
+                "Width": 512,
+                "Height": 384,
+                "sim_addr": "tcp://0.0.0.0:8008",
+            }
+        ],
         env_kwargs={
             "multimodal": True,
             "eval_mode": True,
@@ -37,7 +45,8 @@ if __name__ == "__main__":
     )
 
     with open(
-        f"{runner.agent.model_save_path}/{runner.exp_config['experiment_name']}/git_config",
+        f"{runner.agent.model_save_path}/\
+        {runner.exp_config['experiment_name']}/git_config",
         "w+",
     ) as f:
         f.write(" ".join(sys.argv[1:3]))
