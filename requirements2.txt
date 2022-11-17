@@ -1,7 +1,5 @@
 loguru
-aicrowd-gym
 scipy
-gym==0.20.0
 gast==0.2.2
 h5py==2.10.0
 matplotlib>=3.3.2
