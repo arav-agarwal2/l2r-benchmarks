@@ -127,8 +127,8 @@ class AsnycWorker:
 
         env_config = EnvConfig
         sim_config = SimulatorConfig
-        env = RacingEnv(env_config.__dict__, sim_config.__dict__)
-        env.make()
+        self.env = RacingEnv(env_config.__dict__, sim_config.__dict__)
+        self.env.make()
         
 
         self.encoder = create_configurable(
