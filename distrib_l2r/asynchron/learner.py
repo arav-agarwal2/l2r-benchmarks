@@ -21,7 +21,6 @@ from distrib_l2r.api import PolicyMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 
-import time
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     """Request handler thread created for every request"""
