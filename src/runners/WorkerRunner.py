@@ -43,6 +43,7 @@ class WorkerRunner(BaseRunner):
             is_train: Whether to collect data in train mode or eval mode
         """
         self.agent.load_model(agent_params)
+        self.agent.deterministic = not is_train
         t = 0
         done = False
         state_encoded = env.reset()
@@ -54,7 +55,6 @@ class WorkerRunner(BaseRunner):
         while not done:
             t += 1
             #print(f't:{t}')
-            self.agent.deterministic = is_train
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
             #print(f'info{info}')
