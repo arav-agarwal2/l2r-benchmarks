@@ -59,11 +59,7 @@ class WorkerRunner(BaseRunner):
             actionselectionStart = time.time()
             action_obj = self.agent.select_action(state_encoded)
             actionselectionEnd = time.time()
-            print("Action selection time: ", (actionselectionEnd - actionselectionStart))
-            stepStart = time.time()
             next_state_encoded, reward, done, info = env.step(action_obj.action)
-            stepEnd = time.time()
-            print("Environment step time: ",(stepEnd - stepStart))
             #print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
