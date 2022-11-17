@@ -43,7 +43,6 @@ class ModelFreeRunner(BaseRunner):
         update_model_every: int,
         eval_every: int,
         max_episode_length: int,
-        reward_decay_rate: float,
         use_container: bool = True,
     ):
         super().__init__()
@@ -65,7 +64,6 @@ class ModelFreeRunner(BaseRunner):
         self.update_model_every = update_model_every
         self.eval_every = eval_every
         self.max_episode_length = max_episode_length
-        self.reward_decay_rate = reward_decay_rate
 
         # Loading Experiment configuration
         self.exp_config = read_config(self.exp_config_path, experiment_schema)
@@ -149,7 +147,7 @@ class ModelFreeRunner(BaseRunner):
                     )
                 else:
                     obs_encoded_new, reward, done, info = env.step(action_obj.action)
-                ep_ret = (1 - self.reward_decay_rate) * ep_ret + reward
+                ep_ret += reward
                 # self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
                     {
@@ -195,7 +193,7 @@ class ModelFreeRunner(BaseRunner):
                     )
                 )
 
-            self.agent.update_lr(ep_number)
+
 
             self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             self.file_logger.log(f"info: {info}")
@@ -247,7 +245,7 @@ class ModelFreeRunner(BaseRunner):
                     )
 
                 # Check that the camera is turned on
-                eval_ep_ret = (1 - self.reward_decay_rate) * eval_ep_ret + eval_reward
+                eval_ep_ret += eval_reward
                 eval_ep_len += 1
                 eval_n_val_steps += 1
 
