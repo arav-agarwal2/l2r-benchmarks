@@ -4,6 +4,8 @@ from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
 
 from torch.optim import Adam
+import torch
+
 
 @yamlize
 class WorkerRunner(BaseRunner):
@@ -52,6 +54,9 @@ class WorkerRunner(BaseRunner):
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
             # print(f'info{info}')
+            state_encoded, next_state_encoded = torch.Tensor(state_encoded), torch.Tensor(next_state_encoded)
+            state_encoded.to(DEVICE)
+            next_state_encoded.to(DEVICE)
             done = done or terminated
             ep_ret += reward
             sendme =                 {
