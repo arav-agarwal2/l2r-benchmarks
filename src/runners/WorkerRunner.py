@@ -50,8 +50,8 @@ class WorkerRunner(BaseRunner):
             t += 1
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
-            print(env.step(action_obj.action))
             next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
+            next_state_encoded = next_state_encoded[0]
             # print(f'info{info}')
             done = done or terminated
             ep_ret += reward
