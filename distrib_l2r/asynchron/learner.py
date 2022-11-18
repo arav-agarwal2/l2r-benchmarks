@@ -169,7 +169,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
-            for _ in range(len(self.replay_buffer)):
+            for _ in range(self.update_steps):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
