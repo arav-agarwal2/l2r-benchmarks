@@ -31,14 +31,14 @@ class SimpleReplayBuffer:
             if isinstance(obs, torch.Tensor):
                 if obs.requires_grad:
                     obs = obs.detach()
-                obs = obs.cpu().numpy()
+                obs = obs.cpu()
             return obs
 
         if type(values) is dict:
             # convert to deque
             obs = convert(values["obs"]).squeeze()
             next_obs = convert(values["next_obs"]).squeeze()
-            action = values["act"].action  # .detach().cpu().numpy()
+            action = torch.Tensor(values["act"].action) # .detach().cpu().numpy()
             reward = values["rew"]
             done = values["done"]
             currdict = {
@@ -71,18 +71,21 @@ class SimpleReplayBuffer:
         for idx in idxs:
             currdict = self.buffer[idx]
             for k, v in currdict.items():
+                if isinstance(v, float):
+                    v  = torch.Tensor([v])
+                if isinstance(v, bool):
+                    v  = torch.Tensor([v])
                 if k in batch:
                     batch[k].append(v)
                 else:
                     batch[k] = [v]
 
-        self.weights = torch.tensor(
-            np.zeros_like(idxs), dtype=torch.float32, device=DEVICE
-        )
-        return {
-            k: torch.tensor(np.stack(v), dtype=torch.float32, device=DEVICE)
+        return  {
+            k: torch.stack(v).to(DEVICE)
             for k, v in batch.items()
         }
+
+
 
     def finish_path(self, action_obj=None):
         """

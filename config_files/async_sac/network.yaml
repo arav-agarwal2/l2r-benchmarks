@@ -6,12 +6,7 @@ config:
     name:
       Qfunction
     config:
-      speed_encoder_hiddens: [8,]
-      fusion_hiddens: [128,128,128]
-      critic_cfg:
-        name: Qfunction
-        config:
-          fusion_hiddens: [128,128,128]
-          speed_encoder_hiddens: [8,]
+      use_speed: 
+        True
   use_speed:
     True
