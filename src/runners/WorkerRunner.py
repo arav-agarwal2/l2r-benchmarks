@@ -60,7 +60,7 @@ class WorkerRunner(BaseRunner):
             #print(f't:{t}')
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
-            act_list.append(action_obj.action.cpu().numpy())
+            act_list.append(action_obj.action)
             #print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
