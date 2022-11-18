@@ -50,7 +50,7 @@ class WorkerRunner(BaseRunner):
             t += 1
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
-            next_state_encoded, reward, done, info = env.step(action_obj.action)
+            next_state_encoded, reward, done = env.step(action_obj.action)
             # print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
@@ -67,7 +67,7 @@ class WorkerRunner(BaseRunner):
 
             state_encoded = next_state_encoded
         from copy import deepcopy
-
+        info = {'metrics':{}}
         info["metrics"]["reward"] = ep_ret
         print(info["metrics"])
         return deepcopy(self.replay_buffer), info["metrics"]
