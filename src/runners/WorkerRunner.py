@@ -54,13 +54,12 @@ class WorkerRunner(BaseRunner):
         self.replay_buffer = create_configurable(
                 self.buffer_config_path, NameToSourcePath.buffer
             )
-        act_list = []
+
         while not done:
             t += 1
             #print(f't:{t}')
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
-            act_list.append(action_obj.action)
             #print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
@@ -78,8 +77,6 @@ class WorkerRunner(BaseRunner):
             state_encoded = next_state_encoded
         from copy import deepcopy
         info['metrics']['reward'] = ep_ret
-        print("METRIC SHAPE", np.stack(act_list, axis=0).shape)
-        print('METRIC',np.stack(act_list, axis=0).mean(axis=0), np.stack(act_list,axis=0).std(axis=0))
         print(info['metrics'])
         return deepcopy(self.replay_buffer), info['metrics']
 
