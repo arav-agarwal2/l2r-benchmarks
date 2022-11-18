@@ -51,8 +51,9 @@ class WorkerRunner(BaseRunner):
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
             print(env.step(action_obj.action))
-            next_state_encoded, reward, done, _= env.step(action_obj.action)
+            next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
             # print(f'info{info}')
+            done = done or terminated
             ep_ret += reward
             self.replay_buffer.store(
                 {
