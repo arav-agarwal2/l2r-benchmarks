@@ -78,6 +78,7 @@ class WorkerRunner(BaseRunner):
             state_encoded = next_state_encoded
         from copy import deepcopy
         info['metrics']['reward'] = ep_ret
+        print("METRIC SHAPE", np.concatenate(act_list, axis=0).shape)
         print('METRIC',np.concatenate(act_list, axis=0).mean(axis=0), np.concatenate(act_list,axis=0).std(axis=0))
         print(info['metrics'])
         return deepcopy(self.replay_buffer), info['metrics']
