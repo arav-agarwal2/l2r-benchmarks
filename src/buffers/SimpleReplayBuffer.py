@@ -73,6 +73,8 @@ class SimpleReplayBuffer:
             for k, v in currdict.items():
                 if isinstance(v, float):
                     v  = torch.Tensor([v])
+                if isinstance(v, bool):
+                    v  = torch.Tensor([v])
                 if k in batch:
                     batch[k].append(v)
                 else:
