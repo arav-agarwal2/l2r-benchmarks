@@ -10,10 +10,10 @@ config:
     config:
       state_dim: 2
       action_dim: 1
-      speed_encoder_hiddens:
-        - 8
       fusion_hiddens:
         - 128
         - 128
+      use_speed:
+        False
   use_speed:
     False

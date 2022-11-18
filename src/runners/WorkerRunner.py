@@ -60,13 +60,7 @@ class WorkerRunner(BaseRunner):
             next_state_encoded.to(DEVICE)
             done = done or terminated
             ep_ret += reward
-            sendme =                 {
-                    "obs": state_encoded,
-                    "act": action_obj,
-                    "rew": reward,
-                    "next_obs": next_state_encoded,
-                    "done": done,
-                }
+
 
             self.replay_buffer.store(
                 {
