@@ -238,7 +238,7 @@ class ActorCritic(nn.Module):
             )
         else:
             self.policy = SquashedGaussianMLPActor(
-                obs_dim + speed_encoder_hiddens[-1],
+                obs_dim,
                 act_dim,
                 fusion_hiddens,
                 ActivationType.__getattr__(activation).value,
