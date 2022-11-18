@@ -45,9 +45,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             logging.warn("Received evaluation results message")
             logging.warn(msg.data)
             self.server.wandb_logger.log_metric(
-                (
-                    msg.data["reward"]
-                )
+                
+                    msg.data["reward"], 'reward'
+                
             )
 
         # unexpected

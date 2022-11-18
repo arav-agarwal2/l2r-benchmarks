@@ -246,7 +246,6 @@ class ActorCritic(nn.Module):
                 ActivationType.__getattr__(activation).value,
                 act_limit,
             )
-            print("POLICY", self.policy)
 
         if critic_cfg["name"] == "Qfunction":
             self.q1 = create_configurable_from_dict(
@@ -300,7 +299,6 @@ class ActorCritic(nn.Module):
                     dim=-1,
                 )
             a, _ = self.policy(feat, deterministic, False)
-            print("FEAT", feat.shape, "A", a.shape)
             a = a.squeeze(0)
         return a.numpy() if a.device == "cpu" else a.cpu().numpy()
 
