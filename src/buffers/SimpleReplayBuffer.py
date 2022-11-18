@@ -20,6 +20,9 @@ class SimpleReplayBuffer:
         self.batch_size = batch_size
         self.buffer = collections.deque(maxlen=self.max_size)
 
+    def __len__(self):
+        return len(self.buffer)
+
     def store(self, values):
         # pdb.set_trace()
 

@@ -87,10 +87,10 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def __init__(
         self,
         agent: BaseAgent,
-        update_steps: int = 64,
-        batch_size: int = 128,  # Originally 128
-        epochs: int = 500,  # Originally 500
-        buffer_size: int = 1_000_000,  # Originally 1M
+        update_steps: int = 3000,
+        batch_size: int = 128, # Originally 128
+        epochs: int = 500, # Originally 500
+        buffer_size: int = 1_000_000, # Originally 1M
         server_address: Tuple[str, int] = ("0.0.0.0", 4444),
         eval_prob: float = 0.20,
         save_func: Optional[Callable] = None,
@@ -162,9 +162,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
-            # block until new data is received
             semibuffer = self.buffer_queue.get()
-            print(f"Received something {epoch}")
+            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
