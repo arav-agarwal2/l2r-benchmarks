@@ -38,7 +38,7 @@ class SimpleReplayBuffer:
             # convert to deque
             obs = convert(values["obs"]).squeeze()
             next_obs = convert(values["next_obs"]).squeeze()
-            action = values["act"].action  # .detach().cpu().numpy()
+            action = torch.Tensor(values["act"].action) # .detach().cpu().numpy()
             reward = values["rew"]
             done = values["done"]
             currdict = {
