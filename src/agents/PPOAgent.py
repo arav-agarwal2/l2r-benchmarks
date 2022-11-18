@@ -98,7 +98,7 @@ class PPOAgent(BaseAgent):
             self.pi_optimizer, 1, gamma=0.5
         )
 
-    def select_action(self, obs) -> np.array:
+    def select_action(self, obs, encode=False) -> np.array:
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a, v, logp = self.actor_critic.step(obs.to(DEVICE))
@@ -114,6 +114,7 @@ class PPOAgent(BaseAgent):
             # TODO: add default value after getting value shape
             v = np.ones((1,))
             action_obj.action = a
+            action_obj.value = v
             action_obj.logp = logp
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
