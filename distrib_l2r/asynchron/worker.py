@@ -138,6 +138,10 @@ class AsnycWorker:
 
         self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
         self.env = EnvContainer(self.encoder, self.env)
+
+        self.runner = create_configurable(
+        "config_files/async_sac/worker.yaml", NameToSourcePath.runner)
+        
         
         #print(self.env.action_space)
     def work(self) -> None:
@@ -177,8 +181,6 @@ class AsnycWorker:
         self, policy_weights: dict, is_train: bool = True
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
-        runner = create_configurable(
-        "config_files/async_sac/worker.yaml", NameToSourcePath.runner)
-        buffer, result = runner.run(self.env, policy_weights, is_train)
+        buffer, result = self.runner.run(self.env, policy_weights, is_train)
     
         return buffer, result
