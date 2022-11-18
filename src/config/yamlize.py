@@ -60,6 +60,7 @@ def yamlize(configurable_class):
 
     def init_from_config_dict(cls, config):
         config_yamlized = yaml.dump(config)
+        print(schema)
         config_dict = sl.load(config_yamlized, schema).data
         return cls(**config_dict)
 
