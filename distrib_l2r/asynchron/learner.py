@@ -8,6 +8,7 @@ from typing import Dict
 from typing import Optional
 from typing import Tuple
 from tqdm import tqdm
+import torch
 import socket
 from src.agents.base import BaseAgent
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
@@ -101,7 +102,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     ) -> None:
 
         super().__init__(server_address, ThreadedTCPRequestHandler)
-
+        torch.autograd.set_detect_anomaly(True) 
         self.update_steps = update_steps
         self.batch_size = batch_size
         self.epochs = epochs
@@ -176,7 +177,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
-            print(f"Mean {sum((x.cpu()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu()).std() for x in self.agent.state_dict().values())}")
+            print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
            
             # Update policy without blocking
             self.update_agent_queue()
