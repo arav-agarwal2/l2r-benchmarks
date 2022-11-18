@@ -1,0 +1,11 @@
+name:
+  ActorCritic
+config:
+  activation: ReLU
+  critic_cfg:
+    name:
+      Qfunction
+    config:
+      state_dim: 32
+  use_speed:
+    True

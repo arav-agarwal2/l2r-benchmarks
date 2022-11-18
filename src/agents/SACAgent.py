@@ -16,8 +16,7 @@ from gym.spaces import Box
 from torch.optim import Adam
 
 from src.agents.base import BaseAgent
-from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic, CriticType
+from src.config.yamlize import yamlize, create_configurable, NameToSourcePath
 from src.encoders.vae import VAE
 from src.utils.utils import ActionSample, RecordExperience
 
@@ -25,6 +24,7 @@ from src.constants import DEVICE
 
 from src.config.parser import read_config
 from src.config.schema import agent_schema
+
 
 from src.utils.envwrapper import EnvContainer
 
@@ -46,6 +46,7 @@ class SACAgent(BaseAgent):
         checkpoint: str,
         load_checkpoint: bool,
         model_save_path: str,
+        actor_critic_cfg: str,
         lr: float,
     ):
         super(SACAgent, self).__init__()
@@ -74,27 +75,20 @@ class SACAgent(BaseAgent):
         self.t_start = 0
         self.best_pct = 0
 
-
         self.record = {"transition_actor": ""}
 
         self.action_space = Box(-1, 1, (2,))
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
-        self.actor_critic = ActorCritic(
-            self.obs_dim,
-            self.action_space,
-            None,
-            latent_dims=self.obs_dim,
-            device=DEVICE,
-            critic_type=CriticType.Q,
+        self.actor_critic = create_configurable(
+            actor_critic_cfg, NameToSourcePath.network
         )
-
+        self.actor_critic.to(DEVICE)
         if self.checkpoint and self.load_checkpoint:
             self.load_model(self.checkpoint)
 
         self.actor_critic_target = deepcopy(self.actor_critic)
-
         self.q_params = itertools.chain(
             self.actor_critic.q1.parameters(), self.actor_critic.q2.parameters()
         )
@@ -135,7 +129,6 @@ class SACAgent(BaseAgent):
         self.deterministic = True  # TODO: Confirm that this makes sense.
         self.t = 1e6
 
-
     def load_model(self, path_or_checkpoint):
         if isinstance(path_or_checkpoint, str):
             self.actor_critic.load_state_dict(torch.load(path_or_checkpoint))
@@ -145,7 +138,6 @@ class SACAgent(BaseAgent):
     def state_dict(self):
         """Emulate torch behavior; note to self to remove once better refactor comes in."""
         return self.actor_critic.state_dict()
-
 
     def save_model(self, path):
         torch.save(self.actor_critic.state_dict(), path)

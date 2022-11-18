@@ -13,11 +13,9 @@ class WorkerRunner(BaseRunner):
       - train, where we include some element of noise
       - test, where we include no such noise.
     """
+
     def __init__(
-        self,
-        agent_config_path: str,
-        buffer_config_path: str,
-        max_episode_length: int
+        self, agent_config_path: str, buffer_config_path: str, max_episode_length: int
     ):
         super().__init__()
         # Moved initialization of env to run to allow for yamlization of this class.
@@ -28,11 +26,8 @@ class WorkerRunner(BaseRunner):
         self.buffer_config_path = buffer_config_path
         self.max_episode_length = max_episode_length
 
-
         ## AGENT Declaration
         self.agent = create_configurable(self.agent_config_path, NameToSourcePath.agent)
-
-
 
     def run(self, env, agent_params, is_train):
         """Grab data for system that's needed, and send a buffer accordingly. Note: does a single 'episode'
@@ -60,7 +55,7 @@ class WorkerRunner(BaseRunner):
             #print(f't:{t}')
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
-            #print(f'info{info}')
+            # print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
                 {
@@ -76,7 +71,7 @@ class WorkerRunner(BaseRunner):
 
             state_encoded = next_state_encoded
         from copy import deepcopy
-        info['metrics']['reward'] = ep_ret
-        print(info['metrics'])
-        return deepcopy(self.replay_buffer), info['metrics']
 
+        info["metrics"]["reward"] = ep_ret
+        print(info["metrics"])
+        return deepcopy(self.replay_buffer), info["metrics"]
