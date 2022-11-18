@@ -29,6 +29,7 @@ from src.constants import DEVICE
 from src.utils.envwrapper import EnvContainer
 import numpy as np
 
+
 class AsnycWorker:
     """An asynchronous worker"""
 
@@ -81,14 +82,15 @@ class AsnycWorker:
                    )
 
         self.encoder = create_configurable(
-           'config_files/async_sac/encoder.yaml', NameToSourcePath.encoder
+            "config_files/async_sac/encoder.yaml", NameToSourcePath.encoder
         )
         self.encoder.to(DEVICE)
 
         self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
         self.env = EnvContainer(self.encoder, self.env)
-        
-        #print(self.env.action_space)
+
+        # print(self.env.action_space)
+
     def work(self) -> None:
         """Continously collect data"""
 
@@ -98,10 +100,8 @@ class AsnycWorker:
         policy_id, policy = response.data["policy_id"], response.data["policy"]
 
         while True:
-            buffer, result = self.collect_data(
-                policy_weights=policy, is_train=is_train
-            )
-            logging.warn('Data collection finished! Sending.')
+            buffer, result = self.collect_data(policy_weights=policy, is_train=is_train)
+            logging.warn("Data collection finished! Sending.")
 
             if is_train:
                 response = send_data(
@@ -110,7 +110,7 @@ class AsnycWorker:
                 logging.warn("Sent!")
 
             else:
-                self.mean_reward = self.mean_reward*(0.2) + result['reward']*0.8
+                self.mean_reward = self.mean_reward * (0.2) + result["reward"] * 0.8
                 logging.warn(f"reward: {self.mean_reward}")
                 response = send_data(
                     data=EvalResultsMsg(data=result),
@@ -127,7 +127,8 @@ class AsnycWorker:
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
         runner = create_configurable(
-        "config_files/async_sac/worker.yaml", NameToSourcePath.runner)
+            "config_files/async_sac/worker.yaml", NameToSourcePath.runner
+        )
         buffer, result = runner.run(self.env, policy_weights, is_train)
-    
+
         return buffer, result

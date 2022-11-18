@@ -11,9 +11,8 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic, CriticType, PPOMLPActorCritic
-from src.encoders.vae import VAE
-from src.utils.utils import ActionSample, RecordExperience
+from src.networks.critic import PPOMLPActorCritic
+from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
 
@@ -100,7 +99,7 @@ class PPOAgent(BaseAgent):
             self.pi_optimizer, 1, gamma=0.5
         )
 
-    def select_action(self, obs) -> np.array:
+    def select_action(self, obs, encode=False) -> np.array:
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a, v, logp = self.actor_critic.step(obs.to(DEVICE))
@@ -117,6 +116,7 @@ class PPOAgent(BaseAgent):
             v = np.ones((1,))
             action_obj.action = a
             action_obj.logp = logp
+            action_obj.value = v
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
         return action_obj

@@ -45,20 +45,20 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             logging.warn("Received evaluation results message")
             logging.warn(msg.data)
             self.server.wandb_logger.eval_log(
-                    (
-                        msg.data['reward'],
-                        msg.data["total_distance"],
-                        msg.data["total_time"],
-                        msg.data["num_infractions"],
-                        msg.data["average_speed_kph"],
-                        msg.data["average_displacement_error"],
-                        msg.data["trajectory_efficiency"],
-                        msg.data["trajectory_admissibility"],
-                        msg.data["movement_smoothness"],
-                        msg.data["timestep/sec"],
-                        msg.data["laps_completed"],
-                    )
+                (
+                    msg.data["reward"],
+                    msg.data["total_distance"],
+                    msg.data["total_time"],
+                    msg.data["num_infractions"],
+                    msg.data["average_speed_kph"],
+                    msg.data["average_displacement_error"],
+                    msg.data["trajectory_efficiency"],
+                    msg.data["trajectory_admissibility"],
+                    msg.data["movement_smoothness"],
+                    msg.data["timestep/sec"],
+                    msg.data["laps_completed"],
                 )
+            )
 
         # unexpected
         else:
@@ -67,8 +67,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Reply to the request with an up-to-date policy
         send_data(data=PolicyMsg(data=self.server.get_agent_dict()), sock=self.request)
-    
-
 
 
 class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -97,7 +95,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         eval_prob: float = 0.20,
         save_func: Optional[Callable] = None,
         save_freq: Optional[int] = None,
-        api_key: str = ''
+        api_key: str = "",
     ) -> None:
 
         super().__init__(server_address, ThreadedTCPRequestHandler)
@@ -110,16 +108,16 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # Create a replay buffer
         self.buffer_size = buffer_size
         self.replay_buffer = create_configurable(
-                "config_files/async_sac/buffer.yaml", NameToSourcePath.buffer
-            )
+            "config_files/async_sac/buffer.yaml", NameToSourcePath.buffer
+        )
 
         # Inital policy to use
         self.agent = agent
         self.agent_id = 1
 
         # The bytes of the policy to reply to requests with
-        
-        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()} 
+
+        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()}
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -129,9 +127,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # main replay buffer
         self.buffer_queue = queue.Queue()
 
-        self.wandb_logger = WanDBLogger(
-                api_key=api_key, project_name="test-project"
-            )
+        self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
         # Save function, called optionally
         self.save_func = save_func
         self.save_freq = save_freq
@@ -160,7 +156,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 pass
 
-        self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()} )
+        self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()})
         self.agent_id += 1
 
     def learn(self) -> None:
@@ -183,7 +179,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
 
     def server_bind(self):
-        # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817. 
+        # From https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use/18858817#18858817.
         # Tries to ensure reuse. Might be wrong.
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(self.server_address)
