@@ -73,7 +73,7 @@ class Qfunction(nn.Module):
         if self.use_speed:
             img_embed = obs_feat[..., : self.state_dim]  # n x latent_dims
             speed = obs_feat[..., self.state_dim :]  # n x 1
-            print(obs_feat.device())
+            print(obs_feat.device)
             spd_embed = self.speed_encoder(speed)  # n x 16
             out = self.regressor(
                 torch.cat([img_embed, spd_embed, action], dim=-1)
