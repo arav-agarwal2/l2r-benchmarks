@@ -89,7 +89,7 @@ class AsnycWorker:
         self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
         self.env = EnvContainer(self.encoder, self.env) 
         """
-        self.env = gym.make("MountainCarContinuous-v0")
+        self.env = gym.make("BipedalWalker-v3")
 
         self.runner = create_configurable(
             "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner
