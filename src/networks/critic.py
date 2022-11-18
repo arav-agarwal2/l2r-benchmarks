@@ -265,7 +265,7 @@ class ActorCritic(nn.Module):
         #    obs_feat = obs_feat.unsqueeze(0)
         if self.use_speed:
             img_embed = obs_feat[..., :32]
-            speed = obs_feat[..., 32:]
+            speed = self.speed_encoder(obs_feat[..., 32:])
             feat = torch.cat([img_embed, speed], dim=-1)
 
         else:
@@ -287,7 +287,7 @@ class ActorCritic(nn.Module):
         with torch.no_grad():
             if self.use_speed:
                 img_embed = obs_feat[..., :32]
-                speed = obs_feat[..., 32:]
+                speed = self.speed_encoder(obs_feat[..., 32:])
                 feat = torch.cat([img_embed, speed], dim=-1)
             else:
                 img_embed = obs_feat[..., :32]  # n x latent_dims
