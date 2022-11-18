@@ -77,7 +77,7 @@ class SACAgent(BaseAgent):
 
         self.record = {"transition_actor": ""}
 
-        self.action_space = Box(-1, 1, (1,))
+        self.action_space = Box(-1, 1, (4,))
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
