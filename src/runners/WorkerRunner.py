@@ -52,7 +52,7 @@ class WorkerRunner(BaseRunner):
             t += 1
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
-            print(action_obj.action, action_obj.action.shape)
+            print("AO", action_obj.action, action_obj.action.shape)
             action_obj.action = action_obj.action.reshape((1,))
             next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
             # print(f'info{info}')
@@ -68,8 +68,7 @@ class WorkerRunner(BaseRunner):
                     "next_obs": next_state_encoded,
                     "done": done,
                 }
-            print(sendme)
-            print([type(v) for v in sendme.values()])
+
             self.replay_buffer.store(
                 {
                     "obs": state_encoded,
