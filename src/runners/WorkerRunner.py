@@ -42,7 +42,7 @@ class WorkerRunner(BaseRunner):
         self.agent.load_model(agent_params)
         t = 0
         done = False
-        state_encoded = torch.Tensor(env.reset()[0])
+        state_encoded = env.reset()
 
         ep_ret = 0
         self.replay_buffer = create_configurable(
@@ -51,6 +51,7 @@ class WorkerRunner(BaseRunner):
         while not done:
             t += 1
             self.agent.deterministic = not is_train
+            print(state_encoded)
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
             # print(f'info{info}')
