@@ -82,7 +82,7 @@ class AsnycWorker:
                    )
 
         self.encoder = create_configurable(
-            "config_files/async_sac/encoder.yaml", NameToSourcePath.encoder
+            "config_files/async_sac_mountaincar/encoder.yaml", NameToSourcePath.encoder
         )
         self.encoder.to(DEVICE)
 
@@ -90,7 +90,7 @@ class AsnycWorker:
         self.env = EnvContainer(self.encoder, self.env)
 
         self.runner = create_configurable(
-            "config_files/async_sac/worker.yaml", NameToSourcePath.runner
+            "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner
         )
         # print(self.env.action_space)
 

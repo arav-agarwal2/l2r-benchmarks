@@ -16,7 +16,7 @@ action_shape = (2,)
 if __name__ == "__main__":
     learner = AsyncLearningNode(
         agent=create_configurable(
-            "config_files/async_sac/agent.yaml", NameToSourcePath.agent
+            "config_files/async_sac_mountaincar/agent.yaml", NameToSourcePath.agent
         ),
         api_key=sys.argv[1],
     )
