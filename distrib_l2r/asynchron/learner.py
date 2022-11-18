@@ -44,19 +44,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         elif isinstance(msg, EvalResultsMsg):
             logging.warn("Received evaluation results message")
             logging.warn(msg.data)
-            self.server.wandb_logger.eval_log(
+            self.server.wandb_logger.log_metric(
                 (
-                    msg.data["reward"],
-                    msg.data["total_distance"],
-                    msg.data["total_time"],
-                    msg.data["num_infractions"],
-                    msg.data["average_speed_kph"],
-                    msg.data["average_displacement_error"],
-                    msg.data["trajectory_efficiency"],
-                    msg.data["trajectory_admissibility"],
-                    msg.data["movement_smoothness"],
-                    msg.data["timestep/sec"],
-                    msg.data["laps_completed"],
+                    msg.data["reward"]
                 )
             )
 
