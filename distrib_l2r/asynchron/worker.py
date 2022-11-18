@@ -21,8 +21,8 @@ from distrib_l2r.utils import send_data
 
 
 # pip install git+https://github.com/learn-to-race/l2r.git@aicrowd-environment
-from l2r import build_env
-from l2r import RacingEnv
+#from l2r import build_env
+#from l2r import RacingEnv
 
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
