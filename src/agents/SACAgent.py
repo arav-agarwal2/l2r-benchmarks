@@ -153,8 +153,6 @@ class SACAgent(BaseAgent):
             data["done"],
         )
 
-        print(o.device)
-
         q1 = self.actor_critic.q1(o, a)
         q2 = self.actor_critic.q2(o, a)
 
