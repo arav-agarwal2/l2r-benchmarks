@@ -4,6 +4,7 @@ from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
 
 from torch.optim import Adam
+import numpy as np
 
 @yamlize
 class WorkerRunner(BaseRunner):
@@ -53,11 +54,13 @@ class WorkerRunner(BaseRunner):
         self.replay_buffer = create_configurable(
                 self.buffer_config_path, NameToSourcePath.buffer
             )
+        act_list = []
         while not done:
             t += 1
             #print(f't:{t}')
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
+            act_list.append(action_obj.action.cpu().numpy())
             #print(f'info{info}')
             ep_ret += reward
             self.replay_buffer.store(
@@ -75,6 +78,7 @@ class WorkerRunner(BaseRunner):
             state_encoded = next_state_encoded
         from copy import deepcopy
         info['metrics']['reward'] = ep_ret
+        print('METRIC',np.concatenate(act_list, axis=0).mean(), np.concatenate(act_list,axis=0).std())
         print(info['metrics'])
         return deepcopy(self.replay_buffer), info['metrics']
 
