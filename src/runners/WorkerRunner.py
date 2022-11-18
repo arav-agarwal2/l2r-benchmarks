@@ -52,6 +52,7 @@ class WorkerRunner(BaseRunner):
             t += 1
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
+            print(action_obj.action)
             next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
             # print(f'info{info}')
             state_encoded, next_state_encoded = torch.Tensor(state_encoded), torch.Tensor(next_state_encoded)
