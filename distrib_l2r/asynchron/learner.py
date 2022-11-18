@@ -32,7 +32,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            logging.info("Received replay buffer")
+            logging.warn("Received replay buffer")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
