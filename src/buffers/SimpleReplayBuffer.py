@@ -31,7 +31,7 @@ class SimpleReplayBuffer:
             if isinstance(obs, torch.Tensor):
                 if obs.requires_grad:
                     obs = obs.detach()
-                obs = obs.cpu().numpy()
+                obs = obs.cpu()
             return obs
 
         if type(values) is dict:
@@ -76,13 +76,12 @@ class SimpleReplayBuffer:
                 else:
                     batch[k] = [v]
 
-        self.weights = torch.tensor(
-            np.zeros_like(idxs), dtype=torch.float32, device=DEVICE
-        )
-        return {
-            k: torch.tensor(np.stack(v), dtype=torch.float32, device=DEVICE)
+        return  {
+            k: torch.stack(v).to(DEVICE)
             for k, v in batch.items()
         }
+
+
 
     def finish_path(self, action_obj=None):
         """
