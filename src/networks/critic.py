@@ -236,6 +236,7 @@ class ActorCritic(nn.Module):
                 ActivationType.__getattr__(activation).value,
                 act_limit,
             )
+            
         else:
             self.policy = SquashedGaussianMLPActor(
                 obs_dim,
@@ -244,6 +245,7 @@ class ActorCritic(nn.Module):
                 ActivationType.__getattr__(activation).value,
                 act_limit,
             )
+            print("POLICY", self.policy)
 
         if critic_cfg["name"] == "Qfunction":
             self.q1 = create_configurable_from_dict(
@@ -263,12 +265,12 @@ class ActorCritic(nn.Module):
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
         if self.use_speed:
-            img_embed = obs_feat[..., :32]
-            speed = self.speed_encoder(obs_feat[..., 32:])
+            img_embed = obs_feat[..., :self.state_dim]
+            speed = self.speed_encoder(obs_feat[..., self.state_dim:])
             feat = torch.cat([img_embed, speed], dim=-1)
 
         else:
-            img_embed = obs_feat[..., :32]  # n x latent_dims
+            img_embed = obs_feat[..., :self.state_dim]  # n x latent_dims
             feat = torch.cat(
                 [
                     img_embed,
@@ -285,11 +287,11 @@ class ActorCritic(nn.Module):
         #    obs_feat = obs_feat.unsqueeze(0)
         with torch.no_grad():
             if self.use_speed:
-                img_embed = obs_feat[..., :32]
-                speed = self.speed_encoder(obs_feat[..., 32:])
+                img_embed = obs_feat[..., :self.state_dim]
+                speed = self.speed_encoder(obs_feat[..., self.state_dim:])
                 feat = torch.cat([img_embed, speed], dim=-1)
             else:
-                img_embed = obs_feat[..., :32]  # n x latent_dims
+                img_embed = obs_feat[..., :self.state_dim]  # n x latent_dims
                 feat = torch.cat(
                     [
                         img_embed,
@@ -297,6 +299,7 @@ class ActorCritic(nn.Module):
                     dim=-1,
                 )
             a, _ = self.policy(feat, deterministic, False)
+            print("FEAT", feat.shape, "A", a.shape)
             a = a.squeeze(0)
         return a.numpy() if a.device == "cpu" else a.cpu().numpy()
 
