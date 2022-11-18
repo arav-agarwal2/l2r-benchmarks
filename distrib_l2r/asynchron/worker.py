@@ -44,7 +44,7 @@ class AsnycWorker:
         self.learner_address = learner_address
         self.buffer_size = buffer_size
         self.mean_reward = 0.0
-
+        """ 
         self.env = build_env(controller_kwargs={"quiet": True},
            env_kwargs=
                    {
@@ -87,7 +87,9 @@ class AsnycWorker:
         self.encoder.to(DEVICE)
 
         self.env.action_space = gym.spaces.Box(np.array([-1, -1]), np.array([1.0, 1.0]))
-        self.env = EnvContainer(self.encoder, self.env)
+        self.env = EnvContainer(self.encoder, self.env) 
+        """
+        self.env = gym.make("MountainCarContinuous-v0")
 
         self.runner = create_configurable(
             "config_files/async_sac_mountaincar/worker.yaml", NameToSourcePath.runner

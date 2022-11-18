@@ -2,10 +2,14 @@ name:
   ActorCritic
 config:
   activation: ReLU
+  state_dim: 2
+  action_dim: 1
   critic_cfg:
     name:
       Qfunction
     config:
+      state_dim: 2
+      action_dim: 1
       speed_encoder_hiddens: [8,]
       fusion_hiddens: [128,128,128]
       critic_cfg:
@@ -14,4 +18,4 @@ config:
           fusion_hiddens: [128,128,128]
           speed_encoder_hiddens: [8,]
   use_speed:
-    True
+    False
