@@ -40,7 +40,7 @@ class WorkerRunner(BaseRunner):
         self.agent.load_model(agent_params)
         t = 0
         done = False
-        state_encoded = env.reset()
+        state_encoded = env.reset()[0]
 
         ep_ret = 0
         self.replay_buffer = create_configurable(
@@ -51,10 +51,18 @@ class WorkerRunner(BaseRunner):
             self.agent.deterministic = not is_train
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, terminated, _= env.step(action_obj.action)
-            next_state_encoded = next_state_encoded[0]
             # print(f'info{info}')
             done = done or terminated
             ep_ret += reward
+            sendme =                 {
+                    "obs": state_encoded,
+                    "act": action_obj,
+                    "rew": reward,
+                    "next_obs": next_state_encoded,
+                    "done": done,
+                }
+            print(sendme)
+            print([type(v) for v in sendme.values()])
             self.replay_buffer.store(
                 {
                     "obs": state_encoded,
