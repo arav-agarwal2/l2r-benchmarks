@@ -127,7 +127,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         # A queue of buffers that have been received but not yet added to the learner's
         # main replay buffer
-        self.buffer_queue = queue.Queue()
+        self.buffer_queue = queue.LifoQueue()
 
         self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
         # Save function, called optionally
@@ -165,12 +165,12 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
             semibuffer = self.buffer_queue.get()
-            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}")
+            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}. {self.buffer_queue.qsize()} buffers remaining")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
-            for _ in range(len(self.replay_buffer)):
+            for _ in range(self.update_steps):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
