@@ -4,6 +4,7 @@ import itertools
 from src.constants import DEVICE
 import gym
 
+
 class EnvContainer(gym.Env):
     """Container for L2R Environment."""
 
@@ -38,6 +39,7 @@ class EnvContainer(gym.Env):
     def __getattr__(self, name):
         try:
             import logging
-            return getattr(self.env,name)
+
+            return getattr(self.env, name)
         except Exception as e:
             raise e

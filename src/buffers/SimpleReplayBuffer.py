@@ -20,6 +20,9 @@ class SimpleReplayBuffer:
         self.batch_size = batch_size
         self.buffer = collections.deque(maxlen=self.max_size)
 
+    def __len__(self):
+        return len(self.buffer)
+
     def store(self, values):
         # pdb.set_trace()
 
@@ -30,34 +33,45 @@ class SimpleReplayBuffer:
                     obs = obs.detach()
                 obs = obs.cpu().numpy()
             return obs
-        if(type(values) is dict):
+
+        if type(values) is dict:
             # convert to deque
             obs = convert(values["obs"]).squeeze()
             next_obs = convert(values["next_obs"]).squeeze()
             action = values["act"].action  # .detach().cpu().numpy()
             reward = values["rew"]
             done = values["done"]
-            currdict = {"obs": obs, "obs2":next_obs, "act":action, "rew":reward, "done":done}
+            currdict = {
+                "obs": obs,
+                "obs2": next_obs,
+                "act": action,
+                "rew": reward,
+                "done": done,
+            }
             self.buffer.append(currdict)
-        
-        elif(type(values) == self.__class__):
+
+        elif type(values) == self.__class__:
             self.buffer.extend(values.buffer)
         else:
             print(type(values), self.__class__)
-            raise Exception("Sorry, invalid input type. Please input dict or buffer of same type")
+            raise Exception(
+                "Sorry, invalid input type. Please input dict or buffer of same type"
+            )
 
+    def __len__(self):
+        return len(self.buffer)
 
     def sample_batch(self):
 
         idxs = np.random.choice(
             len(self.buffer), size=min(self.batch_size, len(self.buffer)), replace=False
         )
-    
+
         batch = dict()
         for idx in idxs:
             currdict = self.buffer[idx]
-            for k,v in currdict.items():
-                if(k in batch):
+            for k, v in currdict.items():
+                if k in batch:
                     batch[k].append(v)
                 else:
                     batch[k] = [v]

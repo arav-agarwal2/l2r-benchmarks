@@ -45,20 +45,20 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             logging.warn("Received evaluation results message")
             logging.warn(msg.data)
             self.server.wandb_logger.eval_log(
-                    (
-                        msg.data['reward'],
-                        msg.data["total_distance"],
-                        msg.data["total_time"],
-                        msg.data["num_infractions"],
-                        msg.data["average_speed_kph"],
-                        msg.data["average_displacement_error"],
-                        msg.data["trajectory_efficiency"],
-                        msg.data["trajectory_admissibility"],
-                        msg.data["movement_smoothness"],
-                        msg.data["timestep/sec"],
-                        msg.data["laps_completed"],
-                    )
+                (
+                    msg.data["reward"],
+                    msg.data["total_distance"],
+                    msg.data["total_time"],
+                    msg.data["num_infractions"],
+                    msg.data["average_speed_kph"],
+                    msg.data["average_displacement_error"],
+                    msg.data["trajectory_efficiency"],
+                    msg.data["trajectory_admissibility"],
+                    msg.data["movement_smoothness"],
+                    msg.data["timestep/sec"],
+                    msg.data["laps_completed"],
                 )
+            )
 
         # unexpected
         else:
@@ -89,7 +89,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def __init__(
         self,
         agent: BaseAgent,
-        update_steps: int = 64,
+        update_steps: int = 3000,
         batch_size: int = 128, # Originally 128
         epochs: int = 500, # Originally 500
         buffer_size: int = 1_000_000, # Originally 1M
@@ -97,7 +97,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         eval_prob: float = 0.20,
         save_func: Optional[Callable] = None,
         save_freq: Optional[int] = None,
-        api_key: str = ''
+        api_key: str = "",
     ) -> None:
 
         super().__init__(server_address, ThreadedTCPRequestHandler)
@@ -110,8 +110,8 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # Create a replay buffer
         self.buffer_size = buffer_size
         self.replay_buffer = create_configurable(
-                "config_files/async_sac/buffer.yaml", NameToSourcePath.buffer
-            )
+            "config_files/async_sac/buffer.yaml", NameToSourcePath.buffer
+        )
 
         # Inital policy to use
         self.agent = agent
@@ -129,9 +129,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         # main replay buffer
         self.buffer_queue = queue.Queue()
 
-        self.wandb_logger = WanDBLogger(
-                api_key=api_key, project_name="test-project"
-            )
+        self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
         # Save function, called optionally
         self.save_func = save_func
         self.save_freq = save_freq
@@ -160,15 +158,14 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             except queue.Empty:
                 pass
 
-        self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()} )
+        self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()})
         self.agent_id += 1
 
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
-            # block until new data is received
             semibuffer = self.buffer_queue.get()
-            print(f"Received something {epoch}")
+            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
