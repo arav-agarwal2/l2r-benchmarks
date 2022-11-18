@@ -71,7 +71,8 @@ class SimpleReplayBuffer:
         for idx in idxs:
             currdict = self.buffer[idx]
             for k, v in currdict.items():
-                print(k,v)
+                if isinstance(v, float):
+                    v  = torch.Tensor(v)
                 if k in batch:
                     batch[k].append(v)
                 else:
