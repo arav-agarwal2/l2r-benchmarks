@@ -84,12 +84,11 @@ class SACAgent(BaseAgent):
         self.actor_critic = create_configurable(
             actor_critic_cfg, NameToSourcePath.network
         )
-
+        self.actor_critic.to(DEVICE)
         if self.checkpoint and self.load_checkpoint:
             self.load_model(self.checkpoint)
 
         self.actor_critic_target = deepcopy(self.actor_critic)
-
         self.q_params = itertools.chain(
             self.actor_critic.q1.parameters(), self.actor_critic.q2.parameters()
         )
