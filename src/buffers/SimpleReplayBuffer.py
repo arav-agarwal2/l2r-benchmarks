@@ -75,6 +75,8 @@ class SimpleReplayBuffer:
                     v  = torch.Tensor([v])
                 if isinstance(v, bool):
                     v  = torch.Tensor([v])
+                if isinstance(v, int):
+                    v = torch.Tensor([v])
                 if k in batch:
                     batch[k].append(v)
                 else:
