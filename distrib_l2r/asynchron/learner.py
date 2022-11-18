@@ -171,16 +171,12 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
-
-            print(f"Pre {sum((x.cpu()).mean() for x in self.agent.state_dict().values())}")
-           
             # Learning steps for the policy
             for _ in range(len(self.replay_buffer)):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
-
-            print(f"Post {sum((x.cpu()).mean() for x in self.agent.state_dict().values())}")
+            print(f"Mean {sum((x.cpu()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu()).std() for x in self.agent.state_dict().values())}")
            
             # Update policy without blocking
             self.update_agent_queue()
