@@ -32,7 +32,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Received a replay buffer from a worker
         # Add this to buff
         if isinstance(msg, BufferMsg):
-            logging.warn("Received replay buffer")
             self.server.buffer_queue.put(msg.data)
 
         # Received an init message from a worker
@@ -42,8 +41,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Received evaluation results from a worker
         elif isinstance(msg, EvalResultsMsg):
-            logging.warn("Received evaluation results message")
-            logging.warn(msg.data)
             self.server.wandb_logger.log_metric(
                 
                     msg.data["reward"], 'reward'
@@ -155,7 +152,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
             semibuffer = self.buffer_queue.get()
-            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}")
+            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}. {len(self.buffer_queue)} buffers left")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
