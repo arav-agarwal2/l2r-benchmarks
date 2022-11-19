@@ -7,6 +7,7 @@ from typing import Callable
 from typing import Dict
 from typing import Optional
 from typing import Tuple
+import time
 from tqdm import tqdm
 import socket
 from src.agents.base import BaseAgent
@@ -157,9 +158,14 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
+            al = []
             for _ in range(self.update_steps):
+                init_time = time.time()
                 batch = self.replay_buffer.sample_batch()
+                al.append(time.time() - init_time)
                 self.agent.update(data=batch)
+            import numpy as np
+            print('Average buffer time',np.mean(al))
 
             # Update policy without blocking
             self.update_agent()
