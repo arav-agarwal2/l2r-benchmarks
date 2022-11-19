@@ -197,26 +197,27 @@ class SACAgent(BaseAgent):
 
     def update(self, data):
         # First run one gradient descent step for Q1 and Q2
-        print(data['obs'].device)
-        print(next(self.actor_critic.q1.parameters()).is_cuda)
-        print(next(self.actor_critic.q2.parameters()).is_cuda)
-        print(next(self.actor_critic.pi.parameters()).is_cuda)
+        import time
+        time_it = time.time()
         self.q_optimizer.zero_grad()
         loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
         self.q_optimizer.step()
-
+        print(f'Time for Q Loss: {time_it - time.time()}')
         # Freeze Q-networks so you don't waste computational effort
         # computing gradients for them during the policy learning step.
         for p in self.q_params:
             p.requires_grad = False
 
         # Next run one gradient descent step for pi.
+        time_it = time.time()
         self.pi_optimizer.zero_grad()
         loss_pi, pi_info = self.compute_loss_pi(data)
         loss_pi.backward()
         self.pi_optimizer.step()
+        print(f'Time for Pi Loss: {time_it - time.time()}')
 
+        time_it = time.time()
         # Unfreeze Q-networks so you can optimize it at next DDPG step.
         for p in self.q_params:
             p.requires_grad = True
@@ -230,6 +231,7 @@ class SACAgent(BaseAgent):
                 # params, as opposed to "mul" and "add", which would make new tensors.
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
+        print(f'Time for Polyak: {time_it - time.time()}')
 
     def update_best_pct_complete(self, info):
         if self.best_pct < info["metrics"]["pct_complete"]:
