@@ -159,13 +159,17 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
             # Learning steps for the policy
             al = []
+            bl = []
             for _ in range(self.update_steps):
                 init_time = time.time()
                 batch = self.replay_buffer.sample_batch()
                 al.append(time.time() - init_time)
+                init_time = time.time()
                 self.agent.update(data=batch)
+                bl.append(time.time() - init_time)
             import numpy as np
             print('Average buffer time',np.mean(al))
+            print('Average update time',np.mean(bl) )
 
             # Update policy without blocking
             self.update_agent()
