@@ -197,6 +197,10 @@ class SACAgent(BaseAgent):
 
     def update(self, data):
         # First run one gradient descent step for Q1 and Q2
+        print(data['obs'].device)
+        print(next(self.actor_critic.q1.parameters()).is_cuda)
+        print(next(self.actor_critic.q2.parameters()).is_cuda)
+        print(next(self.actor_critic.pi.parameters()).is_cuda)
         self.q_optimizer.zero_grad()
         loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
