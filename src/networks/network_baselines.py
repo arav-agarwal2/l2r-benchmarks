@@ -33,7 +33,7 @@ def count_vars(module):
 LOG_STD_MAX = 2
 LOG_STD_MIN = -20
 
-@profile
+
 class SquashedGaussianMLPActor(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, act_limit):
         super().__init__()
@@ -42,6 +42,7 @@ class SquashedGaussianMLPActor(nn.Module):
         self.log_std_layer = nn.Linear(hidden_sizes[-1], act_dim)
         self.act_limit = act_limit
 
+    @profile
     def forward(self, obs, deterministic=False, with_logprob=True):
         net_out = self.net(obs)
         mu = self.mu_layer(net_out)
