@@ -24,7 +24,7 @@ from src.constants import DEVICE
 
 from src.config.parser import read_config
 from src.config.schema import agent_schema
-
+from line_profiler import profile
 
 from src.utils.envwrapper import EnvContainer
 
@@ -142,6 +142,7 @@ class SACAgent(BaseAgent):
     def save_model(self, path):
         torch.save(self.actor_critic.state_dict(), path)
 
+    @profile
     def compute_loss_q(self, data):
 
         """Set up function for computing SAC Q-losses."""
@@ -179,6 +180,7 @@ class SACAgent(BaseAgent):
 
         return loss_q, q_info
 
+    @profile
     def compute_loss_pi(self, data):
         """Set up function for computing SAC pi loss."""
         o = data["obs"]
@@ -195,13 +197,14 @@ class SACAgent(BaseAgent):
 
         return loss_pi, pi_info
 
+    @profile
     def update(self, data):
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
         loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
         self.q_optimizer.step()
-        
+
         # Freeze Q-networks so you don't waste computational effort
         # computing gradients for them during the policy learning step.
         for p in self.q_params:
