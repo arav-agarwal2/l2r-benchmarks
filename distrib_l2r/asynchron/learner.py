@@ -183,14 +183,17 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def update_agent(self) -> None:
         """Update policy that will be sent to workers without blocking"""
+        print("Blocking empty?")
         if not self.agent_queue.empty():
             try:
                 # empty queue for safe put()
+                print("queue no wait blocking???")
                 _ = self.agent_queue.get_nowait()
             except queue.Empty:
                 pass
-
+        print("Put blocking?")
         self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()})
+        print("THis????")
         self.agent_id += 1
 
     
@@ -213,6 +216,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
             print("Trying to update agent queue")
             # Update policy without blocking
             self.update_agent()
+            print("Queue updated!")
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
