@@ -55,7 +55,7 @@ class SquashedGaussianMLPActor(nn.Module):
             # Only used for evaluating policy at test time.
             pi_action = mu
         else:
-            pi_action = torch.cuda.FloatTensor.normal_(mu.shape)*mu + std
+            pi_action = torch.empty(mu.shape, device=DEVICE).normal_()*mu + std
 
         if with_logprob:
             # Compute logprob from Gaussian, and then apply correction for Tanh squashing.
