@@ -159,7 +159,7 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
         # A queue of buffers that have been received but not yet added to the learner's
         # main replay buffer
-        self.buffer_queue = queue.LifoQueue()
+        self.buffer_queue = queue.LifoQueue(300)
 
         self.wandb_logger = WanDBLogger(api_key=api_key, project_name="test-project")
         # Save function, called optionally
