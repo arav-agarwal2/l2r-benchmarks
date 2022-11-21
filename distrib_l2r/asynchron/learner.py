@@ -153,6 +153,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
         for epoch in range(self.epochs):
+            print("Waiting on queue")
             semibuffer = self.buffer_queue.get()
             print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}. {self.buffer_queue.qsize()} buffers remaining")
             # Add new data to the primary replay buffer
@@ -165,6 +166,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 self.agent.update(data=batch)
                 #print(next(self.agent.actor_critic.policy.mu_layer.parameters()))
 
+            print("Trying to update agent queue")
             # Update policy without blocking
             self.update_agent()
             # Optionally save
