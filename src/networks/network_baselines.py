@@ -50,7 +50,6 @@ class SquashedGaussianMLPActor(nn.Module):
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         std = torch.exp(log_std)
         # Pre-squash distribution and sample
-        print(mu.shape, std.shape)
         if deterministic:
             # Only used for evaluating policy at test time.
             pi_action = mu
