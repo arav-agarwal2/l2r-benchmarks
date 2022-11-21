@@ -24,66 +24,48 @@ from distrib_l2r.api import PolicyMsg
 from distrib_l2r.utils import receive_data
 from distrib_l2r.utils import send_data
 
+# https://stackoverflow.com/questions/41653281/sockets-with-threadpool-server-python
+class ThreadPoolMixIn(socketserver.ThreadingMixIn):
+    '''
+    use a thread pool instead of a new thread on every request
+    '''
+    # numThreads = 50    
+    allow_reuse_address = True  # seems to fix socket.error on server restart
+    def serve_forever(self):
+        '''
+        Handle one request at a time until doomsday.
+        '''
+        print('[X] Server is Running with No of Threads :- {}'.format(self.numThreads))
+        # set up the threadpool
+        self.requests = queue.Queue(self.numThreads)
 
-class ThreadPoolMixin:
-    """
-    Mixin to use a fixed pool of threads to handle requests.
-    .. note::
-       When shutting down the server, please ensure you call this mixin's
-       `join()` to shut down the pool along with the server's `shutdown()`
-       method. The order in which these are performed is not significant,
-       but both actions must be performed.
-    """
+        for x in range(self.numThreads):
+            t = threading.Thread(target = self.process_request_thread)
+            t.setDaemon(1)
+            t.start()
 
-    # Size of pool.
-    pool_size = 5
-
-    # How long to wait on an empty queue, in seconds. Can be a float.
-    timeout_on_get = 0.5
-
-    def __init__(self):
-        self._request_queue = queue.Queue(self.pool_size)
-        # This beastie serves a different purpose than __shutdown_request
-        # and __is_shut_down: those are superprivate so we can't touch them,
-        # and even if we could, they're not really useful in shutting down
-        # the pool.
-        self._shutdown_event = threading.Event()
-        for _ in range(self.pool_size):
-            thread = threading.Thread(target=self.process_request_thread)
-            thread.setDaemon(1)
-            thread.start()
+        # server main loop
+        while True:
+            self.handle_request()
+        self.server_close()
 
     def process_request_thread(self):
-        """Same as in BaseServer, but as a thread."""
+        '''
+        obtain request from queue instead of directly from server socket
+        '''
         while True:
-            try:
-                request, client_address = self._request_queue.get(
-                    timeout=self.timeout_on_get,
-                )
-            except queue.Empty:
-                if self._shutdown_event.isSet():
-                    return
-                continue
-            try:
-                self.finish_request(request, client_address)
-                self.shutdown_request(request)
-            except:
-                self.handle_error(request, client_address)
-                self.shutdown_request(request)
-            self._request_queue.task_done()
+            socketserver.ThreadingMixIn.process_request_thread(self, *self.requests.get())
 
-    def process_request(self, request, client_address):
-        """Queue the given request."""
-        self._request_queue.put((request, client_address))
-
-    def join(self):
-        """Wait on the pool to clear and shut down the worker threads."""
-        # A nicer place for this would be shutdown(), but this being a mixin,
-        # that method can't safely do anything with that method, thus we add
-        # an extra method explicitly for clearing the queue and shutting
-        # down the workers.
-        self._request_queue.join()
-        self._shutdown_event.set()
+    def handle_request(self):
+        '''
+        simply collect requests and put them on the queue for the workers.
+        '''
+        try:
+            request, client_address = self.get_request()
+        except socket.error:
+            return
+        if self.verify_request(request, client_address):
+            self.requests.put((request, client_address))
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     """Request handler thread created for every request"""
@@ -121,7 +103,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
 
 
-class AsyncLearningNode(ThreadPoolMixin, socketserver.TCPServer):
+class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
     """A multi-threaded, offline, off-policy reinforcement learning server
 
     Args:
@@ -149,7 +131,7 @@ class AsyncLearningNode(ThreadPoolMixin, socketserver.TCPServer):
         save_freq: Optional[int] = None,
         api_key: str = "",
     ) -> None:
-
+        self.numThreads = 5 # Hardcode for now
         super().__init__(server_address, ThreadedTCPRequestHandler)
 
         self.update_steps = update_steps
