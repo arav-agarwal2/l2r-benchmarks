@@ -257,7 +257,7 @@ class ActorCritic(nn.Module):
         elif critic_cfg["name"] == "Vfunction":
             self.v = create_configurable_from_dict(critic_cfg, NameToSourcePath.network)
 
-    @profile
+
     def pi(self, obs_feat, deterministic=False):
         """
         Wrapper around the policy. Helps manage dimensions and add/remove features from the input space.
