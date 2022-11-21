@@ -149,7 +149,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()})
         self.agent_id += 1
 
-    @profile
+    
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
         for epoch in tqdm(range(self.epochs)):
