@@ -8,6 +8,7 @@ from torch.distributions.normal import Normal
 from torch.distributions.transforms import TanhTransform, AffineTransform
 from torch.distributions.transformed_distribution import TransformedDistribution
 from torch.distributions.categorical import Categorical
+from src.constants import DEVICE
 import traceback
 import pdb
 
@@ -42,20 +43,20 @@ class SquashedGaussianMLPActor(nn.Module):
         self.log_std_layer = nn.Linear(hidden_sizes[-1], act_dim)
         self.act_limit = act_limit
 
-    @profile
     def forward(self, obs, deterministic=False, with_logprob=True):
         net_out = self.net(obs)
+        bs, _ = net_out.shape
         mu = self.mu_layer(net_out)
         log_std = self.log_std_layer(net_out)
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         std = torch.exp(log_std)
         # Pre-squash distribution and sample
-        pi_distribution = Normal(mu, std)
+        print(mu.shape, std.shape)
         if deterministic:
             # Only used for evaluating policy at test time.
             pi_action = mu
         else:
-            pi_action = pi_distribution.rsample()
+            pi_action = torch.cuda.FloatTensor.normal_()*mu + std
 
         if with_logprob:
             # Compute logprob from Gaussian, and then apply correction for Tanh squashing.
@@ -63,7 +64,10 @@ class SquashedGaussianMLPActor(nn.Module):
             # of where it comes from, check out the original SAC paper (arXiv 1801.01290)
             # and look in appendix C. This is a more numerically-stable equivalent to Eq 21.
             # Try deriving it yourself as a (very difficult) exercise. :)
-            logp_pi = pi_distribution.log_prob(pi_action).sum(axis=-1)
+            var = std**2
+            log_scale = torch.log(std)
+            # Attempt 1
+            logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - torch.log(torch.sqrt(2 * torch.pi))).sum(axis=-1)
             logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
                 axis=1
             )
