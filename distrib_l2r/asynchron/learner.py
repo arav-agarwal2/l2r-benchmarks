@@ -163,7 +163,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 batch = self.replay_buffer.sample_batch()
                 init_time = time.time()
                 self.agent.update(data=batch)
-                print(next(self.agent.actor_critic.policy.mu_layer.parameters()))
+                #print(next(self.agent.actor_critic.policy.mu_layer.parameters()))
 
             # Update policy without blocking
             self.update_agent()
