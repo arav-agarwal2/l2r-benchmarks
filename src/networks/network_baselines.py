@@ -67,7 +67,7 @@ class SquashedGaussianMLPActor(nn.Module):
             var = std**2
             log_scale = torch.log(std)
             # Attempt at speeding up logprob calculation. torch uses math, which seems to be slow.
-            logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - 0.39908993417).sum(axis=-1)
+            logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - 1.83787706641).sum(axis=-1)
             logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
                 axis=1
             )
