@@ -55,6 +55,7 @@ class SquashedGaussianMLPActor(nn.Module):
             # Only used for evaluating policy at test time.
             pi_action = mu
         else:
+            # RSample change to make it speedier
             pi_action = torch.empty(mu.shape, device=DEVICE).normal_()*mu + std
 
         if with_logprob:
@@ -65,7 +66,7 @@ class SquashedGaussianMLPActor(nn.Module):
             # Try deriving it yourself as a (very difficult) exercise. :)
             var = std**2
             log_scale = torch.log(std)
-            # Attempt 1
+            # Attempt at speeding up logprob calculation. torch uses math, which seems to be slow.
             logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - 0.39908993417).sum(axis=-1)
             logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
                 axis=1
