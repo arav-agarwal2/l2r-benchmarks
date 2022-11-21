@@ -183,7 +183,6 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
 
     def update_agent(self) -> None:
         """Update policy that will be sent to workers without blocking"""
-        print("Blocking empty?")
         if not self.agent_queue.empty():
             try:
                 # empty queue for safe put()
@@ -191,32 +190,26 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
                 _ = self.agent_queue.get_nowait()
             except queue.Empty:
                 pass
-        print("Put blocking?")
         self.agent_queue.put({k: v.cpu() for k, v in self.agent.state_dict().items()})
-        print("THis????")
         self.agent_id += 1
 
     
     def learn(self) -> None:
         """The thread where thread-safe gradient updates occur"""
         for epoch in range(self.epochs):
-            print("Waiting on queue")
             semibuffer = self.buffer_queue.get()
             print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}. {self.buffer_queue.qsize()} buffers remaining")
             # Add new data to the primary replay buffer
             self.replay_buffer.store(semibuffer)
 
-            print("Training!")
             # Learning steps for the policy
-            for _ in tqdm(range(max(1,min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size)))):
+            for _ in range(max(1,min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size))):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
                 #print(next(self.agent.actor_critic.policy.mu_layer.parameters()))
 
-            print("Trying to update agent queue")
             # Update policy without blocking
             self.update_agent()
-            print("Queue updated!")
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())
