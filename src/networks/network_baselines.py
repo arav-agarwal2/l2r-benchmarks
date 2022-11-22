@@ -57,10 +57,7 @@ class SquashedGaussianMLPActor(nn.Module):
         else:
             # RSample change to make it speedier
             pi_action = torch.empty(mu.shape, device=DEVICE).normal_()*std + mu
-<<<<<<< HEAD
-=======
 
->>>>>>> 0413b7a9841d3981f2972fe7452c3d3847eef545
         if with_logprob:
             # Compute logprob from Gaussian, and then apply correction for Tanh squashing.
             # NOTE: The correction formula is a little bit magic. To get an understanding
