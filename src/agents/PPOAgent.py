@@ -98,7 +98,7 @@ class PPOAgent(BaseAgent):
             self.pi_optimizer, 1, gamma=0.5
         )
 
-    def select_action(self, obs, encode=False) -> np.array:
+    def select_action(self, obs) -> np.array:
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a, v, logp = self.actor_critic.step(obs.to(DEVICE))
