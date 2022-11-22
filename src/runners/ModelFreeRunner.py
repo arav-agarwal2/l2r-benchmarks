@@ -228,9 +228,7 @@ class ModelFreeRunner(BaseRunner):
                 # Take deterministic actions at test time
                 self.agent.deterministic = True
                 self.t = 1e6
-                eval_action_obj = self.agent.select_action(
-                    eval_obs_encoded, encode=False
-                )
+                eval_action_obj = self.agent.select_action(eval_obs_encoded)
                 if self.env_wrapped:
                     (
                         eval_obs_encoded_new,
