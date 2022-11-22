@@ -210,7 +210,6 @@ class SACAgent(BaseAgent):
     
     def update(self, data):
 
-        print(self.alpha)
         self.ent_coef_optimizer.zero_grad()
         loss_ent = self.compute_loss_ent(data)
         loss_ent.backward()
