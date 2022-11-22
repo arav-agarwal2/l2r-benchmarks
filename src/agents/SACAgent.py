@@ -55,13 +55,16 @@ class SACAgent(BaseAgent):
         self.track_name = track_name
         self.experiment_name = experiment_name
         self.gamma = gamma
-        self.alpha = alpha
+        self.alpha = 1.0
         self.polyak = polyak
         self.make_random_actions = make_random_actions
         self.checkpoint = checkpoint
         self.load_checkpoint = load_checkpoint
         self.model_save_path = model_save_path
         self.lr = lr
+        self.target_entropy = -4.0
+        self.log_ent_coef = torch.log(torch.ones(1, device=DEVICE) * self.alpha).requires_grad_(True)
+        self.ent_coef_optimizer = torch.optim.Adam([self.log_ent_coef], lr=self.lr)
 
         self.save_episodes = True
         self.episode_num = 0
@@ -189,14 +192,29 @@ class SACAgent(BaseAgent):
 
         # Entropy-regularized policy loss
         loss_pi = (self.alpha * logp_pi - q_pi).mean()
-
+        
         # Useful info for logging
         pi_info = dict(LogPi=logp_pi.detach().cpu().numpy())
 
         return loss_pi, pi_info
 
+    def compute_loss_ent(self, data):
+        """Set up function for computing temperature loss."""
+        o = data["obs"]
+        pi, logp_pi = self.actor_critic.pi(o)
+        self.alpha = torch.exp(self.log_ent_coef.detach())
+        ent_coef_loss = -(self.log_ent_coef * (logp_pi + self.target_entropy).detach()).mean()
+        return ent_coef_loss
     
     def update(self, data):
+
+        self.ent_coef_optimizer.zero_grad()
+        loss_ent = self.compute_loss_ent(data)
+        loss_ent.backward()
+        self.ent_coef_optimizer.step()
+
+
+
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
         loss_q, q_info = self.compute_loss_q(data)
