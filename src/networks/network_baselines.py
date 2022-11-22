@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.signal
-
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -56,21 +56,31 @@ class SquashedGaussianMLPActor(nn.Module):
             pi_action = mu
         else:
             # RSample change to make it speedier
-            pi_action = torch.empty(mu.shape, device=DEVICE).normal_()*mu + std
+            pi_action = torch.empty(mu.shape, device=DEVICE).normal_()*std + mu
+<<<<<<< HEAD
+=======
 
+>>>>>>> 0413b7a9841d3981f2972fe7452c3d3847eef545
         if with_logprob:
             # Compute logprob from Gaussian, and then apply correction for Tanh squashing.
             # NOTE: The correction formula is a little bit magic. To get an understanding
             # of where it comes from, check out the original SAC paper (arXiv 1801.01290)
             # and look in appendix C. This is a more numerically-stable equivalent to Eq 21.
             # Try deriving it yourself as a (very difficult) exercise. :)
+            
+            
+            #logp_pi = pi_distribution.log_prob(pi_action).sum(axis=-1)
+            #logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
+            #    axis=1
+            #)
             var = std**2
             log_scale = torch.log(std)
             # Attempt at speeding up logprob calculation. torch uses math, which seems to be slow.
-            logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - 1.83787706641).sum(axis=-1)
+            logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - 0.9189385332).sum(axis=-1)
             logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
                 axis=1
             )
+
         else:
             logp_pi = None
 
