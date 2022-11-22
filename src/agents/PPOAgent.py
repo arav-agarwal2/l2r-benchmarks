@@ -20,8 +20,6 @@ from src.constants import DEVICE
 from src.config.parser import read_config
 from src.config.schema import agent_schema
 
-from src.utils.envwrapper import EnvContainer
-
 
 @yamlize
 class PPOAgent(BaseAgent):
@@ -116,6 +114,7 @@ class PPOAgent(BaseAgent):
             # TODO: add default value after getting value shape
             v = np.ones((1,))
             action_obj.action = a
+            action_obj.value = v
             action_obj.logp = logp
             self.record["transition_actor"] = "random"
         self.t = self.t + 1
