@@ -1,15 +1,16 @@
 from hashlib import md5
 import subprocess
-from l2r import build_env
-from l2r import RacingEnv
+#from l2r import build_env
+#from l2r import RacingEnv
 from src.config.yamlize import NameToSourcePath, create_configurable
 import sys
 import logging
-
+import gym
 
 if __name__ == "__main__":
     # Build environment
-    env = build_env(controller_kwargs={"quiet": True})
+    #env = build_env(controller_kwargs={"quiet": True})
+    env = gym.make("BipedalWalker-v3")
     runner = create_configurable(
         "config_files/example_sac/runner.yaml", NameToSourcePath.runner
     )
@@ -24,4 +25,4 @@ if __name__ == "__main__":
         runner.run(env, sys.argv[3])
     except IndexError as e:
         logging.warning(e)
-        runner.run(env, "")
+        runner.run(env, "844a1cb17bc76248111fd3f0e8129d02469ce953")

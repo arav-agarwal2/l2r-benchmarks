@@ -43,7 +43,7 @@ class ModelFreeRunner(BaseRunner):
         update_model_every: int,
         eval_every: int,
         max_episode_length: int,
-        use_container: bool = True,
+        use_container: bool = False,
     ):
         super().__init__()
         # Moved initialzation of env to run to allow for yamlization of this class.
@@ -132,7 +132,10 @@ class ModelFreeRunner(BaseRunner):
             if self.env_wrapped:
                 obs_encoded = self.env_wrapped.reset(True, env)
             else:
-                obs_encoded = env.reset()
+                obs_encoded, info = env.reset()
+                #print(obs_encoded)
+                obs_encoded = torch.Tensor(obs_encoded)
+                obs_encoded.to(DEVICE)
 
             ep_ret = 0
             total_reward = 0
@@ -146,8 +149,11 @@ class ModelFreeRunner(BaseRunner):
                         action_obj.action
                     )
                 else:
-                    obs_encoded_new, reward, done, info = env.step(action_obj.action)
-
+                    #obs_encoded_new, reward, done, info = env.step(action_obj.action)
+                    obs_encoded_new, reward, done, terminated, info = env.step(action_obj.action)
+                    obs_encoded_new = torch.Tensor(obs_encoded_new)
+                    obs_encoded_new.to(DEVICE)
+                    done = done or terminated
                 ep_ret += reward
                 # self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
@@ -163,6 +169,8 @@ class ModelFreeRunner(BaseRunner):
                     self.replay_buffer.finish_path(action_obj)
 
                 obs_encoded = obs_encoded_new
+
+
                 if (t >= self.exp_config["update_after"]) and (
                     t % self.exp_config["update_every"] == 0
                 ):
@@ -171,31 +179,37 @@ class ModelFreeRunner(BaseRunner):
                         self.agent.update(data=batch)
 
                 if t % self.eval_every == 0:
-                    self.file_logger.log(f"Episode Number before eval: {ep_number}")
-                    eval_ret = self.eval(env)
-                    self.file_logger.log(f"Episode Number after eval: {ep_number}")
+                    #self.file_logger.log(f"Episode Number before eval: {ep_number}")
+                    #eval_ret = self.eval(env)
+                    eval_ret = 0.0
+                    #self.file_logger.log(f"Episode Number after eval: {ep_number}")
                     if eval_ret > self.best_eval_ret:
                         self.best_eval_ret = eval_ret
 
             if self.wandb_logger:
                 self.wandb_logger.log(
                     (
-                        ep_ret,
-                        info["metrics"]["total_distance"],
-                        info["metrics"]["total_time"],
-                        info["metrics"]["num_infractions"],
-                        info["metrics"]["average_speed_kph"],
-                        info["metrics"]["average_displacement_error"],
-                        info["metrics"]["trajectory_efficiency"],
-                        info["metrics"]["trajectory_admissibility"],
-                        info["metrics"]["movement_smoothness"],
-                        info["metrics"]["timestep/sec"],
-                        info["metrics"]["laps_completed"],
+                        ep_ret
                     )
                 )
+            #            info["metrics"]["total_distance"],
+            #            info["metrics"]["total_time"],
+            #            info["metrics"]["num_infractions"],
+            #            info["metrics"]["average_speed_kph"],
+            #            info["metrics"]["average_displacement_error"],
+            #            info["metrics"]["trajectory_efficiency"],
+            #            info["metrics"]["trajectory_admissibility"],
+            #            info["metrics"]["movement_smoothness"],
+            #            info["metrics"]["timestep/sec"],
+            #            info["metrics"]["laps_completed"],
+            #        )
+            #    )
+            info = {'metrics':{}}
+            info["metrics"]["reward"] = ep_ret
+            #print(info["metrics"])
 
-            self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
-            self.file_logger.log(f"info: {info}")
+            #self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
+            #self.file_logger.log(f"info: {info}")
             self.file_logger.log(
                 f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}"
             )
@@ -290,19 +304,21 @@ class ModelFreeRunner(BaseRunner):
             if self.wandb_logger:
                 self.wandb_logger.eval_log(
                     (
-                        eval_ep_ret,
-                        eval_info["metrics"]["total_distance"],
-                        eval_info["metrics"]["total_time"],
-                        eval_info["metrics"]["num_infractions"],
-                        eval_info["metrics"]["average_speed_kph"],
-                        eval_info["metrics"]["average_displacement_error"],
-                        eval_info["metrics"]["trajectory_efficiency"],
-                        eval_info["metrics"]["trajectory_admissibility"],
-                        eval_info["metrics"]["movement_smoothness"],
-                        eval_info["metrics"]["timestep/sec"],
-                        eval_info["metrics"]["laps_completed"],
+                        eval_ep_ret
                     )
                 )
+                #        eval_info["metrics"]["total_distance"],
+                #        eval_info["metrics"]["total_time"],
+                #        eval_info["metrics"]["num_infractions"],
+                #        eval_info["metrics"]["average_speed_kph"],
+                #        eval_info["metrics"]["average_displacement_error"],
+                #        eval_info["metrics"]["trajectory_efficiency"],
+                #        eval_info["metrics"]["trajectory_admissibility"],
+                #        eval_info["metrics"]["movement_smoothness"],
+                #        eval_info["metrics"]["timestep/sec"],
+                #        eval_info["metrics"]["laps_completed"],
+                #    )
+                #)
 
             """            # Quickly dump recently-completed episode's experience to the multithread queue,
             # as long as the episode resulted in "success"
