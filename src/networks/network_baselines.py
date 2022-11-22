@@ -56,7 +56,7 @@ class SquashedGaussianMLPActor(nn.Module):
             pi_action = mu
         else:
             # RSample change to make it speedier
-            pi_action = torch.empty(mu.shape, device=DEVICE).normal_()*mu + std
+            pi_action = torch.empty(mu.shape, device=DEVICE).normal_()*std + mu
 
         if with_logprob:
             # Compute logprob from Gaussian, and then apply correction for Tanh squashing.
@@ -67,7 +67,7 @@ class SquashedGaussianMLPActor(nn.Module):
             var = std**2
             log_scale = torch.log(std)
             # Attempt at speeding up logprob calculation. torch uses math, which seems to be slow.
-            logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - 1.83787706641).sum(axis=-1)
+            logp_pi = (-((pi_action - mu) ** 2) / (2 * var) - log_scale - 0.9189385332).sum(axis=-1)
             logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
                 axis=1
             )
