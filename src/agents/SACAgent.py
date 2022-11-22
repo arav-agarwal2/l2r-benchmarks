@@ -112,7 +112,7 @@ class SACAgent(BaseAgent):
         for p in self.actor_critic_target.parameters():
             p.requires_grad = False
 
-    def select_action(self, obs, encode=False):
+    def select_action(self, obs):
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
