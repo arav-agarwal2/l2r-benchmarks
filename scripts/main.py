@@ -25,4 +25,4 @@ if __name__ == "__main__":
         runner.run(env, sys.argv[3])
     except IndexError as e:
         logging.warning(e)
-        runner.run(env, "844a1cb17bc76248111fd3f0e8129d02469ce953")
+        runner.run(env, "")
