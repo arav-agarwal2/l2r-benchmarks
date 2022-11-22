@@ -174,10 +174,13 @@ class ModelFreeRunner(BaseRunner):
                 if (t >= self.exp_config["update_after"]) and (
                     t % self.exp_config["update_every"] == 0
                 ):
+                    metric_total = []
                     for _ in range(self.exp_config["update_every"]):
                         batch = self.replay_buffer.sample_batch()
-                        self.agent.update(data=batch)
-
+                        metrics = self.agent.update(data=batch)
+                        metric_total.append(np.asarray(metrics))
+                    metric_total = np.stack(metric_total, axis=0).mean(axis=0)
+                    print(metric_total)
                 if t % self.eval_every == 0:
                     #self.file_logger.log(f"Episode Number before eval: {ep_number}")
                     #eval_ret = self.eval(env)

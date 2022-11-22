@@ -247,6 +247,8 @@ class SACAgent(BaseAgent):
                 # params, as opposed to "mul" and "add", which would make new tensors.
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
+        
+        return [loss_q.item(), loss_pi.item(), loss_ent.item()]
 
     def update_best_pct_complete(self, info):
         if self.best_pct < info["metrics"]["pct_complete"]:
