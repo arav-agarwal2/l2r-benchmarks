@@ -5,11 +5,11 @@ config:
   polyak: 0.995
   lr: 0.00073
   alpha: 0.2
-  steps_to_sample_randomly: 10 # start_steps
-  checkpoint: '/mnt/SAC_VAE/best_SAC_VAE_episode_200.statedict'
+  steps_to_sample_randomly: 10000 # start_steps
+  checkpoint: '../SAC_VAE/best_SAC_VAE_episode_200.statedict'
   actor_critic_cfg: './config_files/example_sac/network.yaml'
   load_checkpoint: False
-  model_save_path: '/mnt'
-  record_dir: '/mnt'
+  model_save_path: '..'
+  record_dir: '..'
   experiment_name: 'pixiethecat'
   track_name: 'Thruxton'

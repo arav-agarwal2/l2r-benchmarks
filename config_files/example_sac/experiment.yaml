@@ -5,4 +5,4 @@ experiment_config:
   record_experience: False
   update_after: 10
   update_every: 5
-  experiment_state_path: '/mnt/SAC_VAE/experimentState.json'
+  experiment_state_path: '../SAC_VAE/experimentState.json'
