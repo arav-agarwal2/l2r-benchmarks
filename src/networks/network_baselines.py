@@ -40,7 +40,7 @@ class SquashedGaussianMLPActor(nn.Module):
         super().__init__()
         self.net = mlp([obs_dim] + list(hidden_sizes), activation, activation)
         self.mu_layer = nn.Linear(hidden_sizes[-1], act_dim)
-        self.log_std = nn.Parameter(torch.ones(act_dim) *(-3), requires_grad=True)
+        self.log_std_layer = nn.Parameter(torch.ones(act_dim) *(-3), requires_grad=True)
         self.act_limit = act_limit
 
     
