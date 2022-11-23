@@ -151,6 +151,7 @@ class ModelFreeRunner(BaseRunner):
                     )
                 else:
                     #obs_encoded_new, reward, done, info = env.step(action_obj.action)
+                    env.render()
                     obs_encoded_new, reward, done, terminated, info = env.step(action_obj.action)
                     obs_encoded_new = torch.Tensor(obs_encoded_new)
                     obs_encoded_new.to(DEVICE)
