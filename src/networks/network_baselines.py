@@ -46,8 +46,8 @@ class SquashedGaussianMLPActor(nn.Module):
     
     def forward(self, obs, deterministic=False, with_logprob=True):
         net_out = self.net(obs)
-        mu = self.mu_layer(net_out)
-        mu = nn.Sequential(mu, nn.Hardtanh(min_val=-2.0, max_val=2.0))
+        mu_layer = nn.Sequential(self.mu_layer, nn.Hardtanh(min_val=-2.0, max_val=2.0))
+        mu = mu_layer(net_out)
         log_std = self.log_std_layer(net_out)
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         std = torch.exp(log_std)
