@@ -82,7 +82,7 @@ class SACAgent(BaseAgent):
         self.action_space = Box(-1, 1, (4,))
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
-
+        self.target_entropy = -np.prod(self.action_space.shape).astype(np.float32)
         self.actor_critic = create_configurable(
             actor_critic_cfg, NameToSourcePath.network
         )
@@ -146,42 +146,42 @@ class SACAgent(BaseAgent):
     def save_model(self, path):
         torch.save(self.actor_critic.state_dict(), path)
 
-    def compute_loss_q(self, data):
+    # def compute_loss_q(self, data):
 
-        """Set up function for computing SAC Q-losses."""
-        o, a, r, o2, d = (
-            data["obs"],
-            data["act"],
-            data["rew"],
-            data["obs2"],
-            data["done"],
-        )
+    #     """Set up function for computing SAC Q-losses."""
+    #     o, a, r, o2, d = (
+    #         data["obs"],
+    #         data["act"],
+    #         data["rew"],
+    #         data["obs2"],
+    #         data["done"],
+    #     )
 
-        q1 = self.actor_critic.q1(o, a)
-        q2 = self.actor_critic.q2(o, a)
+    #     q1 = self.actor_critic.q1(o, a)
+    #     q2 = self.actor_critic.q2(o, a)
 
-        # Bellman backup for Q functions
-        with torch.no_grad():
-            # Target actions come from *current* policy
-            a2, logp_a2 = self.actor_critic.pi(o2)
+    #     # Bellman backup for Q functions
+    #     with torch.no_grad():
+    #         # Target actions come from *current* policy
+    #         a2, logp_a2 = self.actor_critic.pi(o2)
 
-            # Target Q-values
-            q1_pi_targ = self.actor_critic_target.q1(o2, a2)
-            q2_pi_targ = self.actor_critic_target.q2(o2, a2)
-            q_pi_targ = torch.min(q1_pi_targ, q2_pi_targ)
-            backup = r + self.gamma * (1 - d) * (q_pi_targ - self.alpha * logp_a2)
+    #         # Target Q-values
+    #         q1_pi_targ = self.actor_critic_target.q1(o2, a2)
+    #         q2_pi_targ = self.actor_critic_target.q2(o2, a2)
+    #         q_pi_targ = torch.min(q1_pi_targ, q2_pi_targ)
+    #         backup = r + self.gamma * (1 - d) * (q_pi_targ - self.alpha * logp_a2)
 
-        # MSE loss against Bellman backup
-        loss_q1 = ((q1 - backup) ** 2).mean()
-        loss_q2 = ((q2 - backup) ** 2).mean()
-        loss_q = loss_q1 + loss_q2
+    #     # MSE loss against Bellman backup
+    #     loss_q1 = ((q1 - backup) ** 2).mean()
+    #     loss_q2 = ((q2 - backup) ** 2).mean()
+    #     loss_q = loss_q1 + loss_q2
 
-        # Useful info for logging
-        q_info = dict(
-            Q1Vals=q1.detach().cpu().numpy(), Q2Vals=q2.detach().cpu().numpy()
-        )
+    #     # Useful info for logging
+    #     q_info = dict(
+    #         Q1Vals=q1.detach().cpu().numpy(), Q2Vals=q2.detach().cpu().numpy()
+    #     )
 
-        return loss_q, q_info
+    #     return loss_q, q_info
 
     
     def compute_loss_pi(self, data):
@@ -200,26 +200,46 @@ class SACAgent(BaseAgent):
 
         return loss_pi, pi_info
 
-    def compute_loss_ent(self, data):
-        """Set up function for computing temperature loss."""
-        o = data["obs"]
+    #def compute_loss_ent(self, data):
+    #    """Set up function for computing temperature loss."""
+    #    o = data["obs"]
+    #    pi, logp_pi = self.actor_critic.pi(o)
+    #    self.alpha = torch.exp(self.log_ent_coef.detach())
+    #    ent_coef_loss = -(self.log_ent_coef * (logp_pi + self.target_entropy).detach()).mean()
+    #    return ent_coef_loss
+    
+    def update(self, data):
+        
+        o, a, r, o2, d = (
+            data["obs"],
+            data["act"],
+            data["rew"],
+            data["obs2"],
+            data["done"],
+        )
+
         pi, logp_pi = self.actor_critic.pi(o)
         self.alpha = torch.exp(self.log_ent_coef.detach())
         ent_coef_loss = -(self.log_ent_coef * (logp_pi + self.target_entropy).detach()).mean()
-        return ent_coef_loss
-    
-    def update(self, data):
 
         self.ent_coef_optimizer.zero_grad()
-        loss_ent = self.compute_loss_ent(data)
-        loss_ent.backward()
+        ent_coef_loss.backward()
         self.ent_coef_optimizer.step()
 
+        with torch.no_grad():
+            q1_pi_targ = self.actor_critic_target.q1(o2, pi)
+            q2_pi_targ = self.actor_critic_target.q2(o2, pi)
+            q_pi_targ = torch.min(q1_pi_targ, q2_pi_targ)
+            backup = r + self.gamma * (1 - d) * (q_pi_targ - self.alpha * logp_pi)
 
+        q1 = self.actor_critic.q1(o, a)
+        q2 = self.actor_critic.q2(o, a)
+        loss_q1 = ((q1 - backup) ** 2).mean()
+        loss_q2 = ((q2 - backup) ** 2).mean()
+        loss_q = loss_q1 + loss_q2
 
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
-        loss_q, q_info = self.compute_loss_q(data)
         loss_q.backward()
         self.q_optimizer.step()
 
@@ -228,9 +248,15 @@ class SACAgent(BaseAgent):
         for p in self.q_params:
             p.requires_grad = False
 
+        q1_pi = self.actor_critic.q1(o, pi)
+        q2_pi = self.actor_critic.q2(o, pi)
+        q_pi = torch.min(q1_pi, q2_pi)
+
+        # Entropy-regularized policy loss
+        loss_pi = (self.alpha * logp_pi - q_pi).mean()
+
         # Next run one gradient descent step for pi.
         self.pi_optimizer.zero_grad()
-        loss_pi, pi_info = self.compute_loss_pi(data)
         loss_pi.backward()
         self.pi_optimizer.step()
 
@@ -248,7 +274,7 @@ class SACAgent(BaseAgent):
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
         
-        return [loss_q.item(), loss_pi.item(), loss_ent.item()]
+        return [loss_q.item(), loss_pi.item(), ent_coef_loss.item()]
 
     def update_best_pct_complete(self, info):
         if self.best_pct < info["metrics"]["pct_complete"]:

@@ -40,13 +40,14 @@ class SquashedGaussianMLPActor(nn.Module):
         super().__init__()
         self.net = mlp([obs_dim] + list(hidden_sizes), activation, activation)
         self.mu_layer = nn.Linear(hidden_sizes[-1], act_dim)
-        self.log_std_layer = nn.Linear(hidden_sizes[-1], act_dim)
+        self.log_std = nn.Parameter(torch.ones(act_dim) *(-3), requires_grad=True)
         self.act_limit = act_limit
 
     
     def forward(self, obs, deterministic=False, with_logprob=True):
         net_out = self.net(obs)
         mu = self.mu_layer(net_out)
+        mu = nn.Sequential(mu, nn.Hardtanh(min_val=-2.0, max_val=2.0))
         log_std = self.log_std_layer(net_out)
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         std = torch.exp(log_std)
@@ -70,6 +71,8 @@ class SquashedGaussianMLPActor(nn.Module):
             #logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
             #    axis=1
             #)
+
+
             var = std**2
             log_scale = torch.log(std)
             # Attempt at speeding up logprob calculation. torch uses math, which seems to be slow.
