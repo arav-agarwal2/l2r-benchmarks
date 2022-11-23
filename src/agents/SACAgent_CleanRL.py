@@ -108,7 +108,7 @@ class CleanSACAgent(BaseAgent):
         gamma: float = 0.99,
         tau: float = 0.005,
         tnf: int = 1,
-        pf: int = 1,
+        pf: int = 2,
         sample_randomly: int = 5000
     ):
         super(CleanSACAgent, self).__init__()

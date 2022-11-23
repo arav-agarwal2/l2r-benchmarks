@@ -179,13 +179,12 @@ class ModelFreeRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         metrics = self.agent.update(data=batch)
                         metric_total.append(np.asarray(metrics))
-                if t % self.eval_every == 0:
-                    #self.file_logger.log(f"Episode Number before eval: {ep_number}")
-                    #eval_ret = self.eval(env)
-                    eval_ret = 0.0
-                    #self.file_logger.log(f"Episode Number after eval: {ep_number}")
-                    if eval_ret > self.best_eval_ret:
-                        self.best_eval_ret = eval_ret
+            if ep_number % self.eval_every == 0:
+                self.file_logger.log(f"Episode Number before eval: {ep_number}")
+                eval_ret = self.eval(env)
+                self.file_logger.log(f"Episode Number after eval: {ep_number}, {eval_ret}")
+                if eval_ret > self.best_eval_ret:
+                    self.best_eval_ret = eval_ret
 
             if self.wandb_logger:
                 self.wandb_logger.log(
@@ -222,121 +221,33 @@ class ModelFreeRunner(BaseRunner):
     def eval(self, env):
         print("Evaluation:")
         val_ep_rets = []
+        ep_ret = 0
+        total_reward = 0
+        info = None
+        metric_total = []
+        done = False
+        t = 0
+        obs_encoded, info = env.reset()
+        #print(obs_encoded)
+        obs_encoded = torch.Tensor(obs_encoded)
+        obs_encoded = obs_encoded.to(DEVICE)
+        while not done:
+            t += 1
+            self.agent.deterministic = True
+            action_obj = ActionSample()
+            action_obj.action = self.agent.actor.get_action(obs_encoded)[2].detach().cpu().numpy().flatten()
+           
+            #obs_encoded_new, reward, done, info = env.step(action_obj.action)
+            obs_encoded_new, reward, done, terminated, info = env.step(action_obj.action)
+            obs_encoded_new = torch.Tensor(obs_encoded_new)
+            obs_encoded_new = obs_encoded_new.to(DEVICE)
+            done = done or terminated
+            ep_ret += reward
 
-        # Not implemented for logging multiple test episodes
-        # assert self.cfg["num_test_episodes"] == 1
+            obs_encoded = obs_encoded_new
+        return ep_ret
 
-        for j in range(self.num_test_episodes):
 
-            if self.env_wrapped:
-                eval_obs_encoded = self.env_wrapped.reset()
-            else:
-                eval_obs_encoded = env.reset()
-
-            eval_done, eval_ep_ret, eval_ep_len, eval_n_val_steps, self.metadata = (
-                False,
-                0,
-                0,
-                0,
-                {},
-            )
-            experience, t_eval = [], 0
-
-            while (not eval_done) & (eval_ep_len <= self.max_episode_length):
-                # Take deterministic actions at test time
-                self.agent.deterministic = True
-                self.t = 1e6
-                eval_action_obj = self.agent.select_action(
-                    eval_obs_encoded, encode=False
-                )
-                if self.env_wrapped:
-                    (
-                        eval_obs_encoded_new,
-                        eval_reward,
-                        eval_done,
-                        eval_info,
-                    ) = self.env_wrapped.step(eval_action_obj.action)
-                else:
-                    eval_obs_encoded_new, eval_reward, eval_done, eval_info = env.step(
-                        eval_action_obj.action
-                    )
-
-                # Check that the camera is turned on
-                eval_ep_ret += eval_reward
-                eval_ep_len += 1
-                eval_n_val_steps += 1
-
-                # TODO Add the below comment's functionality to the eval loop. The below parts allows for restarts.
-                """                 # Prevent the agent from being stuck
-                if np.allclose(
-                    state2[15:16], state[15:16], atol=self.agent.atol, rtol=0
-                ):
-                    # self.file_logger.log("Sampling random action to get unstuck")
-                    a = self.agent.action_space.sample()
-                    # Step the env
-                    camera2, features2, state2, r, d, info = self.env.step(a)
-                    camera2 = self.encoder.encode(camera)
-                    ep_len += 1
-                """
-
-                """
-                if self.exp_config["record_experience"]:
-                    recording = self.agent.add_experience(
-                        action=a,
-                        camera=camera,
-                        next_camera=camera2,
-                        done=d,
-                        env=env,
-                        feature=features,
-                        next_feature=features2,
-                        info=info,
-                        state=state,
-                        next_state=state2,
-                        step=t,
-                    )
-                    experience.append(recording)
-                """
-                eval_obs_encoded = eval_obs_encoded_new
-                t_eval += 1
-
-            self.file_logger.log(f"[eval episode] Episode: {j} - {eval_info}")
-
-            val_ep_rets.append(eval_ep_ret)
-            self.tb_logger_obj.log_val_metrics(
-                eval_info, eval_ep_ret, eval_ep_len, eval_n_val_steps, self.metadata
-            )
-            if self.wandb_logger:
-                self.wandb_logger.eval_log(
-                    (
-                        eval_ep_ret
-                    )
-                )
-                #        eval_info["metrics"]["total_distance"],
-                #        eval_info["metrics"]["total_time"],
-                #        eval_info["metrics"]["num_infractions"],
-                #        eval_info["metrics"]["average_speed_kph"],
-                #        eval_info["metrics"]["average_displacement_error"],
-                #        eval_info["metrics"]["trajectory_efficiency"],
-                #        eval_info["metrics"]["trajectory_admissibility"],
-                #        eval_info["metrics"]["movement_smoothness"],
-                #        eval_info["metrics"]["timestep/sec"],
-                #        eval_info["metrics"]["laps_completed"],
-                #    )
-                #)
-
-            """            # Quickly dump recently-completed episode's experience to the multithread queue,
-            # as long as the episode resulted in "success"
-            if self.exp_config[
-                "record_experience"
-            ]:  # and self.metadata['info']['success']:
-                self.file_logger.log("writing experience")
-                self.agent.save_queue.put(experience)
-
-            """
-            # TODO: add back - info no longer contains "pct_complete"
-
-            # self.agent.update_best_pct_complete(info)
-        return max(val_ep_rets)
 
     def checkpoint_model(self, ep_ret, ep_number):
         # Save every N episodes or when the current episode return is better than the best return
