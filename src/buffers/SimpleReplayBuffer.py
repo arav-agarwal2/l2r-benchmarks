@@ -62,7 +62,6 @@ class SimpleReplayBuffer:
         return len(self.buffer)
 
     def sample_batch(self):
-
         idxs = np.random.choice(
             len(self.buffer), size=min(self.batch_size, len(self.buffer)), replace=False
         )

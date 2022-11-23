@@ -151,7 +151,6 @@ class ModelFreeRunner(BaseRunner):
                     )
                 else:
                     #obs_encoded_new, reward, done, info = env.step(action_obj.action)
-                    env.render()
                     obs_encoded_new, reward, done, terminated, info = env.step(action_obj.action)
                     obs_encoded_new = torch.Tensor(obs_encoded_new)
                     obs_encoded_new.to(DEVICE)
@@ -162,7 +161,7 @@ class ModelFreeRunner(BaseRunner):
                     {
                         "obs": obs_encoded,
                         "act": action_obj,
-                        "rew": reward,
+                        "rew": reward*0.1,
                         "next_obs": obs_encoded_new,
                         "done": done,
                     }
@@ -173,10 +172,10 @@ class ModelFreeRunner(BaseRunner):
                 obs_encoded = obs_encoded_new
 
 
-                if (t >= self.exp_config["update_after"]) and (
-                    t % self.exp_config["update_every"] == 0
+                if (t >= self.update_model_after) and (
+                    t % self.update_model_every == 0
                 ):
-                    for _ in range(self.exp_config["update_every"]):
+                    for _ in range(self.update_model_every):
                         batch = self.replay_buffer.sample_batch()
                         metrics = self.agent.update(data=batch)
                         metric_total.append(np.asarray(metrics))
@@ -215,8 +214,9 @@ class ModelFreeRunner(BaseRunner):
             self.file_logger.log(
                 f"Episode {ep_number}: Current return: {ep_ret}, Previous best return: {self.best_ret}"
             )
-            metric_total = np.stack(metric_total, axis=0).mean(axis=0)
-            print(metric_total)
+            #if len(metric_total) > 0:
+            #    metric_total = np.stack(metric_total, axis=0).mean(axis=0)
+            #    print(metric_total)
             self.checkpoint_model(ep_ret, ep_number)
 
     def eval(self, env):
@@ -267,7 +267,7 @@ class ModelFreeRunner(BaseRunner):
                 eval_n_val_steps += 1
 
                 # TODO Add the below comment's functionality to the eval loop. The below parts allows for restarts.
-                """                 # Prevent the agent from being stuck 
+                """                 # Prevent the agent from being stuck
                 if np.allclose(
                     state2[15:16], state[15:16], atol=self.agent.atol, rtol=0
                 ):
