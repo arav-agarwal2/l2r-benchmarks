@@ -208,7 +208,7 @@ class ModelFreeRunner(BaseRunner):
             info = {'metrics':{}}
             info["metrics"]["reward"] = ep_ret
             #print(info["metrics"])
-
+            print(self.agent.record["transition_actor"])
             #self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             #self.file_logger.log(f"info: {info}")
             self.file_logger.log(
