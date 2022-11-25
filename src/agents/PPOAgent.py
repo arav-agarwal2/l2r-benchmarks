@@ -13,7 +13,6 @@ from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
 
-
 @yamlize
 class PPOAgent(BaseAgent):
     def __init__(
@@ -84,6 +83,7 @@ class PPOAgent(BaseAgent):
             # TODO: add default value after getting value shape
             v = np.ones((1,))
             action_obj.action = a
+            action_obj.value = v
             action_obj.logp = logp
             self.record["transition_actor"] = "random"
         self.t = self.t + 1

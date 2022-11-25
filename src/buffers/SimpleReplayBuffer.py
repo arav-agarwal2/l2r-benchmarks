@@ -3,8 +3,7 @@ import numpy as np
 from typing import Tuple
 
 from src.config.yamlize import yamlize
-
-DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
+from src.constants import DEVICE
 
 
 @yamlize
