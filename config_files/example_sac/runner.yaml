@@ -1,6 +1,5 @@
 name: ModelFreeRunner
 config:
-  exp_config_path: "config_files/example_sac/experiment.yaml"
   agent_config_path: "config_files/example_sac/agent.yaml"
   buffer_config_path: "config_files/example_sac/buffer.yaml"
   encoder_config_path: "config_files/example_sac/encoder.yaml"
