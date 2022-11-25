@@ -1,8 +1,5 @@
 import itertools
-from multiprocessing.sharedctypes import Value
-import queue, threading
 from copy import deepcopy
-from src.loggers.FileLogger import FileLogger
 
 import torch
 import numpy as np
@@ -11,16 +8,10 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic, CriticType, PPOMLPActorCritic
-from src.encoders.vae import VAE
-from src.utils.utils import ActionSample, RecordExperience
+from src.deprecated.network import PPOMLPActorCritic
+from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
-
-from src.config.parser import read_config
-from src.config.schema import agent_schema
-
-from src.utils.envwrapper import EnvContainer
 
 
 @yamlize
@@ -28,48 +19,26 @@ class PPOAgent(BaseAgent):
     def __init__(
         self,
         steps_to_sample_randomly: int,
-        record_dir: str,
-        track_name: str,
-        experiment_name: str,
         gamma: float,
-        alpha: float,
-        polyak: float,
-        make_random_actions: bool,
-        checkpoint: str,
-        load_checkpoint: bool,
-        model_save_path: str,
         lr: float,
         clip_ratio: float,
+        load_checkpoint_from: str = '',
+        train_pi_iters: int = 80,
+        train_v_iters: int = 80,
+        target_kl: float = 0.01
     ):
         super(PPOAgent, self).__init__()
         self.steps_to_sample_randomly = steps_to_sample_randomly
-        self.record_dir = record_dir
-        self.track_name = track_name
-        self.experiment_name = experiment_name
         self.gamma = gamma
-        self.alpha = alpha
-        self.polyak = polyak
-        self.make_random_actions = make_random_actions
-        self.checkpoint = checkpoint
-        self.load_checkpoint = load_checkpoint
-        self.model_save_path = model_save_path
+        self.load_checkpoint_from = load_checkpoint_from
         self.lr = lr
         self.clip_ratio = clip_ratio
 
-        self.save_episodes = True
-        self.episode_num = 0
-        self.best_ret = 0
         self.t = 0
-        self.deterministic = False
-        self.atol = 1e-3
-        self.store_from_safe = False
-        self.pi_scheduler = None
-        self.t_start = 0
-        self.best_pct = 0
-        self.train_pi_iters = 80
-        self.train_v_iters = 80
+        self.deterministic = False # TODO: Fix.
+        self.train_pi_iters = train_pi_iters
+        self.train_v_iters = train_v_iters
 
-        self.metadata = {}
         self.record = {"transition_actor": ""}
 
         self.action_space = Box(-1, 1, (2,))
@@ -84,10 +53,10 @@ class PPOAgent(BaseAgent):
             device=DEVICE,
         )
 
-        self.target_kl = 0.01
+        self.target_kl = target_kl
 
-        if self.checkpoint and self.load_checkpoint:
-            self.load_model(self.checkpoint)
+        if self.load_checkpoint_from != '':
+            self.load_model(self.load_checkpoint_from)
 
         self.actor_critic_target = deepcopy(self.actor_critic)
 
@@ -104,7 +73,6 @@ class PPOAgent(BaseAgent):
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a, v, logp = self.actor_critic.step(obs.to(DEVICE))
-            a = a  # numpy array...
             action_obj.action = a
             action_obj.value = v
             action_obj.logp = logp

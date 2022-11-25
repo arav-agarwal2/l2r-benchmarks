@@ -6,6 +6,12 @@ from datetime import datetime
 
 class FileLogger(BaseLogger):
     def __init__(self, log_dir: str, experiment_name: str) -> None:
+        """Create file logger using Python's default logging mechanism.
+
+        Args:
+            log_dir (str): Log directory
+            experiment_name (str): Name of the experiment in question.
+        """
         super().__init__(log_dir, experiment_name)
         now = datetime.now()
         self.log_dir = log_dir
