@@ -44,7 +44,6 @@ class SACAgent(BaseAgent):
         self.load_checkpoint_from = load_checkpoint_from
         self.lr = lr
 
-        
         self.t = 0
         self.deterministic = False
 
