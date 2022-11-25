@@ -14,8 +14,7 @@ from gym.spaces import Box
 from torch.optim import Adam
 
 from src.agents.base import BaseAgent
-from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic, CriticType
+from src.config.yamlize import yamlize, create_configurable, NameToSourcePath
 from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
@@ -32,6 +31,7 @@ class SACAgent(BaseAgent):
         alpha: float,
         polyak: float,
         lr: float,
+        actor_critic_cfg_path: str,
         load_checkpoint_from: str = '',
     ):
         
@@ -54,19 +54,14 @@ class SACAgent(BaseAgent):
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
-        self.actor_critic = ActorCritic(
-            self.obs_dim,
-            self.action_space,
-            None,
-            latent_dims=self.obs_dim,
-            device=DEVICE,
-            critic_type=CriticType.Q,
+        self.actor_critic = create_configurable(
+            actor_critic_cfg_path, NameToSourcePath.network
         )
+        self.actor_critic.to(DEVICE)
+        self.actor_critic_target = deepcopy(self.actor_critic)
 
         if self.load_checkpoint_from != '':
             self.load_model(self.load_checkpoint_from)
-
-        self.actor_critic_target = deepcopy(self.actor_critic)
 
         self.q_params = itertools.chain(
             self.actor_critic.q1.parameters(), self.actor_critic.q2.parameters()
