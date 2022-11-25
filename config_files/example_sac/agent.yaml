@@ -11,5 +11,3 @@ config:
   load_checkpoint: False
   model_save_path: '/mnt'
   record_dir: '/mnt'
-  experiment_name: 'pixiethecat'
-  track_name: 'Thruxton'
