@@ -127,6 +127,7 @@ class CleanSACAgent(BaseAgent, nn.Module):
         self.steps_to_sample_randomly = sample_randomly
         self.autotune = autotune
         self.load_checkpoint = False
+        self.deterministic = False
         self.model_save_path = './'
         self.gamma = gamma
         self.tau = tau
@@ -146,7 +147,7 @@ class CleanSACAgent(BaseAgent, nn.Module):
     def select_action(self, obs) -> np.array:
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
-            a = self.actor.get_action(obs.to(DEVICE))[0]
+            a = self.actor.get_action(obs.to(DEVICE))[0 if not self.deterministic else 2]
             action_obj.action = a.detach().cpu().numpy()
             #print(action_obj.action)
             self.record["transition_actor"] = "learner"
