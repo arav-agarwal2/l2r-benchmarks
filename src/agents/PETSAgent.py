@@ -10,16 +10,10 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import create_configurable, yamlize
-from src.deprecated.network import ActorCritic, CriticType
-from src.encoders.vae import VAE
-from src.planners.RandomPlanner import RandomPlanner
 from src.planners.CEMPlanner import CEMPlanner
-from src.utils.utils import ActionSample, RecordExperience
+from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
-
-from src.config.parser import read_config
-from src.config.schema import agent_schema
 
 from src.utils.envwrapper import EnvContainer
 
