@@ -45,6 +45,7 @@ class PPOAgent(BaseAgent):
         self.actor_critic = create_configurable(
             actor_critic_cfg_path, NameToSourcePath.network
         )
+        self.actor_critic.to(DEVICE)
 
         self.target_kl = target_kl
 
