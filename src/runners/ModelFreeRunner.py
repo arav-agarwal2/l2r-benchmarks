@@ -36,6 +36,7 @@ class ModelFreeRunner(BaseRunner):
         update_model_every: int,
         eval_every: int,
         max_episode_length: int,
+        resume_training: bool = False,
         use_container: bool = True,
     ):
         """Generalized runner for single-process RL. Takes in encoded observations, applies them to a buffer, and trains.
@@ -71,6 +72,7 @@ class ModelFreeRunner(BaseRunner):
         self.max_episode_length = max_episode_length
         self.experiment_name = experiment_name
         self.experiment_state_path = experiment_state_path
+        self.resume_training = resume_training
 
 
         if not self.experiment_state_path.endswith(".json"):
@@ -96,7 +98,7 @@ class ModelFreeRunner(BaseRunner):
         self.encoder.to(DEVICE)
 
         ## BUFFER Declaration
-        if not self.agent.load_checkpoint:
+        if not self.resume_training:
             self.replay_buffer = create_configurable(
                 buffer_config_path, NameToSourcePath.buffer
             )
