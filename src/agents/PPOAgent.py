@@ -23,7 +23,8 @@ class PPOAgent(BaseAgent):
         load_checkpoint_from: str = '',
         train_pi_iters: int = 80,
         train_v_iters: int = 80,
-        target_kl: float = 0.01
+        target_kl: float = 0.01,
+        actor_critic_cfg_path: str = ''
     ):
         super(PPOAgent, self).__init__()
         self.steps_to_sample_randomly = steps_to_sample_randomly
@@ -42,12 +43,8 @@ class PPOAgent(BaseAgent):
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
-        self.actor_critic = PPOMLPActorCritic(
-            self.obs_dim,
-            self.action_space,
-            None,
-            latent_dims=self.obs_dim,
-            device=DEVICE,
+        self.actor_critic = create_configurable(
+            actor_critic_cfg_path, NameToSourcePath.network
         )
 
         self.target_kl = target_kl
@@ -69,9 +66,9 @@ class PPOAgent(BaseAgent):
     def select_action(self, obs) -> np.array:
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
-            a, v, logp = self.actor_critic.step(obs.to(DEVICE))
+            a, logp = self.actor_critic.pi(obs.to(DEVICE))
             action_obj.action = a
-            action_obj.value = v
+            action_obj.value = self.actor_critic.v(obs.to(DEVICE))
             action_obj.logp = logp
             self.record["transition_actor"] = "learner"
         else:
