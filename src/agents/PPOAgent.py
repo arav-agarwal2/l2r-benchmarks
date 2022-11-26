@@ -18,7 +18,6 @@ class PPOAgent(BaseAgent):
     def __init__(
         self,
         steps_to_sample_randomly: int,
-        gamma: float,
         lr: float,
         clip_ratio: float,
         load_checkpoint_from: str = '',
@@ -28,7 +27,6 @@ class PPOAgent(BaseAgent):
     ):
         super(PPOAgent, self).__init__()
         self.steps_to_sample_randomly = steps_to_sample_randomly
-        self.gamma = gamma
         self.load_checkpoint_from = load_checkpoint_from
         self.lr = lr
         self.clip_ratio = clip_ratio
