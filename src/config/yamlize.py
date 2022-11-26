@@ -1,6 +1,6 @@
 """New auto-config system, to make easy configuration management."""
 try:
-    from typing import get_type_hints, TypedDict
+    from typing import get_type_hints, TypedDict, get_origin, get_args
 except ImportError:
     from typing_extensions import get_type_hints, TypedDict
 import inspect
@@ -8,7 +8,6 @@ import strictyaml as sl
 import yaml
 from enum import Enum
 import importlib
-import typing as tp
 
 
 def yamlize(configurable_class):
@@ -31,13 +30,13 @@ def yamlize(configurable_class):
             sl.validator: strictyaml validator for YAML checking.
         """
 
-        type_container = tp.get_origin(val)
+        type_container = get_origin(val)
         if type_container == tuple:
-            args = tp.get_args(val)
+            args = get_args(val)
             arg_list = [convert_type_to_strictyaml(arg) for arg in args]
             return sl.FixedSeq(arg_list)
         elif type_container == list:
-            args = tp.get_args(val)
+            args = get_args(val)
             arg_list = [convert_type_to_strictyaml(arg) for arg in args]
             return sl.Seq(arg_list[0])
         elif type_container is not None:
