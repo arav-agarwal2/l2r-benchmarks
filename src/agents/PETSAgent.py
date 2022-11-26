@@ -29,6 +29,7 @@ class PETSAgent(BaseAgent):
     def __init__(self, network_config_path: str, n_ensembles: int = 7, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = False):
         super().__init__()
         self.model = DynamicsNetwork.instantiate_from_config(network_config_path)
+        self.model.to(DEVICE)
         self.model_save_path = model_save_path
         self.load_checkpoint = load_checkpoint
         self.deterministic = deterministic
