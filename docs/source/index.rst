@@ -10,35 +10,12 @@ Welcome to l2r-benchmarks's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-* :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
+* :doc:`Agents <./src.agents.rst>`
+* :doc:`Buffers <./src.buffers.rst>`
+* :doc:`Config <./src.config.rst>`
+* :doc:`Encoders <./src.encoders.rst>`
+* :doc:`Loggers <./src.loggers.rst>`
+* :doc:`Networks <./src.networks.rst>`
+* :doc:`Runners <./src.runners.rst>`
 
-
-Agents
-==================
-* :doc:`src.agents.rst`
-
-Buffers
-==================
-* :doc:`src.buffers.rst`
-
-Config
-==================
-* :doc:`src.config.rst`
-
-Encoders
-==================
-* :doc:`src.encoders.rst`
-
-Loggers
-==================
-* :doc:`src.loggers.rst`
-
-Networks
-==================
-* :doc:`src.networks.rst`
-
-Runners
-==================
-* :doc:`src.runners.rst`
