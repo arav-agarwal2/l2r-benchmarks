@@ -112,8 +112,7 @@ class DynamicsNetwork(nn.Module):
     
 
     def predict(self, states, actions, deterministic=False):
-        inputs = torch.cat((states, actions), axis=-1).cpu()
-        inputs = torch.from_numpy(inputs.numpy()).float().to(DEVICE)
+        inputs = torch.cat((states, actions), axis=-1).float().to(DEVICE)
         inputs = inputs[None, :, :].repeat(self.ensemble_size, 1, 1)
         with torch.no_grad():
             mus, var = self(inputs)
@@ -126,6 +125,7 @@ class DynamicsNetwork(nn.Module):
         mus[:, :, :-1] += states.to(DEVICE)
         mus = mus.mean(0)
         std = torch.sqrt(var).mean(0)
+        print(std, mus)
 
         if not deterministic:
             predictions = torch.normal(mean=mus, std=std)
