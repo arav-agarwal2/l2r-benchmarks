@@ -5,12 +5,25 @@ from src.constants import DEVICE
 
 
 class EnvContainer:
-    """Container for L2R Environment."""
+    """Container for the pip-installed L2R Environment."""
 
     def __init__(self, encoder=None):
+        """Initialize container around encoder object
+
+        Args:
+            encoder (nn.Module, optional): Encoder object to encoder inputs. Defaults to None.
+        """
         self.encoder = encoder
 
     def _process_obs(self, obs: dict):
+        """Process observation using encoder
+
+        Args:
+            obs (dict): Observation as a dict.
+
+        Returns:
+            torch.Tensor: encoded image.
+        """
         obs_camera = obs["images"]["CameraFrontRGB"]
         obs_encoded = self.encoder.encode(obs_camera).to(DEVICE)
         speed = (
@@ -22,20 +35,31 @@ class EnvContainer:
         return torch.cat((obs_encoded, speed), 1).to(DEVICE)
 
     def step(self, action, env=None):
+        """Step env.
+
+        Args:
+            action (np.array): Action to apply
+            env (gym.env, optional): Environment to step upon. Defaults to None.
+
+        Returns:
+            tuple: Tuple of next_obs, reward, done, info
+        """
         if env:
             self.env = env
         obs, reward, done, info = self.env.step(action)
         return self._process_obs(obs), reward, done, info
 
     def reset(self, random_pos=False, env=None):
+        """Reset env.
+
+        Args:
+            random_pos (bool, optional): Whether to reset to a random position ( might not exist in current iteration ). Defaults to False.
+            env (gym.env, optional): Environment to step upon. Defaults to None.
+
+        Returns:
+            next_obs: Encoded next observation.
+        """
         if env:
             self.env = env
         obs = self.env.reset(random_pos=random_pos)
         return self._process_obs(obs)
-
-    def reset_episode(self, t):
-        camera, feat, state, _, _ = self.reset(random_pos=True)
-        ep_ret, ep_len, experience = 0, 0, []
-        t_start = t + 1
-        camera, feat, _, _, _, _ = self.step([0, 1])
-        return camera, ep_len, ep_ret, experience, feat, state, t_start
