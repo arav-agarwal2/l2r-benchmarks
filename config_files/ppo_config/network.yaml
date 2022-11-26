@@ -1,0 +1,12 @@
+name:
+  ActorCritic
+config:
+  activation: ReLU
+  critic_cfg:
+    name:
+      Vfunction
+    config:
+      use_speed:
+        True
+  use_speed:
+    True
