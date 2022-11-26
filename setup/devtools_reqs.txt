@@ -8,5 +8,9 @@ sphinx
 sphinx-rtd-theme
 torch
 strictyaml
-python-opencv
+opencv-python
 matplotlib
+gym
+tqdm
+wandb
+typing-extensions
