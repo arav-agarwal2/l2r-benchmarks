@@ -5,6 +5,3 @@ config:
   clip_ratio: 0.2
   steps_to_sample_randomly: 1000 # start_steps
   load_checkpoint_from: ''
-  model_save_path: '/mnt'
-  record_dir: '/mnt'
-  track_name: 'Thruxton'
