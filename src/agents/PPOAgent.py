@@ -66,7 +66,7 @@ class PPOAgent(BaseAgent):
     def select_action(self, obs) -> np.array:
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
-            a, logp = self.actor_critic.pi(obs.to(DEVICE))
+            a, logp = self.actor_critic.pi(obs.to(DEVICE), self.deterministic)
             action_obj.action = a.squeeze().detach().cpu().numpy()
             action_obj.value = self.actor_critic.v(obs.to(DEVICE)).detach().cpu().numpy()
             action_obj.logp = logp.squeeze().detach().cpu().numpy()
