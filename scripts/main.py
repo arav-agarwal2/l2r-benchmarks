@@ -43,7 +43,7 @@ if __name__ == "__main__":
     runner = create_configurable(
         "config_files/example_sac/runner.yaml", NameToSourcePath.runner
     )
-    print('A',runner.experiment_name)
+    
     with open(
         f"{runner.model_save_dir}/{runner.experiment_name}/git_config",
         "w+",
