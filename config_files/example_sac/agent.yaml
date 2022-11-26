@@ -8,6 +8,5 @@ config:
   steps_to_sample_randomly: 1000 # start_steps
   load_checkpoint_from: '/mnt/SAC_VAE/best_SAC_VAE_episode_200.statedict'
   actor_critic_cfg_path: './config_files/async_sac/network.yaml'
-  load_checkpoint: False
   model_save_path: '/mnt'
   record_dir: '/mnt'
