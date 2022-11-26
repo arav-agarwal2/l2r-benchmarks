@@ -1,3 +1,4 @@
+"""Utility functions used throughout the source. Should generally not add here unless it helps significantly."""
 from dataclasses import dataclass
 import os, sys
 import logging, re
