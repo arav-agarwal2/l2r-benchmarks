@@ -12,6 +12,13 @@ Welcome to l2r-benchmarks's documentation!
 
 * :ref:`modindex`
 
+:doc:`Usage Instructions </usage>`
+==================================
+
+:doc:`Contributing Instructions </contributing>`
+================================================
+
+
 
 :doc:`Agents </src.agents>`
 ===========================
