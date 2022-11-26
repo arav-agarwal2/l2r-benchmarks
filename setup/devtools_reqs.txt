@@ -14,3 +14,5 @@ gym
 tqdm
 wandb
 typing-extensions
+scipy
+tensorboardX
