@@ -10,3 +10,6 @@ torch
 strictyaml
 opencv-python
 matplotlib
+gym
+tqdm
+wandb
