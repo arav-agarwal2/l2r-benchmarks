@@ -8,7 +8,6 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize
-from src.networks.critic import PPOMLPActorCritic
 from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
