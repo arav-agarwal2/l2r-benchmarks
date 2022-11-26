@@ -1,3 +1,4 @@
+"""Default Replay Buffer."""
 import torch
 import numpy as np
 from typing import Tuple
@@ -13,6 +14,14 @@ class SimpleReplayBuffer:
     """
 
     def __init__(self, obs_dim: int, act_dim: int, size: int, batch_size: int):
+        """Initialize simple replay buffer
+
+        Args:
+            obs_dim (int): Observation dimension
+            act_dim (int): Action dimension
+            size (int): Buffer size
+            batch_size (int): Batch size
+        """
 
         self.obs_buf = np.zeros(
             (size, obs_dim), dtype=np.float32
@@ -30,9 +39,22 @@ class SimpleReplayBuffer:
         self.weights = None
 
     def store(self, buffer_dict):
+        """Store data from buffer_dict
+
+        Args:
+            buffer_dict (_type_): Buffer dict
+        """
         # pdb.set_trace()
 
         def convert(arraylike):
+            """Convert from tensor to nparray
+
+            Args:
+                arraylike (Torch.Tensor): Tensor to convert
+
+            Returns:
+                np.array: Converted numpyarray
+            """
             obs = arraylike
             if isinstance(obs, torch.Tensor):
                 if obs.requires_grad:
@@ -49,6 +71,11 @@ class SimpleReplayBuffer:
         self.size = min(self.size + 1, self.max_size)
 
     def sample_batch(self):
+        """Sample batch from self.
+
+        Returns:
+            dict: Dictionary of batched information.
+        """
 
         idxs = np.random.choice(
             self.size, size=min(self.batch_size, self.size), replace=False

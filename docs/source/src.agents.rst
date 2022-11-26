@@ -4,6 +4,14 @@ src.agents package
 Submodules
 ----------
 
+src.agents.PPOAgent module
+--------------------------
+
+.. automodule:: src.agents.PPOAgent
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 src.agents.SACAgent module
 --------------------------
 
