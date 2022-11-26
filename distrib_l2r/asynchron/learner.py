@@ -200,9 +200,9 @@ class AsyncLearningNode(ThreadPoolMixIn, socketserver.TCPServer):
         while(True):
             if not self.buffer_queue.empty():
                 semibuffer = self.buffer_queue.get()
-            print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}. {self.buffer_queue.qsize()} buffers remaining")
-            # Add new data to the primary replay buffer
-            self.replay_buffer.store(semibuffer)
+                print(f"Received something {len(semibuffer)} vs {len(self.replay_buffer)}. {self.buffer_queue.qsize()} buffers remaining")
+                # Add new data to the primary replay buffer
+                self.replay_buffer.store(semibuffer)
 
             # Learning steps for the policy
             for _ in range(max(1,min(self.update_steps, len(self.replay_buffer) // self.replay_buffer.batch_size))):
