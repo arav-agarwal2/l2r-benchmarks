@@ -45,7 +45,7 @@ if __name__ == "__main__":
     )
 
     with open(
-        f"{runner.agent.model_save_path}/\
+        f"{runner.model_save_dir}/\
         {runner.exp_config['experiment_name']}/git_config",
         "w+",
     ) as f:
