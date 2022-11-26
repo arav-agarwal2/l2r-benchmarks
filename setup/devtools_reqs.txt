@@ -13,3 +13,4 @@ matplotlib
 gym
 tqdm
 wandb
+typing_extensions
