@@ -2,7 +2,7 @@
 try:
     from typing import get_type_hints, TypedDict, get_origin, get_args
 except ImportError:
-    from typing_extensions import get_type_hints, TypedDict
+    from typing_extensions import get_type_hints, TypedDict, get_origin, get_args
 import inspect
 import strictyaml as sl
 import yaml
