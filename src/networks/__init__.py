@@ -1,1 +1,1 @@
-from .critic import Qfunction, ActorCritic
+from .critic import Qfunction, ActorCritic, Vfunction
