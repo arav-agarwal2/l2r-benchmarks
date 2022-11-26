@@ -7,7 +7,7 @@ from gym.spaces import Box
 from torch.optim import Adam
 
 from src.agents.base import BaseAgent
-from src.config.yamlize import yamlize
+from src.config.yamlize import yamlize, create_configurable, NameToSourcePath
 from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
