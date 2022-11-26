@@ -6,8 +6,6 @@ Source:
 https://github.com/openai/spinningup/blob/master/spinup/algos/pytorch/sac/sac.py
 """
 import itertools
-from multiprocessing.sharedctypes import Value
-import queue, threading
 from copy import deepcopy
 
 import torch
@@ -16,17 +14,10 @@ from gym.spaces import Box
 from torch.optim import Adam
 
 from src.agents.base import BaseAgent
-from src.config.yamlize import yamlize
-from src.deprecated.network import ActorCritic, CriticType
-from src.encoders.vae import VAE
-from src.utils.utils import ActionSample, RecordExperience
+from src.config.yamlize import yamlize, create_configurable, NameToSourcePath
+from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
-
-from src.config.parser import read_config
-from src.config.schema import agent_schema
-
-from src.utils.envwrapper import EnvContainer
 
 
 @yamlize
@@ -36,66 +27,51 @@ class SACAgent(BaseAgent):
     def __init__(
         self,
         steps_to_sample_randomly: int,
-        record_dir: str,
-        track_name: str,
-        experiment_name: str,
         gamma: float,
         alpha: float,
         polyak: float,
-        make_random_actions: bool,
-        checkpoint: str,
-        load_checkpoint: bool,
-        model_save_path: str,
         lr: float,
+        actor_critic_cfg_path: str,
+        load_checkpoint_from: str = "",
     ):
+        """Initialize Soft Actor-Critic Agent
+
+        Args:
+            steps_to_sample_randomly (int): Number of steps to sample randomly
+            gamma (float): Gamma parameter
+            alpha (float): Alpha parameter
+            polyak (float): Polyak parameter coef.
+            lr (float): Learning rate parameter.
+            actor_critic_cfg_path (str): Actor Critic Config Path
+            load_checkpoint_from (str, optional): Load checkpoint from path. If '', then doesn't load anything. Defaults to ''.
+        """
+
         super(SACAgent, self).__init__()
 
         self.steps_to_sample_randomly = steps_to_sample_randomly
-        self.record_dir = record_dir
-        self.track_name = track_name
-        self.experiment_name = experiment_name
         self.gamma = gamma
         self.alpha = alpha
         self.polyak = polyak
-        self.make_random_actions = make_random_actions
-        self.checkpoint = checkpoint
-        self.load_checkpoint = load_checkpoint
-        self.model_save_path = model_save_path
+        self.load_checkpoint_from = load_checkpoint_from
         self.lr = lr
 
-        self.save_episodes = True
-        self.episode_num = 0
-        self.best_ret = 0
         self.t = 0
         self.deterministic = False
-        self.atol = 1e-3
-        self.store_from_safe = False
-        self.pi_scheduler = None
-        self.t_start = 0
-        self.best_pct = 0
 
-        # This is important: it allows child classes (that extend this one) to "push up" information
-        # that this parent class should log
-        self.metadata = {}
-        self.record = {"transition_actor": ""}
+        self.record = {"transition_actor": ""}  # rename
 
         self.action_space = Box(-1, 1, (2,))
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
-        self.actor_critic = ActorCritic(
-            self.obs_dim,
-            self.action_space,
-            None,
-            latent_dims=self.obs_dim,
-            device=DEVICE,
-            critic_type=CriticType.Q,
+        self.actor_critic = create_configurable(
+            actor_critic_cfg_path, NameToSourcePath.network
         )
-
-        if self.checkpoint and self.load_checkpoint:
-            self.load_model(self.checkpoint)
-
+        self.actor_critic.to(DEVICE)
         self.actor_critic_target = deepcopy(self.actor_critic)
+
+        if self.load_checkpoint_from != "":
+            self.load_model(self.load_checkpoint_from)
 
         self.q_params = itertools.chain(
             self.actor_critic.q1.parameters(), self.actor_critic.q2.parameters()
@@ -104,15 +80,25 @@ class SACAgent(BaseAgent):
         # Set up optimizers for policy and q-function
         self.pi_optimizer = Adam(self.actor_critic.policy.parameters(), lr=self.lr)
         self.q_optimizer = Adam(self.q_params, lr=self.lr)
-        self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
-            self.pi_optimizer, 1, gamma=0.5
+        self.pi_scheduler = (
+            torch.optim.lr_scheduler.StepLR(  # TODO: Call some scheduler in runner.
+                self.pi_optimizer, 1, gamma=0.5
+            )
         )
 
         # Freeze target networks with respect to optimizers (only update via polyak averaging)
         for p in self.actor_critic_target.parameters():
             p.requires_grad = False
 
-    def select_action(self, obs, encode=False):
+    def select_action(self, obs):
+        """Select action from obs.
+
+        Args:
+            obs (np.array): Observation to act on.
+
+        Returns:
+            ActionObj: Action object.
+        """
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
@@ -129,35 +115,29 @@ class SACAgent(BaseAgent):
         self.t = self.t + 1
         return action_obj
 
-    def register_reset(self, obs) -> np.array:
+    def register_reset(self, obs):
         """
         Same input/output as select_action, except this method is called at episodal reset.
         """
-        # camera, features, state = obs
-        self.deterministic = True  # TODO: Confirm that this makes sense.
-        self.t = 1e6
+        pass
 
     def load_model(self, path):
+        """Load model from path.
+
+        Args:
+            path (str): Load model from path.
+        """
         self.actor_critic.load_state_dict(torch.load(path))
 
     def save_model(self, path):
+        """Save model to path
+
+        Args:
+            path (str): Save model to path
+        """
         torch.save(self.actor_critic.state_dict(), path)
 
-    def setup_experience_recorder(self, file_logger):
-        self.save_queue = queue.Queue()
-        self.save_batch_size = 256
-        self.record_experience = RecordExperience(
-            self.record_dir,
-            self.track_name,
-            self.experiment_name,
-            file_logger,
-            self,
-        )  ##When called in the runner make sure to add the file logger from the logger object
-        self.save_thread = threading.Thread(target=self.record_experience.save_thread)
-        self.save_thread.start()
-
-    def compute_loss_q(self, data):
-
+    def _compute_loss_q(self, data):
         """Set up function for computing SAC Q-losses."""
         o, a, r, o2, d = (
             data["obs"],
@@ -193,7 +173,7 @@ class SACAgent(BaseAgent):
 
         return loss_q, q_info
 
-    def compute_loss_pi(self, data):
+    def _compute_loss_pi(self, data):
         """Set up function for computing SAC pi loss."""
         o = data["obs"]
         pi, logp_pi = self.actor_critic.pi(o)
@@ -210,9 +190,14 @@ class SACAgent(BaseAgent):
         return loss_pi, pi_info
 
     def update(self, data):
+        """Update SAC Agent given data
+
+        Args:
+            data (dict): Data from ReplayBuffer object.
+        """
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
-        loss_q, q_info = self.compute_loss_q(data)
+        loss_q, _ = self._compute_loss_q(data)
         loss_q.backward()
         self.q_optimizer.step()
 
@@ -223,7 +208,7 @@ class SACAgent(BaseAgent):
 
         # Next run one gradient descent step for pi.
         self.pi_optimizer.zero_grad()
-        loss_pi, pi_info = self.compute_loss_pi(data)
+        loss_pi, _ = self._compute_loss_pi(data)
         loss_pi.backward()
         self.pi_optimizer.step()
 
@@ -240,133 +225,3 @@ class SACAgent(BaseAgent):
                 # params, as opposed to "mul" and "add", which would make new tensors.
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
-
-    def update_best_pct_complete(self, info):
-        if self.best_pct < info["metrics"]["pct_complete"]:
-            for cutoff in [93, 100]:
-                if (self.best_pct < cutoff) & (
-                    info["metrics"]["pct_complete"] >= cutoff
-                ):
-                    self.pi_scheduler.step()
-            self.best_pct = info["metrics"]["pct_complete"]
-
-    def add_experience(
-        self,
-        action,
-        camera,
-        next_camera,
-        done,
-        env,
-        feature,
-        next_feature,
-        info,
-        reward,
-        state,
-        next_state,
-        step,
-    ):
-        self.recording = {
-            "step": step,
-            "nearest_idx": env.nearest_idx,
-            "camera": camera,
-            "feature": feature.detach().cpu().numpy(),
-            "state": state,
-            "action_taken": action,
-            "next_camera": next_camera,
-            "next_feature": next_feature.detach().cpu().numpy(),
-            "next_state": next_state,
-            "reward": reward,
-            "episode": self.episode_num,
-            "stage": "training",
-            "done": done,
-            "transition_actor": self.record["transition_actor"],
-            "metadata": info,
-        }
-        return self.recording
-
-    """def log_val_metrics_to_tensorboard(self, info, ep_ret, n_eps, n_val_steps):
-        self.tb_logger.add_scalar("val/episodic_return", ep_ret, n_eps)
-        self.tb_logger.add_scalar("val/ep_n_steps", n_val_steps, n_eps)
-
-        try:
-            self.tb_logger.add_scalar(
-                "val/ep_pct_complete", info["metrics"]["pct_complete"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_total_time", info["metrics"]["total_time"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_total_distance", info["metrics"]["total_distance"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_avg_speed", info["metrics"]["average_speed_kph"], n_eps
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_avg_disp_err",
-                info["metrics"]["average_displacement_error"],
-                n_eps,
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_traj_efficiency",
-                info["metrics"]["trajectory_efficiency"],
-                n_eps,
-            )
-            self.tb_logger.add_scalar(
-                "val/ep_traj_admissibility",
-                info["metrics"]["trajectory_admissibility"],
-                n_eps,
-            )
-            self.tb_logger.add_scalar(
-                "val/movement_smoothness",
-                info["metrics"]["movement_smoothness"],
-                n_eps,
-            )
-        except:
-            pass
-
-        #Find a better way: requires knowledge of child class API :(
-        if "safety_info" in self.metadata:
-            self.tb_logger.add_scalar(
-                "val/ep_interventions",
-                self.metadata["safety_info"]["ep_interventions"],
-                n_eps,
-            )
-
-    def log_train_metrics_to_tensorboard(self, ep_ret, t, t_start):
-        self.tb_logger.add_scalar("train/episodic_return", ep_ret, self.episode_num)
-        self.tb_logger.add_scalar(
-            "train/ep_total_time",
-            self.metadata["info"]["metrics"]["total_time"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_total_distance",
-            self.metadata["info"]["metrics"]["total_distance"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_avg_speed",
-            self.metadata["info"]["metrics"]["average_speed_kph"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_avg_disp_err",
-            self.metadata["info"]["metrics"]["average_displacement_error"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_traj_efficiency",
-            self.metadata["info"]["metrics"]["trajectory_efficiency"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/ep_traj_admissibility",
-            self.metadata["info"]["metrics"]["trajectory_admissibility"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar(
-            "train/movement_smoothness",
-            self.metadata["info"]["metrics"]["movement_smoothness"],
-            self.episode_num,
-        )
-        self.tb_logger.add_scalar("train/ep_n_steps", t - t_start, self.episode_num)"""
