@@ -18,7 +18,7 @@ if __name__ == "__main__":
         agent=create_configurable(
             "config_files/async_sac_mountaincar/agent.yaml", NameToSourcePath.agent
         ),
-        api_key=sys.argv[2],
+        api_key=sys.argv[1],
     )
     print("Initialized!!.")
     server_thread = threading.Thread(target=learner.serve_forever)
