@@ -336,7 +336,7 @@ class PPOMLPActorCritic(nn.Module):
         )
 
         # build value function
-        self.v = Vfunction(cfg)
+        self.v = Vfunction()
 
         self.to(device)
         self.device = device
