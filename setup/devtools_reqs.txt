@@ -16,3 +16,4 @@ wandb
 typing-extensions
 scipy
 tensorboardX
+jsonpickle
