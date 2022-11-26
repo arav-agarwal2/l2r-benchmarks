@@ -43,7 +43,7 @@ if __name__ == "__main__":
     runner = create_configurable(
         "config_files/ppo_config/runner.yaml", NameToSourcePath.runner
     )
-    
+
     with open(
         f"{runner.model_save_dir}/{runner.experiment_name}/git_config",
         "w+",

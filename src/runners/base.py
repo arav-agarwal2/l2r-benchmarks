@@ -1,3 +1,4 @@
+"""Base Runner. Inherit from here, and respect the protocol."""
 from abc import ABC
 
 

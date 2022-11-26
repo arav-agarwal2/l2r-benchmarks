@@ -30,4 +30,9 @@ class FileLogger(BaseLogger):
         self.log_obj = logging
 
     def log(self, data):
+        """Log data
+
+        Args:
+            data (dict): Data to log.
+        """
         self.log_obj.info(data)

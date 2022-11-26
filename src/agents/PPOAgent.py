@@ -13,19 +13,21 @@ from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
 
+
 @yamlize
 class PPOAgent(BaseAgent):
     """Proximal Policy Optimization Agent"""
+
     def __init__(
         self,
         steps_to_sample_randomly: int,
         lr: float,
         clip_ratio: float,
-        load_checkpoint_from: str = '',
+        load_checkpoint_from: str = "",
         train_pi_iters: int = 80,
         train_v_iters: int = 80,
         target_kl: float = 0.01,
-        actor_critic_cfg_path: str = ''
+        actor_critic_cfg_path: str = "",
     ):
         """Initialize Proximal Policy Optimization Agent
 
@@ -46,7 +48,7 @@ class PPOAgent(BaseAgent):
         self.clip_ratio = clip_ratio
 
         self.t = 0
-        self.deterministic = False # TODO: Fix.
+        self.deterministic = False  # TODO: Fix.
         self.train_pi_iters = train_pi_iters
         self.train_v_iters = train_v_iters
 
@@ -63,7 +65,7 @@ class PPOAgent(BaseAgent):
 
         self.target_kl = target_kl
 
-        if self.load_checkpoint_from != '':
+        if self.load_checkpoint_from != "":
             self.load_model(self.load_checkpoint_from)
 
         self.actor_critic_target = deepcopy(self.actor_critic)
@@ -90,7 +92,9 @@ class PPOAgent(BaseAgent):
         if self.t > self.steps_to_sample_randomly:
             a, logp = self.actor_critic.pi(obs.to(DEVICE), self.deterministic)
             action_obj.action = a.squeeze().detach().cpu().numpy()
-            action_obj.value = self.actor_critic.v(obs.to(DEVICE)).detach().cpu().numpy()
+            action_obj.value = (
+                self.actor_critic.v(obs.to(DEVICE)).detach().cpu().numpy()
+            )
             action_obj.logp = logp.squeeze().detach().cpu().numpy()
             self.record["transition_actor"] = "learner"
         else:

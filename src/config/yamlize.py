@@ -111,6 +111,7 @@ def yamlize(configurable_class):
             return cls(**config_dict)
         except Exception as e:
             import logging
+
             logging.info(config_dict)
             raise ValueError(config_dict) from e
 
@@ -125,6 +126,7 @@ class NameToSourcePath(Enum):
     Args:
         Enum (str): Path to import class from.
     """
+
     buffer = "src.buffers"
     encoder = "src.encoders"
     logger = "src.loggers"
@@ -135,6 +137,7 @@ class NameToSourcePath(Enum):
 
 class ConfigurableDict(TypedDict):
     """Dict specification for nested config files."""
+
     name: str
     config: dict
 

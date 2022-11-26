@@ -1,3 +1,4 @@
+"""Container for the pip-installable L2R environment. As L2R has some slight differences compared to what we expect, this allows us to fit the pieces together."""
 import numpy as np
 import torch
 import itertools

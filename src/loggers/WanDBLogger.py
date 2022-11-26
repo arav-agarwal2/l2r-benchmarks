@@ -1,3 +1,4 @@
+"""Weights and Biases Logging."""
 from src.loggers.base import BaseLogger
 from src.config.yamlize import yamlize
 import logging, re, sys
@@ -6,6 +7,8 @@ from datetime import datetime
 
 
 class WanDBLogger(BaseLogger):
+    """Wandb Logger Wrapper."""
+
     def __init__(self, api_key: str, project_name: str) -> None:
         """Create Weights and Biases Logger
 
@@ -24,4 +27,3 @@ class WanDBLogger(BaseLogger):
             data (dict): Dict to log
         """
         wandb.log(data)
-

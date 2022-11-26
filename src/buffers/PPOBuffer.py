@@ -36,9 +36,9 @@ class PPOBuffer:
         act_dim: int,
         size: int,
         batch_size: int,
-        gamma:float =0.99,
-        lam:float =0.95,
-        eps:float =1e-3,
+        gamma: float = 0.99,
+        lam: float = 0.95,
+        eps: float = 1e-3,
     ):
         """Initialize PPOBuffer
 

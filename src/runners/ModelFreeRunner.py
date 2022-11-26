@@ -1,3 +1,4 @@
+"""Generalized runner for single-process RL. Takes in encoded observations, applies them to a buffer, and trains."""
 import json
 import time
 from matplotlib.font_manager import json_dump
@@ -21,6 +22,8 @@ import jsonpickle
 
 @yamlize
 class ModelFreeRunner(BaseRunner):
+    """Main configurable runner."""
+
     def __init__(
         self,
         agent_config_path: str,
@@ -39,7 +42,7 @@ class ModelFreeRunner(BaseRunner):
         resume_training: bool = False,
         use_container: bool = True,
     ):
-        """Generalized runner for single-process RL. Takes in encoded observations, applies them to a buffer, and trains.
+        """Initialize ModelFreeRunner.
 
         Args:
             agent_config_path (str): Path to agent configuration YAML.
@@ -56,7 +59,7 @@ class ModelFreeRunner(BaseRunner):
             eval_every (int): Evaluate every ___ episodes.
             max_episode_length (int): Maximum episode length ( BAD PARAM / BUGGY. )
             use_container (bool, optional): Whether to use the provided wrapper (HIGHLY ENCOURAGED). Defaults to True.
-        """        
+        """
         super().__init__()
         # Moved initialzation of env to run to allow for yamlization of this class.
         # This would allow a common runner for all model-free approaches
@@ -74,10 +77,10 @@ class ModelFreeRunner(BaseRunner):
         self.experiment_state_path = experiment_state_path
         self.resume_training = resume_training
 
-
         if not self.experiment_state_path.endswith(".json"):
-            raise ValueError("Folder or incorrect file type specified. Expected json filename.")
-
+            raise ValueError(
+                "Folder or incorrect file type specified. Expected json filename."
+            )
 
         ## AGENT Declaration
         self.agent = create_configurable(agent_config_path, NameToSourcePath.agent)
@@ -86,9 +89,7 @@ class ModelFreeRunner(BaseRunner):
         self.tb_logger_obj = TensorboardLogger(
             self.model_save_dir, self.experiment_name
         )
-        self.file_logger = FileLogger(
-            self.model_save_dir, self.experiment_name
-        )
+        self.file_logger = FileLogger(self.model_save_dir, self.experiment_name)
         self.file_logger.log_obj.info("Using random seed: {}".format(0))
 
         ## ENCODER Declaration
@@ -129,7 +130,7 @@ class ModelFreeRunner(BaseRunner):
                 api_key=self.api_key, project_name="test-project"
             )"""
 
-    def run(self, env, api_key: str = ''):
+    def run(self, env, api_key: str = ""):
         """Train an agent, with our given parameters, on the environment in question.
 
         Args:
@@ -197,18 +198,25 @@ class ModelFreeRunner(BaseRunner):
             if self.wandb_logger:
                 self.wandb_logger.log(
                     {
-                        "reward":ep_ret,
-                        "Distance":info["metrics"]["total_distance"],
+                        "reward": ep_ret,
+                        "Distance": info["metrics"]["total_distance"],
                         "Time": info["metrics"]["total_time"],
                         "Num infractions": info["metrics"]["num_infractions"],
                         "Average Speed KPH": info["metrics"]["average_speed_kph"],
-                        "Average Displacement Error": info["metrics"]["average_displacement_error"],
-                        "Trajectory Efficiency": info["metrics"]["trajectory_efficiency"],
-                        "Trajectory Admissability": info["metrics"]["trajectory_admissibility"],
+                        "Average Displacement Error": info["metrics"][
+                            "average_displacement_error"
+                        ],
+                        "Trajectory Efficiency": info["metrics"][
+                            "trajectory_efficiency"
+                        ],
+                        "Trajectory Admissability": info["metrics"][
+                            "trajectory_admissibility"
+                        ],
                         "Movement Smoothness": info["metrics"]["movement_smoothness"],
                         "Timestep per Sec": info["metrics"]["timestep/sec"],
                         "Laps Completed": info["metrics"]["laps_completed"],
-                    })
+                    }
+                )
 
             self.file_logger.log(f"Episode Number after WanDB call: {ep_number}")
             self.file_logger.log(f"info: {info}")
@@ -270,16 +278,36 @@ class ModelFreeRunner(BaseRunner):
                 eval_ep_len += 1
                 eval_n_val_steps += 1
 
-
                 eval_obs_encoded = eval_obs_encoded_new
                 t_eval += 1
 
             self.file_logger.log(f"[eval episode] Episode: {j} - {eval_info}")
 
             val_ep_rets.append(eval_ep_ret)
-            self.tb_logger_obj.log_val_metrics(
-                eval_info, eval_ep_ret, eval_ep_len, eval_n_val_steps, self.metadata
+            self.tb_logger_obj.log(
+                {
+                    "val/episodic_return": eval_ep_ret,
+                    "val/ep_n_steps": eval_n_val_steps,
+                    "val/ep_pct_complete": eval_info["metrics"]["pct_complete"],
+                    "val/ep_total_time": eval_info["metrics"]["total_time"],
+                    "val/ep_total_distance": eval_info["metrics"]["total_distance"],
+                    "val/ep_avg_speed": eval_info["metrics"]["average_speed_kph"],
+                    "val/ep_avg_disp_err": eval_info["metrics"][
+                        "average_displacement_error"
+                    ],
+                    "val/ep_traj_efficiency": eval_info["metrics"][
+                        "trajectory_efficiency"
+                    ],
+                    "val/ep_traj_admissibility": eval_info["metrics"][
+                        "trajectory_admissibility"
+                    ],
+                    "val/movement_smoothness": eval_info["metrics"][
+                        "movement_smoothness"
+                    ],
+                },
+                eval_n_val_steps,
             )
+
             if self.wandb_logger:
                 self.wandb_logger.log(
                     {
@@ -287,12 +315,24 @@ class ModelFreeRunner(BaseRunner):
                         "Eval Distance": eval_info["metrics"]["total_distance"],
                         "Eval Time": eval_info["metrics"]["total_time"],
                         "Eval Num infractions": eval_info["metrics"]["num_infractions"],
-                        "Evaluation Speed (KPH)": eval_info["metrics"]["average_speed_kph"],
-                        "Eval Average Displacement Error": eval_info["metrics"]["average_displacement_error"],
-                        "Eval Trajectory Efficiency": eval_info["metrics"]["trajectory_efficiency"],
-                        "Eval Trajectory Admissability": eval_info["metrics"]["trajectory_admissibility"],
-                        "Eval Movement Smoothness": eval_info["metrics"]["movement_smoothness"],
-                        "Eval Timesteps per second": eval_info["metrics"]["timestep/sec"],
+                        "Evaluation Speed (KPH)": eval_info["metrics"][
+                            "average_speed_kph"
+                        ],
+                        "Eval Average Displacement Error": eval_info["metrics"][
+                            "average_displacement_error"
+                        ],
+                        "Eval Trajectory Efficiency": eval_info["metrics"][
+                            "trajectory_efficiency"
+                        ],
+                        "Eval Trajectory Admissability": eval_info["metrics"][
+                            "trajectory_admissibility"
+                        ],
+                        "Eval Movement Smoothness": eval_info["metrics"][
+                            "movement_smoothness"
+                        ],
+                        "Eval Timesteps per second": eval_info["metrics"][
+                            "timestep/sec"
+                        ],
                         "Eval Laps completed": eval_info["metrics"]["laps_completed"],
                     }
                 )
@@ -345,5 +385,3 @@ class ModelFreeRunner(BaseRunner):
             raise Exception("Path not specified or does not exist")
 
         pass
-
- 

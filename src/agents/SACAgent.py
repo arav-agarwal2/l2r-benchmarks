@@ -32,7 +32,7 @@ class SACAgent(BaseAgent):
         polyak: float,
         lr: float,
         actor_critic_cfg_path: str,
-        load_checkpoint_from: str = '',
+        load_checkpoint_from: str = "",
     ):
         """Initialize Soft Actor-Critic Agent
 
@@ -45,7 +45,7 @@ class SACAgent(BaseAgent):
             actor_critic_cfg_path (str): Actor Critic Config Path
             load_checkpoint_from (str, optional): Load checkpoint from path. If '', then doesn't load anything. Defaults to ''.
         """
-        
+
         super(SACAgent, self).__init__()
 
         self.steps_to_sample_randomly = steps_to_sample_randomly
@@ -58,8 +58,7 @@ class SACAgent(BaseAgent):
         self.t = 0
         self.deterministic = False
 
-
-        self.record = {"transition_actor": ""} # rename
+        self.record = {"transition_actor": ""}  # rename
 
         self.action_space = Box(-1, 1, (2,))
         self.act_dim = self.action_space.shape[0]
@@ -71,7 +70,7 @@ class SACAgent(BaseAgent):
         self.actor_critic.to(DEVICE)
         self.actor_critic_target = deepcopy(self.actor_critic)
 
-        if self.load_checkpoint_from != '':
+        if self.load_checkpoint_from != "":
             self.load_model(self.load_checkpoint_from)
 
         self.q_params = itertools.chain(
@@ -81,8 +80,10 @@ class SACAgent(BaseAgent):
         # Set up optimizers for policy and q-function
         self.pi_optimizer = Adam(self.actor_critic.policy.parameters(), lr=self.lr)
         self.q_optimizer = Adam(self.q_params, lr=self.lr)
-        self.pi_scheduler = torch.optim.lr_scheduler.StepLR( # TODO: Call some scheduler in runner.
-            self.pi_optimizer, 1, gamma=0.5
+        self.pi_scheduler = (
+            torch.optim.lr_scheduler.StepLR(  # TODO: Call some scheduler in runner.
+                self.pi_optimizer, 1, gamma=0.5
+            )
         )
 
         # Freeze target networks with respect to optimizers (only update via polyak averaging)
@@ -224,5 +225,3 @@ class SACAgent(BaseAgent):
                 # params, as opposed to "mul" and "add", which would make new tensors.
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
-
-
