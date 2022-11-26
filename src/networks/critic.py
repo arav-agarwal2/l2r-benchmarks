@@ -303,7 +303,7 @@ class ActorCritic(nn.Module):
             a = a.squeeze(0)
         return a.numpy() if a.device == "cpu" else a.cpu().numpy()
 
-
+@yamlize
 class PPOMLPActorCritic(nn.Module):
     """
     The Actor-Critic for PPO. Like class ActorCritic, it initializes action and observation space dimensions and the actor
@@ -312,34 +312,57 @@ class PPOMLPActorCritic(nn.Module):
 
     def __init__(
         self,
-        observation_space,
-        action_space,
-        cfg,
-        activation=nn.Tanh,
-        latent_dims=None,
-        device="cpu",
+        activation: str = "ReLU",
+        critic_cfg: ConfigurableDict = {
+            "name": "Vfunction",
+            "config": {"state_dim": 32},
+        },  ## Flag to indicate architecture for Safety_actor_critic
+        state_dim: int = 32,
+        action_dim: int = 2,
+        max_action_value: float = 1.0,
+        speed_encoder_hiddens: List[int] = [8, 8],
+        fusion_hiddens: List[int] = [32, 64, 64, 32, 32],
+        use_speed: bool = True,
     ):
         """
         Initialize the observation and action space dimensions and the actor and critic networks.
         """
-
         super().__init__()
-
-        obs_dim = observation_space.shape[0] if latent_dims is None else latent_dims
-        act_dim = action_space.shape[0]
-        act_limit = action_space.high[0]
+        self.state_dim = state_dim
+        obs_dim = state_dim
+        act_dim = action_dim
+        act_limit = max_action_value
+        self.use_speed = use_speed
 
         # build policy and value functions
-        self.speed_encoder = mlp([1] + [8, 8])
-        self.policy = SquashedGaussianMLPActor(
-            obs_dim, act_dim, [64, 64, 32], activation, act_limit
-        )
+        if self.use_speed:
+            self.speed_encoder = mlp([1] + speed_encoder_hiddens)
+            self.policy = SquashedGaussianMLPActor(
+                obs_dim + speed_encoder_hiddens[-1],
+                act_dim,
+                fusion_hiddens,
+                ActivationType.__getattr__(activation).value,
+                act_limit,
+            )
+            
+        else:
+            self.policy = SquashedGaussianMLPActor(
+                obs_dim,
+                act_dim,
+                fusion_hiddens,
+                ActivationType.__getattr__(activation).value,
+                act_limit,
+            )
 
-        # build value function
-        self.v = Vfunction()
-
-        self.to(device)
-        self.device = device
+        if critic_cfg["name"] == "Qfunction":
+            self.q1 = create_configurable_from_dict(
+                critic_cfg, NameToSourcePath.network
+            )
+            self.q2 = create_configurable_from_dict(
+                critic_cfg, NameToSourcePath.network
+            )
+        elif critic_cfg["name"] == "Vfunction":
+            self.v = create_configurable_from_dict(critic_cfg, NameToSourcePath.network)
 
     def pi(self, obs_feat, deterministic=False):
         """
@@ -348,29 +371,40 @@ class PPOMLPActorCritic(nn.Module):
 
         # if obs_feat.ndimension() == 1:
         #    obs_feat = obs_feat.unsqueeze(0)
-        img_embed = obs_feat[..., :32]  # n x latent_dims
-        # speed = obs_feat[..., 32:]  # n x 1
-        # spd_embed = self.speed_encoder(speed)  # n x 8
-        feat = torch.cat(
-            [
-                img_embed,
-            ],
-            dim=-1,
-        )
+        if self.use_speed:
+            img_embed = obs_feat[..., :self.state_dim]
+            speed = self.speed_encoder(obs_feat[..., self.state_dim:])
+            feat = torch.cat([img_embed, speed], dim=-1)
+
+        else:
+            img_embed = obs_feat[..., :self.state_dim]  # n x latent_dims
+            feat = torch.cat(
+                [
+                    img_embed,
+                ],
+                dim=-1,
+            )
         return self.policy(feat, deterministic, True)
 
-    def step(self, obs, deterministic=False):
+
+    def step(self, obs_feat, deterministic=False):
         """
         Uses the policy to get and return an action on the appropriate device in the right format.
         """
         with torch.no_grad():
-            img_embed = obs[..., :32]  # n x latent_dims
-            # speed = obs_feat[..., 32:] # n x 1
-            # raise ValueError(obs_feat.shape, img_embed.shape, speed.shape)
-            # pdb.set_trace()
-            # spd_embed = self.speed_encoder(speed) # n x 8
-            feat = img_embed
-            a, logp_a = self.policy(feat, deterministic, True)
+            if self.use_speed:
+                img_embed = obs_feat[..., :self.state_dim]
+                speed = self.speed_encoder(obs_feat[..., self.state_dim:])
+                feat = torch.cat([img_embed, speed], dim=-1)
+            else:
+                img_embed = obs_feat[..., :self.state_dim]  # n x latent_dims
+                feat = torch.cat(
+                    [
+                        img_embed,
+                    ],
+                    dim=-1,
+                )
+            a, logp_a = self.policy(feat, deterministic, False)
             a = a.squeeze(0)
-            v = self.v(obs)
+            v = self.v(obs_feat)
         return a.cpu().numpy(), v.cpu().numpy(), logp_a.cpu().numpy()
