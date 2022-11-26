@@ -3,7 +3,7 @@ config:
   agent_config_path: "config_files/example_sac/agent.yaml"
   buffer_config_path: "config_files/example_sac/buffer.yaml"
   encoder_config_path: "config_files/example_sac/encoder.yaml"
-  model_save_dir: '/mnt/'
+  model_save_dir: '/mnt'
   experiment_state_path: '/mnt/SAC_VAE/experimentState.json'
   experiment_name: 'SAC_VAE'
   num_test_episodes: 1
