@@ -82,10 +82,10 @@ class ModelFreeRunner(BaseRunner):
 
         ## LOGGER Declaration
         self.tb_logger_obj = TensorboardLogger(
-            self.agent.model_save_path, self.experiment_name
+            self.model_save_dir, self.experiment_name
         )
         self.file_logger = FileLogger(
-            self.agent.model_save_path, self.experiment_name
+            self.model_save_dir, self.experiment_name
         )
         self.file_logger.log_obj.info("Using random seed: {}".format(0))
 
