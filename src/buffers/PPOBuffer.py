@@ -1,3 +1,4 @@
+"""Buffer for PPO."""
 from src.config.yamlize import yamlize
 import torch
 import numpy as np
@@ -9,6 +10,15 @@ DEVICE = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
 
 def discount_cumsum(x, discount):
+    """Wraper arround discounted cumulative summation.
+
+    Args:
+        x (np.array): Array to sum over
+        discount (float): discount parameter.
+
+    Returns:
+        float: output
+    """
     return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
 
 
@@ -26,10 +36,21 @@ class PPOBuffer:
         act_dim: int,
         size: int,
         batch_size: int,
-        gamma=0.99,
-        lam=0.95,
-        eps=1e-3,
+        gamma:float =0.99,
+        lam:float =0.95,
+        eps:float =1e-3,
     ):
+        """Initialize PPOBuffer
+
+        Args:
+            obs_dim (int): Observation Dimension
+            act_dim (int): Action Dimension
+            size (int): Size of Replay Buffer
+            batch_size (int): Batch Size
+            gamma (float, optional): Gamma. Defaults to 0.99.
+            lam (float, optional): Lambda. Defaults to 0.95.
+            eps (_type_, optional): Epsilon. Defaults to 1e-3.
+        """
         self.obs_buf = np.zeros((size, obs_dim), dtype=np.float32)
         self.act_buf = np.zeros((size, act_dim), dtype=np.float32)
         self.adv_buf = np.zeros(size, dtype=np.float32)

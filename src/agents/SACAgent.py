@@ -34,6 +34,17 @@ class SACAgent(BaseAgent):
         actor_critic_cfg_path: str,
         load_checkpoint_from: str = '',
     ):
+        """Initialize Soft Actor-Critic Agent
+
+        Args:
+            steps_to_sample_randomly (int): Number of steps to sample randomly
+            gamma (float): Gamma parameter
+            alpha (float): Alpha parameter
+            polyak (float): Polyak parameter coef.
+            lr (float): Learning rate parameter.
+            actor_critic_cfg_path (str): Actor Critic Config Path
+            load_checkpoint_from (str, optional): Load checkpoint from path. If '', then doesn't load anything. Defaults to ''.
+        """
         
         super(SACAgent, self).__init__()
 
@@ -79,6 +90,14 @@ class SACAgent(BaseAgent):
             p.requires_grad = False
 
     def select_action(self, obs):
+        """Select action from obs.
+
+        Args:
+            obs (np.array): Observation to act on.
+
+        Returns:
+            ActionObj: Action object.
+        """
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
@@ -95,22 +114,29 @@ class SACAgent(BaseAgent):
         self.t = self.t + 1
         return action_obj
 
-    def register_reset(self, obs) -> np.array:
+    def register_reset(self, obs):
         """
         Same input/output as select_action, except this method is called at episodal reset.
         """
-        # camera, features, state = obs
-        self.deterministic = True  # TODO: Confirm that this makes sense.
-        self.t = 1e6
+        pass
 
     def load_model(self, path):
+        """Load model from path.
+
+        Args:
+            path (str): Load model from path.
+        """
         self.actor_critic.load_state_dict(torch.load(path))
 
     def save_model(self, path):
+        """Save model to path
+
+        Args:
+            path (str): Save model to path
+        """
         torch.save(self.actor_critic.state_dict(), path)
 
     def _compute_loss_q(self, data):
-
         """Set up function for computing SAC Q-losses."""
         o, a, r, o2, d = (
             data["obs"],
@@ -163,6 +189,11 @@ class SACAgent(BaseAgent):
         return loss_pi, pi_info
 
     def update(self, data):
+        """Update SAC Agent given data
+
+        Args:
+            data (dict): Data from ReplayBuffer object.
+        """
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
         loss_q, _ = self._compute_loss_q(data)

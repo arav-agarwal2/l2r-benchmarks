@@ -1,3 +1,4 @@
+"""PPOAgent Definition. """
 import itertools
 from copy import deepcopy
 
@@ -14,6 +15,7 @@ from src.constants import DEVICE
 
 @yamlize
 class PPOAgent(BaseAgent):
+    """Proximal Policy Optimization Agent"""
     def __init__(
         self,
         steps_to_sample_randomly: int,
@@ -25,6 +27,18 @@ class PPOAgent(BaseAgent):
         target_kl: float = 0.01,
         actor_critic_cfg_path: str = ''
     ):
+        """Initialize Proximal Policy Optimization Agent
+
+        Args:
+            steps_to_sample_randomly (int): Number of steps to sample randomly
+            lr (float): Learning rate
+            clip_ratio (float): Clip ratio
+            load_checkpoint_from (str, optional): Where to load checkpoint from. Using default does not load any checkpoint. Defaults to ''.
+            train_pi_iters (int, optional): Number of update iterations for policy per call to `update`. Defaults to 80.
+            train_v_iters (int, optional): Number of update iterations for value per call to `update`. Defaults to 80.
+            target_kl (float, optional): Target Kubler-Leibleck Divergence. Defaults to 0.01.
+            actor_critic_cfg_path (str, optional): Path to AC cfg. Defaults to ''.
+        """
         super(PPOAgent, self).__init__()
         self.steps_to_sample_randomly = steps_to_sample_randomly
         self.load_checkpoint_from = load_checkpoint_from
@@ -64,6 +78,14 @@ class PPOAgent(BaseAgent):
         )
 
     def select_action(self, obs) -> np.array:
+        """Select action given observation array.
+
+        Args:
+            obs (np.array): Observation array
+
+        Returns:
+            np.array: Action array
+        """
         action_obj = ActionSample()
         if self.t > self.steps_to_sample_randomly:
             a, logp = self.actor_critic.pi(obs.to(DEVICE), self.deterministic)
@@ -84,12 +106,19 @@ class PPOAgent(BaseAgent):
         self.t = self.t + 1
         return action_obj
 
-    def register_reset(self, obs) -> np.array:
-        self.deterministic = True
-        self.t = 1e6
+    def register_reset(self, obs):
+        """Handle reset of episode."""
+        pass
 
-    def compute_loss_pi(self, data):
+    def _compute_loss_pi(self, data):
+        """Compute policy loss.
 
+        Args:
+            data (dict): dictionary of data to calculate loss from.
+
+        Returns:
+            loss_pi, pi_info: loss information.
+        """
         obs, act, adv, logp_old = data["obs"], data["act"], data["adv"], data["logp"]
 
         # Policy loss
@@ -115,22 +144,35 @@ class PPOAgent(BaseAgent):
         pi_info = dict(kl=approx_kl, cf=clipfrac)
         return loss_pi, pi_info
 
-    def compute_loss_v(self, data):
+    def _compute_loss_v(self, data):
+        """Compute value loss.
+
+        Args:
+            data (dict): dictionary of data to calculate from.
+
+        Returns:
+            loss_q: loss information.
+        """
         ## Check this.
         obs, ret = data["obs"], data["ret"]
         ret = ret.to(DEVICE)
         return ((self.actor_critic.v(obs.to(DEVICE)) - ret) ** 2).mean()
 
     def update(self, data):
+        """Update parameters given batch of data.
 
-        pi_l_old, pi_info_old = self.compute_loss_pi(data)
+        Args:
+            data (dict): Dict of batched data to update params from.
+        """
+
+        pi_l_old, pi_info_old = self._compute_loss_pi(data)
         pi_l_old = pi_l_old.item()
-        v_l_old = self.compute_loss_v(data).item()
+        v_l_old = self._compute_loss_v(data).item()
 
         # Train policy with multiple steps of gradient descent
         for i in range(self.train_pi_iters):
             self.pi_optimizer.zero_grad()
-            loss_pi, pi_info = self.compute_loss_pi(data)
+            loss_pi, pi_info = self._compute_loss_pi(data)
             kl = pi_info["kl"]
             if kl > 1.5 * self.target_kl:
                 # print(next(self.actor_critic.pi.mu_net.parameters()))
@@ -144,12 +186,22 @@ class PPOAgent(BaseAgent):
         # Value function learning
         for i in range(self.train_v_iters):
             self.v_optimizer.zero_grad()
-            loss_v = self.compute_loss_v(data)
+            loss_v = self._compute_loss_v(data)
             loss_v.backward()
             self.v_optimizer.step()
 
     def load_model(self, path):
+        """Load model from path
+
+        Args:
+            path (str): Load path using str
+        """
         self.actor_critic.load_state_dict(torch.load(path))
 
     def save_model(self, path):
+        """Save model to path
+
+        Args:
+            path (str): Save path using str
+        """
         torch.save(self.actor_critic.state_dict(), path)

@@ -1,3 +1,4 @@
+"""New auto-config system, to make easy configuration management."""
 from typing import get_type_hints, TypedDict
 import inspect
 import strictyaml as sl

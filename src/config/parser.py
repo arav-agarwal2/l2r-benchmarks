@@ -1,3 +1,4 @@
+"""Generally unused older config scheme. If possible DO NOT USE."""
 from strictyaml import load
 
 

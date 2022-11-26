@@ -1,3 +1,4 @@
+"""Store schema from older config system. DO NOT USE."""
 from strictyaml import (
     load,
     Map,
