@@ -56,9 +56,10 @@ class PETSAgent(BaseAgent):
             data["obs2"],
             data["done"],
         )
-        o2 = torch.tensor(np.concatenate((o2 - o,r.reshape((-1,1))),axis=-1))
+
+        o2 = torch.tensor(torch.concatenate((o2 - o,r.reshape((-1,1))),axis=-1))
         o2 = o2.reshape((1,*o2.shape))
-        o = torch.tensor(np.concatenate((o,a),axis=-1))
+        o = torch.tensor(torch.concatenate((o,a),axis=-1))
         o = o.reshape((1,*o.shape)).repeat((self.n_ensembles,1,1))
         mu, log_var = self.model(o)
         assert mu.shape[1:] == o2.shape[1:]
