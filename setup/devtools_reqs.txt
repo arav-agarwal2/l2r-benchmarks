@@ -6,3 +6,7 @@ mypy
 types-PyYAML
 sphinx
 sphinx-rtd-theme
+torch
+strictyaml
+python-opencv
+matplotlib
