@@ -17,28 +17,28 @@ Welcome to l2r-benchmarks's documentation!
 
 Agents
 ==================
-* :ref:`src.agents`
+* :ref:`src.agents.rst`
 
 Buffers
 ==================
-* :ref:`src.buffers`
+* :ref:`src.buffers.rst`
 
 Config
 ==================
-* :ref:`src.config`
+* :ref:`src.config.rst`
 
 Encoders
 ==================
-* :ref:`src.encoders`
+* :ref:`src.encoders.rst`
 
 Loggers
 ==================
-* :ref:`src.loggers`
+* :ref:`src.loggers.rst`
 
 Networks
 ==================
-* :ref:`src.networks`
+* :ref:`src.networks.rst`
 
 Runners
 ==================
-* :ref:`src.runners`
+* :ref:`src.runners.rst`
