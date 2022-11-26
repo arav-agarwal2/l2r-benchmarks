@@ -94,7 +94,7 @@ class Actor(nn.Module):
 
 
 @yamlize
-class CleanSACAgent(BaseAgent):
+class CleanSACAgent(BaseAgent, nn.Module):
     """Adopted from https://github.com/learn-to-race/l2r/blob/main/l2r/baselines/rl/sac.py"""
 
     def __init__(
@@ -214,7 +214,5 @@ class CleanSACAgent(BaseAgent):
                 target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
             for param, target_param in zip(self.qf2.parameters(), self.qf2_target.parameters()):
                 target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
-
-
 
 
