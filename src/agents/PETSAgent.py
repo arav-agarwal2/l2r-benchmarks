@@ -41,7 +41,6 @@ class PETSAgent(BaseAgent):
     def select_action(self, obs, noise=False) -> np.array:
         action_obj = ActionSample()
         state = obs.detach().float()
-        print(state.device)
         action_obj.action = self.planner.get_action(state,self.model)
         return action_obj
 
