@@ -93,4 +93,4 @@ Once you do that, run the simulator using ``/PATH/TO/ArrivalSim.sh -OpenGL``, an
 Contributing to the codebase
 ============================
 
-If you want to do more than simply editing the codebase, please click `here <./contributing>`__ for more information.
+If you want to do more than simply editing the codebase, please click :doc:`here </contributing>` for more information.

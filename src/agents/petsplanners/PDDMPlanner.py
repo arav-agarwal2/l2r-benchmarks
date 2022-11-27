@@ -6,15 +6,25 @@ import gym
 
 
 import torch
-from src.agents.petsplanners import BasePlanner
+from src.agents.petsplanners.base import BasePlanner
 from src.constants import DEVICE
 from src.config.yamlize import yamlize
+
 
 @yamlize
 class PDDMPlanner(BasePlanner):
     """Likely an iteration of https://github.com/google-research/pddm."""
 
-    def __init__(self, action_dim: int = 2, action_min: float = -1, action_max: float = 1, n_planner: int = 500, horizon: int = 12, gamma: float = 1.0, beta: float = 0.5):
+    def __init__(
+        self,
+        action_dim: int = 2,
+        action_min: float = -1,
+        action_max: float = 1,
+        n_planner: int = 500,
+        horizon: int = 12,
+        gamma: float = 1.0,
+        beta: float = 0.5,
+    ):
         """Initialize PDDM Planner
 
         Args:
@@ -33,7 +43,9 @@ class PDDMPlanner(BasePlanner):
         self.action_min = action_min
         self.action_max = action_max
 
-    def get_action(self, state, dynamics_model: torch.nn.Module, noise: bool = True) -> np.array:  # pragma: no cover
+    def get_action(
+        self, state, dynamics_model: torch.nn.Module, noise: bool = True
+    ) -> np.array:  # pragma: no cover
         """Generate action given state and dynamics model
 
         Args:
@@ -45,14 +57,15 @@ class PDDMPlanner(BasePlanner):
             np.array: Planned action
         """
         initial_states = state.repeat((self.n_planner, 1)).to(DEVICE)
-            
-        actions, returns, state_list = self.get_pred_trajectories(initial_states, dynamics_model)
+
+        actions, returns, state_list = self.get_pred_trajectories(
+            initial_states, dynamics_model
+        )
         optimal_action = self._update_mu(actions, returns)
 
         if noise:
             optimal_action += np.random.normal(0, 0.005, size=optimal_action.shape)
         return optimal_action
-
 
     def _update_mu(self, action_hist, returns):
         """Update mu given action history and returns
@@ -67,7 +80,7 @@ class PDDMPlanner(BasePlanner):
         assert action_hist.shape == (self.n_planner, self.horizon, self.action_dim)
         assert returns.shape == (self.n_planner, 1)
 
-        c = np.exp(self.gamma * (returns) -np.max(returns))
+        c = np.exp(self.gamma * (returns) - np.max(returns))
         d = np.sum(c) + 1e-10
         assert c.shape == (self.n_planner, 1)
         assert d.shape == (), "Has shape {}".format(d.shape)
@@ -75,10 +88,10 @@ class PDDMPlanner(BasePlanner):
         assert c_expanded.shape == (self.n_planner, 1, 1)
         weighted_actions = c_expanded * action_hist
         self.mu = weighted_actions.sum(0) / d
-        assert self.mu.shape == (self.horizon, self.action_dim)       
-        
+        assert self.mu.shape == (self.horizon, self.action_dim)
+
         return self.mu[0]
-    
+
     def _sample_actions(self, past_action):
         """Sample actions given information
 
@@ -88,18 +101,32 @@ class PDDMPlanner(BasePlanner):
         Returns:
             np.array: New actions
         """
-        u = np.random.normal(loc=0, scale=1.0, size=(self.n_planner, self.horizon, self.action_dim))
+        u = np.random.normal(
+            loc=0, scale=1.0, size=(self.n_planner, self.horizon, self.action_dim)
+        )
         actions = u.copy()
         for t in range(self.horizon):
             if t == 0:
-                actions[:, t, :] = self.beta * (self.mu[t, :] + u[:, t, :]) + (1 - self.beta) * past_action
+                actions[:, t, :] = (
+                    self.beta * (self.mu[t, :] + u[:, t, :])
+                    + (1 - self.beta) * past_action
+                )
             else:
-                actions[:, t, :] = self.beta * (self.mu[t, :] + u[:, t, :]) + (1 - self.beta) * actions[:, t-1, :]
-        assert actions.shape == (self.n_planner, self.horizon, self.action_dim), "Has shape {} but should have shape {}".format(actions.shape, (self.n_planner, self.horizon, self.action_space))
+                actions[:, t, :] = (
+                    self.beta * (self.mu[t, :] + u[:, t, :])
+                    + (1 - self.beta) * actions[:, t - 1, :]
+                )
+        assert actions.shape == (
+            self.n_planner,
+            self.horizon,
+            self.action_dim,
+        ), "Has shape {} but should have shape {}".format(
+            actions.shape, (self.n_planner, self.horizon, self.action_space)
+        )
         actions = np.clip(actions, self.action_min, self.action_max)
         return actions
-    
-    def _get_pred_trajectories(self, states, model): 
+
+    def _get_pred_trajectories(self, states, model):
         """Predicted trajectories given model and states
 
         Args:

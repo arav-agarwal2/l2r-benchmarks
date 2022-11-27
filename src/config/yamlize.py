@@ -118,7 +118,7 @@ def yamlize(configurable_class):
             raise ValueError(config_dict) from e
 
     configurable_class.instantiate_from_config = classmethod(init_from_config)
-
+    print(configurable_class)
     return configurable_class
 
 

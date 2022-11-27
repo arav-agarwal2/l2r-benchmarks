@@ -1,8 +1,24 @@
 src.agents package
 ==================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   src.agents.petsplanners
+
 Submodules
 ----------
+
+src.agents.PETSAgent module
+---------------------------
+
+.. automodule:: src.agents.PETSAgent
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 src.agents.PPOAgent module
 --------------------------

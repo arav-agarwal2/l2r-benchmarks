@@ -52,6 +52,7 @@ if __name__ == "__main__":
     # Race!
     try:
         import torch
+
         torch.autograd.set_detect_anomaly(True)
         runner.run(env, sys.argv[3])
     except IndexError as e:

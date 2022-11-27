@@ -1,17 +1,28 @@
+"""PDDM Planner. Largely untested."""
 from abc import ABC
 from ast import Not
 import numpy as np
 import gym
+
+
 import torch
-from src.agents.petsplanners import BasePlanner
+from src.agents.petsplanners.base import BasePlanner
 from src.constants import DEVICE
-from src.config import yamlize
+from src.config.yamlize import yamlize
+
 
 @yamlize
 class RandomPlanner(BasePlanner):
-    """Random Shooting-Based Planner. """
+    """Random Shooting-Based Planner."""
 
-    def __init__(self, action_dim: int = 2, action_min: float = -1, action_max: float = 1, n_planner: int = 500, horizon: int = 12):
+    def __init__(
+        self,
+        action_dim: int = 2,
+        action_min: float = -1,
+        action_max: float = 1,
+        n_planner: int = 500,
+        horizon: int = 12,
+    ):
         """Initialize Random Shooting Planner
 
         Args:
@@ -26,8 +37,9 @@ class RandomPlanner(BasePlanner):
         self.action_min = action_min
         self.action_max = action_max
 
-
-    def get_action(self, state, dynamics_model: torch.nn.Module, noise: bool = False) -> np.array:  # pragma: no cover
+    def get_action(
+        self, state, dynamics_model: torch.nn.Module, noise: bool = False
+    ) -> np.array:  # pragma: no cover
         """Generate action given state and dynamics model
 
         Args:
@@ -39,18 +51,28 @@ class RandomPlanner(BasePlanner):
             np.array: Planned action
         """
         initial_states = state.repeat((self.n_planner, 1)).to(DEVICE)
-        rollout_actions =  torch.from_numpy(np.random.uniform(low=self.action_min,
-                                    high=self.action_max,
-                                    size=(self.n_planner, self.horizon, self.action_dim))).to(DEVICE).float()
-        returns, all_states = self._compute_returns(initial_states, rollout_actions, dynamics_model)
+        rollout_actions = (
+            torch.from_numpy(
+                np.random.uniform(
+                    low=self.action_min,
+                    high=self.action_max,
+                    size=(self.n_planner, self.horizon, self.action_dim),
+                )
+            )
+            .to(DEVICE)
+            .float()
+        )
+        returns, all_states = self._compute_returns(
+            initial_states, rollout_actions, dynamics_model
+        )
         best_action_idx = returns.argmax()
         optimal_action = rollout_actions[:, 0, :][best_action_idx]
-        
-        
-        if noise:
-            optimal_action += torch.normal(torch.zeros(optimal_action.shape),
-                                           torch.ones(optimal_action.shape) * 0.01).to(DEVICE)
 
+        if noise:
+            optimal_action += torch.normal(
+                torch.zeros(optimal_action.shape),
+                torch.ones(optimal_action.shape) * 0.01,
+            ).to(DEVICE)
 
         return optimal_action.cpu().numpy()
 
@@ -64,7 +86,7 @@ class RandomPlanner(BasePlanner):
 
         Returns:
             tuple: Tuple of returns, states
-        """ 
+        """
         returns = torch.zeros((self.n_planner, 1)).to(DEVICE)
         state_list = [states.detach().cpu().numpy()]
         for t in range(self.horizon):
