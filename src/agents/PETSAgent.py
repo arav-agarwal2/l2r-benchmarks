@@ -49,6 +49,14 @@ class PETSAgent(BaseAgent):
         
 
     def select_action(self, obs) -> np.array:
+        """Select action given obs
+
+        Args:
+            obs (np.array): Observation
+
+        Returns:
+            np.array: Action
+        """
         action_obj = ActionSample()
         state = obs.detach().float()
         action_obj.action = self.planner.get_action(state,self.model)
@@ -56,9 +64,22 @@ class PETSAgent(BaseAgent):
 
 
     def register_reset(self, obs) -> np.array:
+        """Handle episode reset
+
+        Args:
+            obs (np.array): Observation
+
+        Returns:
+            np.array: Action
+        """
         pass
 
     def update(self, data):
+        """Update given data
+
+        Args:
+            data (dict): Dict of data from SimpleReplayBuffer
+        """
         o, a, r, o2, d = (
             data["obs"],
             data["act"],
@@ -82,9 +103,22 @@ class PETSAgent(BaseAgent):
     
 
     def load_model(self, path):
+        """Unused but load model from data
+
+        Args:
+            path (str): Path to data
+
+        Returns:
+            model: self
+        """
         return self
 
     def save_model(self, path):
+        """Unusued but save model to path
+
+        Args:
+            path (str): _description_
+        """
         pass
     
 

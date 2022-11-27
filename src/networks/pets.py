@@ -22,7 +22,17 @@ from src.constants import DEVICE
 
 @yamlize
 class DynamicsNetwork(nn.Module):
+    """PETS Dynamics Network. See paper for details, as this is a bit complex."""
     def __init__(self, state_size: int = 32, action_size: int = 2, ensemble_size:int = 7, hidden_layer:int = 3, hidden_size: int = 200) -> None:
+        """Dynamics network init.
+
+        Args:
+            state_size (int, optional): State size. Defaults to 32.
+            action_size (int, optional): Action dimension. Defaults to 2.
+            ensemble_size (int, optional): Number of probabilistic ensembles. Must agree with n_ensembles in petsagent. Defaults to 7.
+            hidden_layer (int, optional): Hidden layer count. Defaults to 3.
+            hidden_size (int, optional): Hidden layer dimension. Defaults to 200.
+        """
         super().__init__()
         self.ensemble_size = ensemble_size
         self.input_layer = Ensemble_FC_Layer(state_size + action_size, hidden_size, ensemble_size)
@@ -41,7 +51,6 @@ class DynamicsNetwork(nn.Module):
         self.max_logvar = (torch.ones((1, state_size + 1)).float() / 2).to(DEVICE)
 
     def forward(self, x):
-        print(x.mean())
         x = self.input_layer(x)
         x = self.hidden_layers(x)
     
@@ -82,6 +91,7 @@ class DynamicsNetwork(nn.Module):
 
 
 class Ensemble_FC_Layer(nn.Module):
+    """Convenience layer for PETS dynamics."""
     def __init__(self, in_features, out_features, ensemble_size, bias=True):
         super(Ensemble_FC_Layer, self).__init__()
         self.in_features = in_features
