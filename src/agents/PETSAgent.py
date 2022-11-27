@@ -10,12 +10,9 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import create_configurable, yamlize, create_configurable_from_dict, ConfigurableDict, NameToSourcePath
-from src.agents.petsplanners.CEMPlanner import CEMPlanner
 from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
-
-from src.utils.envwrapper import EnvContainer
 
 import torch.nn as nn
 import torch.nn.functional as F
