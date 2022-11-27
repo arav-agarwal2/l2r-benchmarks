@@ -188,12 +188,12 @@ class ModelFreeRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
 
-                if t % self.eval_every == 0:
-                    self.file_logger.log(f"Episode Number before eval: {ep_number}")
-                    eval_ret = self.eval(env)
-                    self.file_logger.log(f"Episode Number after eval: {ep_number}")
-                    if eval_ret > self.best_eval_ret:
-                        self.best_eval_ret = eval_ret
+            if ep_number % self.eval_every == 0:
+                self.file_logger.log(f"Episode Number before eval: {ep_number}")
+                eval_ret = self.eval(env)
+                self.file_logger.log(f"Episode Number after eval: {ep_number}")
+                if eval_ret > self.best_eval_ret:
+                    self.best_eval_ret = eval_ret
 
             if self.wandb_logger:
                 self.wandb_logger.log(
@@ -261,6 +261,7 @@ class ModelFreeRunner(BaseRunner):
                 self.agent.deterministic = True
                 self.t = 1e6
                 eval_action_obj = self.agent.select_action(eval_obs_encoded)
+                eval_action_obj = self.agent.select_action(eval_obs_encoded)
                 if self.env_wrapped:
                     (
                         eval_obs_encoded_new,
@@ -270,7 +271,7 @@ class ModelFreeRunner(BaseRunner):
                     ) = self.env_wrapped.step(eval_action_obj.action)
                 else:
                     eval_obs_encoded_new, eval_reward, eval_done, eval_info = env.step(
-                        eval_action_obj.action
+                        eval_action_obj.action, encode=True
                     )
 
                 # Check that the camera is turned on

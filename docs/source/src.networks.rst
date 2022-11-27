@@ -12,6 +12,14 @@ src.networks.critic module
    :undoc-members:
    :show-inheritance:
 
+src.networks.pets module
+------------------------
+
+.. automodule:: src.networks.pets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

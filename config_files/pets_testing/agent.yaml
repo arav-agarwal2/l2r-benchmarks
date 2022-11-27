@@ -1,0 +1,7 @@
+name: PETSAgent
+config:
+  network_config_path: 'config_files/pets_testing/network.yaml'
+  planner_config:
+    name: PDDMPlanner
+    config:
+      beta: 0.51
