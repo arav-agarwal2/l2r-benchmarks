@@ -28,7 +28,7 @@ class EnvContainer(gym.Env):
         if env:
             self.env = env
         obs, reward, terminated, info = self.env.step(action)
-        return self._process_obs(obs), reward, terminated, info
+        return self._process_obs(obs), self.__scale_rewards(reward), terminated, info
 
     def reset(self, random_pos=False, env=None):
         if env:
@@ -43,3 +43,9 @@ class EnvContainer(gym.Env):
             return getattr(self.env, name)
         except Exception as e:
             raise e
+    
+    # Currently arbitrarily min-max scaling from -100 and +4000 based on WandB data. 
+    # Can do more sophisticated scaling by changing reward fn/modifying the L2R repo directly
+    def __scale_rewards(self, unscaled_reward):
+        # (x - xmin)/(xmax - xmin)
+        return (unscaled_reward + 100)/(4000 + 100)
