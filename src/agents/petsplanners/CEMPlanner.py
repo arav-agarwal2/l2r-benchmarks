@@ -6,7 +6,7 @@ import scipy
 import gym
 
 import torch
-from src.agents.petsplanners.BasePlanner import BasePlanner
+from src.agents.petsplanners import BasePlanner
 from src.config.yamlize import yamlize
 from src.constants import DEVICE
 

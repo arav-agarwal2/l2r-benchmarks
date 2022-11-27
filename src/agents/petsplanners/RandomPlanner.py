@@ -3,7 +3,7 @@ from ast import Not
 import numpy as np
 import gym
 import torch
-from src.agents.petsplanners.BasePlanner import BasePlanner
+from src.agents.petsplanners import BasePlanner
 from src.constants import DEVICE
 from src.config import yamlize
 
