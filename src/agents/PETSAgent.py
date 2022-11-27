@@ -9,8 +9,8 @@ from gym.spaces import Box
 from torch.optim import Adam
 
 from src.agents.base import BaseAgent
-from src.config.yamlize import create_configurable, yamlize
-from src.planners.CEMPlanner import CEMPlanner
+from src.config.yamlize import create_configurable, yamlize, create_configurable_from_dict, ConfigurableDict, NameToSourcePath
+from src.agents.petsplanners.CEMPlanner import CEMPlanner
 from src.utils.utils import ActionSample
 
 from src.constants import DEVICE
@@ -22,11 +22,24 @@ import torch.nn.functional as F
 
 from src.constants import DEVICE
 
+
+
 @yamlize
 class PETSAgent(BaseAgent):
     """Adopted from https://github.com/BY571/PETS-MPC. Currently not using CEM, but random AS."""
 
-    def __init__(self, network_config_path: str, n_ensembles: int = 7, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = False):
+    def __init__(self, network_config_path: str, planner_config: ConfigurableDict, n_ensembles: int = 7, lr: float = 1e-2, model_save_path: str = '/mnt/blah', load_checkpoint: bool = False, deterministic: bool = False):
+        """Initialize PETS Agent
+
+        Args:
+            network_config_path (str): Path to network config.
+            planner_config (ConfigurableDict): Configuration of planner
+            n_ensembles (int, optional): Number of networks in ensemble. Defaults to 7.
+            lr (float, optional): Learning rate. Defaults to 1e-2.
+            model_save_path (str, optional): Model save path (unused). Defaults to '/mnt/blah'.
+            load_checkpoint (bool, optional): Whether to load checkpoint or not (unused). Defaults to False.
+            deterministic (bool, optional): Whether to act deterministically (unused). Defaults to False.
+        """
         super().__init__()
         self.model = DynamicsNetwork.instantiate_from_config(network_config_path)
         self.model.to(DEVICE)
@@ -35,10 +48,10 @@ class PETSAgent(BaseAgent):
         self.deterministic = deterministic
         self.n_ensembles = n_ensembles
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=1e-5)
-        self.planner = CEMPlanner()
+        self.planner = create_configurable_from_dict(planner_config, NameToSourcePath.planner)
         
 
-    def select_action(self, obs, noise=False) -> np.array:
+    def select_action(self, obs) -> np.array:
         action_obj = ActionSample()
         state = obs.detach().float()
         action_obj.action = self.planner.get_action(state,self.model)

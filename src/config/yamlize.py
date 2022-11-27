@@ -135,6 +135,7 @@ class NameToSourcePath(Enum):
     runner = "src.runners"
     agent = "src.agents"
     network = "src.networks"
+    planner = "src.agents.petsplanners"
 
 
 class ConfigurableDict(TypedDict):

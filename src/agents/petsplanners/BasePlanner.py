@@ -6,10 +6,7 @@ import gym
 
 class BasePlanner(ABC):
 
-    default_action_space = gym.spaces.Box(-1, 1, (2,))
-
-    def __init__(self, action_space=default_action_space, n_planner: int = 500, horizon: int = 12):
-        self.action_space = action_space
+    def __init__(self, n_planner: int = 500, horizon: int = 12):
         self.n_planner = n_planner
         self.horizon = horizon
 
