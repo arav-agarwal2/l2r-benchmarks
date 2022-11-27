@@ -59,7 +59,7 @@ class PETSAgent(BaseAgent):
         self.deterministic = deterministic
         self.n_ensembles = n_ensembles
         self.optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=lr, weight_decay=1e-5
+            self.model.parameters(), lr=lr
         )
         self.planner = create_configurable_from_dict(
             planner_config, NameToSourcePath.planner
