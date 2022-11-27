@@ -188,12 +188,12 @@ class ModelFreeRunner(BaseRunner):
                         batch = self.replay_buffer.sample_batch()
                         self.agent.update(data=batch)
 
-                if t % self.eval_every == 0:
-                    self.file_logger.log(f"Episode Number before eval: {ep_number}")
-                    eval_ret = self.eval(env)
-                    self.file_logger.log(f"Episode Number after eval: {ep_number}")
-                    if eval_ret > self.best_eval_ret:
-                        self.best_eval_ret = eval_ret
+            if ep_number % self.eval_every == 0:
+                self.file_logger.log(f"Episode Number before eval: {ep_number}")
+                eval_ret = self.eval(env)
+                self.file_logger.log(f"Episode Number after eval: {ep_number}")
+                if eval_ret > self.best_eval_ret:
+                    self.best_eval_ret = eval_ret
 
             if self.wandb_logger:
                 self.wandb_logger.log(
