@@ -52,6 +52,7 @@ class CEMPlanner(BasePlanner):
             actions_t = torch.from_numpy(actions.reshape(self.n_planner, self.horizon, self.action_space_size)).float().to(DEVICE)
             for t in range(self.horizon):
                 with torch.no_grad():
+                    print(t, states.mean().item())
                     states, rewards = dynamics_model.predict(states, actions_t[:, t, :])
                     state_list.append(states.detach().cpu().numpy())
                 returns += rewards.cpu().numpy()

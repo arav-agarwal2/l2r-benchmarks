@@ -34,7 +34,7 @@ class PETSAgent(BaseAgent):
         self.load_checkpoint = load_checkpoint
         self.deterministic = deterministic
         self.n_ensembles = n_ensembles
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=1e-5)
         self.planner = CEMPlanner()
         
 
@@ -100,6 +100,7 @@ class DynamicsNetwork(nn.Module):
         self.max_logvar = (torch.ones((1, state_size + 1)).float() / 2).to(DEVICE)
 
     def forward(self, x):
+        print(x.mean())
         x = self.input_layer(x)
         x = self.hidden_layers(x)
     
