@@ -123,18 +123,6 @@ class DebuggingRL:
         self.residual_variance_counter = 0
         self.reward_step_counter = 0
 
-    def __reset(self):
-        self.rewards = list()
-        self.value_targets = list()
-        self.values = list()
-        self.episode_lengths = list()
-        self.value_targets_var = list()
-        self.net_values = list()
-        self.step_counter = 0
-        self.ep_counter = 0
-        self.residual_variance_counter = 0
-        self.reward_step_counter = 0
-
     # May need to be fixed - runs without error but value not bounded in [0,1]
     def relative_policy_entropy(self, log_prob):
         valid = (log_prob > -np.inf)
@@ -153,16 +141,19 @@ class DebuggingRL:
         new_mu = new_policy[0]
         new_log_std =  new_policy[1].repeat(new_mu.shape[1],1).T
         kl_div = (new_log_std - old_log_std) + (torch.exp(old_log_std)**2 + (old_mu - new_mu)**2)/(2*torch.exp(new_log_std)**2) - 0.5
-        return kl_div
+        return kl_div.mean(axis=0)
 
     # When called, log if returned value is not None
     def residual_variance(self, target_val, net_val):
         self.residual_variance_counter+=1
-        self.value_targets_var.append(target_val)
-        self.net_values.append(net_val)
-        if(self.residual_variance_counter > self.residual_variance_after_steps):
+        self.value_targets_var.append(target_val.mean().item())
+        self.net_values.append(net_val.mean().item())
+        if(self.residual_variance_counter >= self.residual_variance_after_steps):
             net_val_arr = np.array(self.net_values)
             targ_val_arr = np.array(self.value_targets_var)
+            self.residual_variance_counter = 0
+            self.value_targets_var = list()
+            self.net_values = list()
             #print((np.std(targ_val_arr - net_val_arr)**2)/(np.std(targ_val_arr)**2))
             return (np.std(targ_val_arr - net_val_arr)**2)/(np.std(targ_val_arr)**2)
         return None 
@@ -189,27 +180,31 @@ class DebuggingRL:
         if(value is not None):
             self.values.append(value.mean().item())
         if(value_target is not None):
-            self.value_targets.append(value_target.mean.item())
+            self.value_targets.append(value_target.mean().item())
         
-        if(self.step_counter > self.plot_after_steps):
+        if(self.step_counter >= self.plot_after_steps):
             self.__get_stats()
-            self.__reset()
+            self.step_counter = 0
+            self.values = list()
+            self.value_targets = list()
     
     def collect_rewards(self, reward=None):
         self.reward_step_counter+=1
         if(reward is not None):
             self.rewards.append(reward)
         
-        if(self.reward_step_counter > self.plot_after_steps):
+        if(self.reward_step_counter >= self.plot_after_steps):
             self.__get_stats()
-            self.__reset()
+            self.reward_step_counter = 0
+            self.rewards = list()
 
     def collect_episode_lengths(self, ep_len):
         self.ep_counter+=1
         self.episode_lengths.append(ep_len)
-        if(self.ep_counter > self.plot_ep_lengths_after):
+        if(self.ep_counter >= self.plot_ep_lengths_after):
             self.get_summary_stats(self.episode_lengths, valtype="Episode length")
             self.ep_counter = 0
+            self.episode_lengths = list()
     
     # Requires slight modification of network, not implemented for now
     def sample_staleness(self):
