@@ -6,8 +6,6 @@ Source:
 https://github.com/openai/spinningup/blob/master/spinup/algos/pytorch/sac/sac.py
 """
 import itertools
-from multiprocessing.sharedctypes import Value
-import queue, threading
 from copy import deepcopy
 
 import torch
@@ -17,15 +15,9 @@ from torch.optim import Adam
 
 from src.agents.base import BaseAgent
 from src.config.yamlize import yamlize, create_configurable, NameToSourcePath
-from src.encoders.vae import VAE
-from src.utils.utils import ActionSample, RecordExperience, DebuggingRL
+from src.utils.utils import ActionSample, DebuggingRL
+
 from src.constants import DEVICE
-
-from src.config.parser import read_config
-from src.config.schema import agent_schema
-
-
-from src.utils.envwrapper import EnvContainer
 
 
 @yamlize
@@ -35,59 +27,52 @@ class SACAgent(BaseAgent):
     def __init__(
         self,
         steps_to_sample_randomly: int,
-        record_dir: str,
-        track_name: str,
-        experiment_name: str,
         gamma: float,
         alpha: float,
         polyak: float,
-        make_random_actions: bool,
-        checkpoint: str,
-        load_checkpoint: bool,
-        model_save_path: str,
-        actor_critic_cfg: str,
         lr: float,
+        actor_critic_cfg_path: str,
+        load_checkpoint_from: str = "",
     ):
+        """Initialize Soft Actor-Critic Agent
+
+        Args:
+            steps_to_sample_randomly (int): Number of steps to sample randomly
+            gamma (float): Gamma parameter
+            alpha (float): Alpha parameter
+            polyak (float): Polyak parameter coef.
+            lr (float): Learning rate parameter.
+            actor_critic_cfg_path (str): Actor Critic Config Path
+            load_checkpoint_from (str, optional): Load checkpoint from path. If '', then doesn't load anything. Defaults to ''.
+        """
+
         super(SACAgent, self).__init__()
 
         self.steps_to_sample_randomly = steps_to_sample_randomly
-        self.record_dir = record_dir
-        self.track_name = track_name
-        self.experiment_name = experiment_name
         self.gamma = gamma
         self.alpha = alpha
         self.polyak = polyak
-        self.make_random_actions = make_random_actions
-        self.checkpoint = checkpoint
-        self.load_checkpoint = load_checkpoint
-        self.model_save_path = model_save_path
+        self.load_checkpoint_from = load_checkpoint_from
         self.lr = lr
 
-        self.save_episodes = True
-        self.episode_num = 0
-        self.best_ret = 0
         self.t = 0
         self.deterministic = False
-        self.atol = 1e-3
-        self.store_from_safe = False
-        self.pi_scheduler = None
-        self.t_start = 0
-        self.best_pct = 0
 
-        self.record = {"transition_actor": ""}
+        self.record = {"transition_actor": ""}  # rename
 
         self.action_space = Box(-1, 1, (2,))
         self.act_dim = self.action_space.shape[0]
         self.obs_dim = 32
 
         self.actor_critic = create_configurable(
-            actor_critic_cfg, NameToSourcePath.network
+            actor_critic_cfg_path, NameToSourcePath.network
         )
         self.actor_critic.to(DEVICE)
-        if self.checkpoint and self.load_checkpoint:
-            self.load_model(self.checkpoint)
-
         self.actor_critic_target = deepcopy(self.actor_critic)
+
+        if self.load_checkpoint_from != "":
+            self.load_model(self.load_checkpoint_from)
+
         self.q_params = itertools.chain(
             self.actor_critic.q1.parameters(), self.actor_critic.q2.parameters()
         )
@@ -95,8 +80,10 @@ class SACAgent(BaseAgent):
         # Set up optimizers for policy and q-function
         self.pi_optimizer = Adam(self.actor_critic.policy.parameters(), lr=self.lr)
         self.q_optimizer = Adam(self.q_params, lr=self.lr)
-        self.pi_scheduler = torch.optim.lr_scheduler.StepLR(
-            self.pi_optimizer, 1, gamma=0.5
+        self.pi_scheduler = (
+            torch.optim.lr_scheduler.StepLR(  # TODO: Call some scheduler in runner.
+                self.pi_optimizer, 1, gamma=0.5
+            )
         )
 
         # Freeze target networks with respect to optimizers (only update via polyak averaging)
@@ -104,6 +91,14 @@ class SACAgent(BaseAgent):
             p.requires_grad = False
 
     def select_action(self, obs):
+        """Select action from obs.
+
+        Args:
+            obs (np.array): Observation to act on.
+
+        Returns:
+            ActionObj: Action object.
+        """
         # Until start_steps have elapsed, randomly sample actions
         # from a uniform distribution for better exploration. Afterwards,
         # use the learned policy.
@@ -120,29 +115,29 @@ class SACAgent(BaseAgent):
         self.t = self.t + 1
         return action_obj
 
-    def register_reset(self, obs) -> np.array:
+    def register_reset(self, obs):
         """
         Same input/output as select_action, except this method is called at episodal reset.
         """
-        # camera, features, state = obs
-        self.deterministic = True  # TODO: Confirm that this makes sense.
-        self.t = 1e6
+        pass
 
-    def load_model(self, path_or_checkpoint):
-        if isinstance(path_or_checkpoint, str):
-            self.actor_critic.load_state_dict(torch.load(path_or_checkpoint))
-        else:
-            self.actor_critic.load_state_dict(path_or_checkpoint)
+    def load_model(self, path):
+        """Load model from path.
 
-    def state_dict(self):
-        """Emulate torch behavior; note to self to remove once better refactor comes in."""
-        return self.actor_critic.state_dict()
+        Args:
+            path (str): Load model from path.
+        """
+        self.actor_critic.load_state_dict(torch.load(path))
 
     def save_model(self, path):
+        """Save model to path
+
+        Args:
+            path (str): Save model to path
+        """
         torch.save(self.actor_critic.state_dict(), path)
 
-    def compute_loss_q(self, data):
-
+    def _compute_loss_q(self, data):
         """Set up function for computing SAC Q-losses."""
         o, a, r, o2, d = (
             data["obs"],
@@ -178,7 +173,7 @@ class SACAgent(BaseAgent):
 
         return loss_q, q_info
 
-    def compute_loss_pi(self, data):
+    def _compute_loss_pi(self, data):
         """Set up function for computing SAC pi loss."""
         o = data["obs"]
         pi, logp_pi = self.actor_critic.pi(o)
@@ -195,9 +190,14 @@ class SACAgent(BaseAgent):
         return loss_pi, pi_info
 
     def update(self, data):
+        """Update SAC Agent given data
+
+        Args:
+            data (dict): Data from ReplayBuffer object.
+        """
         # First run one gradient descent step for Q1 and Q2
         self.q_optimizer.zero_grad()
-        loss_q, q_info = self.compute_loss_q(data)
+        loss_q, _ = self._compute_loss_q(data)
         loss_q.backward()
         self.q_optimizer.step()
 
@@ -208,7 +208,7 @@ class SACAgent(BaseAgent):
 
         # Next run one gradient descent step for pi.
         self.pi_optimizer.zero_grad()
-        loss_pi, pi_info = self.compute_loss_pi(data)
+        loss_pi, _ = self._compute_loss_pi(data)
         loss_pi.backward()
         self.pi_optimizer.step()
 
@@ -225,46 +225,3 @@ class SACAgent(BaseAgent):
                 # params, as opposed to "mul" and "add", which would make new tensors.
                 p_targ.data.mul_(self.polyak)
                 p_targ.data.add_((1 - self.polyak) * p.data)
-
-    def update_best_pct_complete(self, info):
-        if self.best_pct < info["metrics"]["pct_complete"]:
-            for cutoff in [93, 100]:
-                if (self.best_pct < cutoff) & (
-                    info["metrics"]["pct_complete"] >= cutoff
-                ):
-                    self.pi_scheduler.step()
-            self.best_pct = info["metrics"]["pct_complete"]
-
-    def add_experience(
-        self,
-        action,
-        camera,
-        next_camera,
-        done,
-        env,
-        feature,
-        next_feature,
-        info,
-        reward,
-        state,
-        next_state,
-        step,
-    ):
-        self.recording = {
-            "step": step,
-            "nearest_idx": env.nearest_idx,
-            "camera": camera,
-            "feature": feature.detach().cpu().numpy(),
-            "state": state,
-            "action_taken": action,
-            "next_camera": next_camera,
-            "next_feature": next_feature.detach().cpu().numpy(),
-            "next_state": next_state,
-            "reward": reward,
-            "episode": self.episode_num,
-            "stage": "training",
-            "done": done,
-            "transition_actor": self.record["transition_actor"],
-            "metadata": info,
-        }
-        return self.recording

@@ -10,10 +10,9 @@ Subpackages
    src.agents
    src.buffers
    src.config
-   src.deprecated
    src.encoders
-   src.evaluator
    src.loggers
+   src.networks
    src.runners
 
 Submodules
