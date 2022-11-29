@@ -198,7 +198,7 @@ class SACAgent(BaseAgent):
             data (dict): Data from ReplayBuffer object.
         """
 
-        policy_params = self.actor_critic.pi.parameters()
+        policy_params = self.actor_critic.policy.parameters()
         q1_params = self.actor_critic.q1.parameters()
         q2_params = self.actor_critic.q1.parameters()
         mu, log_std = self.actor_critic.pi(data["obs"])
@@ -247,7 +247,7 @@ class SACAgent(BaseAgent):
         kl_div = self.debugger.KLdivergence((mu, log_std), (updated_mu, updated_log_std))
         new_q1_params = self.actor_critic.q1.parameters()
         new_q2_params = self.actor_critic.q1.parameters()
-        new_policy_params = self.actor_critic.pi.parameters()
+        new_policy_params = self.actor_critic.policy.parameters()
         q1_absmaxs, q1_mse = self.debugger.step_stats(old_net_params=q1_params, new_net_params=new_q1_params, nettype="Q1 Value Net")
         q2_absmaxs, q2_mse = self.debugger.step_stats(old_net_params=q2_params, new_net_params=new_q2_params, nettype="Q2 Value Net")
         policy_absmaxs, policy_mse  = self.debugger.step_stats(old_net_params=policy_params, new_net_params=new_policy_params, nettype="Policy Net")
