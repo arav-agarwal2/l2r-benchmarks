@@ -134,17 +134,14 @@ class DebuggingRL:
         self.residual_variance_counter = 0
         self.reward_step_counter = 0
 
-    def __get_logits(self, log_prob):
-        return log_prob - np.log(1 - np.exp(log_prob))
-
+    # May need to be fixed
     def relative_policy_entropy(self, log_prob):
-        logits = self.__get_logits(log_prob)
-        valid = (logits > -np.inf)
-        zeros = torch.zeros_like(logits)
-        logits = logits.where(valid, zeros)
-        probs = logits.exp().where(valid, zeros)
-        print(logits, valid, valid.sum(-1))
-        return (-(logits*probs).sum(-1).mean())/(torch.log(valid.sum(-1).float()).mean())
+        valid = (log_prob > -np.inf)
+        zeros = torch.zeros_like(log_prob)
+        log_prob = log_prob.where(valid, zeros)
+        probs = log_prob.exp().where(valid, zeros)
+        rel_polent = (-(log_prob*probs).sum(-1).mean())/(torch.log(valid.sum(-1).float()).mean())
+        return rel_polent
 
     # Assumes Gaussian
     # Follows formula mentioned here: https://stats.stackexchange.com/a/7449
@@ -154,7 +151,7 @@ class DebuggingRL:
         old_log_std = old_policy[1]
         new_mu = new_policy[0]
         new_log_std = new_policy[1]
-        kl_div = (new_log_std - old_log_std) + (np.exp(old_log_std)**2 + (old_mu - new_mu)**2)/(2*np.exp(new_log_std)**2) - 0.5
+        kl_div = (new_log_std - old_log_std) + (torch.exp(old_log_std)**2 + (old_mu - new_mu)**2)/(2*torch.exp(new_log_std)**2) - 0.5
         return kl_div
 
     # When called, log if returned value is not None

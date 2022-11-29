@@ -202,7 +202,7 @@ class SACAgent(BaseAgent):
         q1_params = self.actor_critic.q1.parameters()
         q2_params = self.actor_critic.q1.parameters()
         mu, log_std = self.actor_critic.pi(data["obs"])
-        relpolent = self.debugger.relative_policy_entropy(log_std)
+        #relpolent = self.debugger.relative_policy_entropy(log_std)
         # Entropy loss
         #self.alpha = torch.exp(self.log_ent_coef.detach())
         #ent_coef_loss = -(self.log_ent_coef * (logp_pi + self.target_entropy).detach()).mean()
@@ -254,7 +254,7 @@ class SACAgent(BaseAgent):
         
         return {
             "KL.Divergence" : kl_div,
-            "Relative.Policy.Entropy": relpolent,
+            #"Relative.Policy.Entropy": relpolent,
             "Q1 Abs Max": q1_absmaxs,
             "Q1 MSE": q1_mse,
             "Q2 Abs Max": q2_absmaxs,
