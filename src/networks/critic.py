@@ -192,6 +192,7 @@ class ActivationType(Enum):
 
     ReLU = torch.nn.ReLU
     Tanh = torch.nn.Tanh
+    SELU = torch.nn.SELU
 
 
 @yamlize
