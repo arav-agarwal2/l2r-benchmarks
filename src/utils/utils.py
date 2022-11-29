@@ -148,9 +148,9 @@ class DebuggingRL:
     def KLdivergence(self, old_policy, new_policy):
         # policies are tuples of form (mu, logvar) which is what the policy net returns currently
         old_mu = old_policy[0]
-        old_log_std = old_policy[1]
+        old_log_std =  old_policy[1].repeat(old_mu.shape[1],1).T
         new_mu = new_policy[0]
-        new_log_std = new_policy[1]
+        new_log_std =  new_policy[1].repeat(new_mu.shape[1],1).T
         kl_div = (new_log_std - old_log_std) + (torch.exp(old_log_std)**2 + (old_mu - new_mu)**2)/(2*torch.exp(new_log_std)**2) - 0.5
         return kl_div
 
