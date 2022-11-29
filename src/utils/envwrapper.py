@@ -64,3 +64,9 @@ class EnvContainer:
             self.env = env
         obs = self.env.reset(random_pos=random_pos)
         return self._process_obs(obs)
+
+    # Currently arbitrarily min-max scaling from -100 and +5000 based on WandB data. 
+    # Can do more sophisticated scaling by changing reward fn/modifying the L2R repo directly
+    def __scale_rewards(self, unscaled_reward):
+        # (x - xmin)/(xmax - xmin)
+        return (unscaled_reward + 100)/(5000 + 100)
