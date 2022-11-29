@@ -71,7 +71,7 @@ class SACAgent(BaseAgent):
         self.actor_critic.to(DEVICE)
         self.actor_critic_target = deepcopy(self.actor_critic)
 
-        self.dubugger = DebuggingRL()
+        self.debugger = DebuggingRL()
 
         if self.load_checkpoint_from != "":
             self.load_model(self.load_checkpoint_from)
@@ -160,8 +160,8 @@ class SACAgent(BaseAgent):
             q2_pi_targ = self.actor_critic_target.q2(o2, pi)
             q_pi_targ = torch.min(q1_pi_targ, q2_pi_targ)
             # Calculates debug metrics of only one of the Q-nets, modify counter in function in utils to do both 
-            resvar = self.dubugger.residual_variance(q_pi_targ, q1) #resvar is calculated over multiple steps so it may be None most of the time
-            self.dubugger.collect_values_value_targets(value=q1, value_target=q1_pi_targ)
+            resvar = self.debugger.residual_variance(q_pi_targ, q1) #resvar is calculated over multiple steps so it may be None most of the time
+            self.debugger.collect_values_value_targets(value=q1, value_target=q1_pi_targ)
             backup = r + self.gamma * (1 - d) * (q_pi_targ - self.alpha * log_pi)
 
         # MSE loss against Bellman backup
@@ -202,7 +202,7 @@ class SACAgent(BaseAgent):
         q1_params = self.actor_critic.q1.parameters()
         q2_params = self.actor_critic.q1.parameters()
         mu, log_std = self.actor_critic.pi(data["obs"])
-        relpolent = self.dubugger.relative_policy_entropy(log_std)
+        relpolent = self.debugger.relative_policy_entropy(log_std)
         # Entropy loss
         #self.alpha = torch.exp(self.log_ent_coef.detach())
         #ent_coef_loss = -(self.log_ent_coef * (logp_pi + self.target_entropy).detach()).mean()
@@ -244,13 +244,13 @@ class SACAgent(BaseAgent):
 
         updated_mu, updated_log_std = self.actor_critic.pi(data["obs"])
         
-        kl_div = self.dubugger.KLdivergence((mu, log_std), (updated_mu, updated_log_std))
+        kl_div = self.debugger.KLdivergence((mu, log_std), (updated_mu, updated_log_std))
         new_q1_params = self.actor_critic.q1.parameters()
         new_q2_params = self.actor_critic.q1.parameters()
         new_policy_params = self.actor_critic.pi.parameters()
-        q1_absmaxs, q1_mse = self.dubugger.step_stats(old_net_params=q1_params, new_net_params=new_q1_params, nettype="Q1 Value Net")
-        q2_absmaxs, q2_mse = self.dubugger.step_stats(old_net_params=q2_params, new_net_params=new_q2_params, nettype="Q2 Value Net")
-        policy_absmaxs, policy_mse  = self.dubugger.step_stats(old_net_params=policy_params, new_net_params=new_policy_params, nettype="Policy Net")
+        q1_absmaxs, q1_mse = self.debugger.step_stats(old_net_params=q1_params, new_net_params=new_q1_params, nettype="Q1 Value Net")
+        q2_absmaxs, q2_mse = self.debugger.step_stats(old_net_params=q2_params, new_net_params=new_q2_params, nettype="Q2 Value Net")
+        policy_absmaxs, policy_mse  = self.debugger.step_stats(old_net_params=policy_params, new_net_params=new_policy_params, nettype="Policy Net")
         
         return {
             "KL.Divergence" : kl_div,
