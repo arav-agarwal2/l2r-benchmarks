@@ -261,5 +261,5 @@ class SACAgent(BaseAgent):
             "Q2 MSE": q2_mse,
             "Policy Abs Max": policy_absmaxs,
             "Policy MSE": policy_mse,
-            "Residual Varaince": q_info["ResidualVaraince"]
+            "Residual Varaince": q_info["ResidualVariance"]
             }

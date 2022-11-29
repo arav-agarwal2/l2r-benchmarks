@@ -6,6 +6,7 @@ from termios import VQUIT
 import numpy as np
 from datetime import datetime
 import torch
+from scipy import stats
 
 def find_envvar_patterns(self, config, key):
     pattern = re.compile(".*?\${(\w+)}.*?")
@@ -134,7 +135,7 @@ class DebuggingRL:
         self.residual_variance_counter = 0
         self.reward_step_counter = 0
 
-    # May need to be fixed
+    # May need to be fixed - runs without error but value not bounded in [0,1]
     def relative_policy_entropy(self, log_prob):
         valid = (log_prob > -np.inf)
         zeros = torch.zeros_like(log_prob)
@@ -171,11 +172,8 @@ class DebuggingRL:
         raise NotImplementedError()
 
     def get_summary_stats(self, vallist, valtype="Reward"):
-        val_arr = np.array(vallist)
-        print(f"Minimum {valtype}: ", val_arr.min())
-        print(f"Maximum {valtype}: ", val_arr.max())
-        print(f"Mean {valtype}", val_arr.mean())
-        print(f"{valtype} variance", val_arr.std()**2)
+        print(f"For {valtype}")
+        print(stats.describe(vallist))
 
     def __get_stats(self):
         if(len(self.rewards) > 0):
@@ -189,9 +187,9 @@ class DebuggingRL:
     def collect_values_value_targets(self, value=None, value_target=None):
         self.step_counter+=1
         if(value is not None):
-            self.values.append(value)
+            self.values.append(value.mean().item())
         if(value_target is not None):
-            self.value_targets.append(value_target)
+            self.value_targets.append(value_target.mean.item())
         
         if(self.step_counter > self.plot_after_steps):
             self.__get_stats()
@@ -220,7 +218,7 @@ class DebuggingRL:
 
     def step_stats(self, old_net_params, new_net_params, nettype="Policy"):
         param_diffs = list()
-        for old_net_param, new_net_param in zip(old_net_params.parameters(), new_net_params.parameters()):
+        for old_net_param, new_net_param in zip(old_net_params, new_net_params):
             param_diff = new_net_param - old_net_param
             param_diffs.append(param_diff)
 
@@ -229,8 +227,6 @@ class DebuggingRL:
         for param_diff in param_diffs:
             abs_maxs.append(torch.max(torch.max(param_diff)))
             mses.append(torch.mean(torch.square(param_diff)))
-        print(f"Abs Max for {nettype} network: ", abs_maxs)
-        print(f"Mean Square Error for {nettype} network: ", mses)
         return abs_maxs, mses
 
     # We are currently using Adam so this is omitted 
