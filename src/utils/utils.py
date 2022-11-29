@@ -120,6 +120,7 @@ class DebuggingRL:
         self.step_counter = 0
         self.ep_counter = 0
         self.residual_variance_counter = 0
+        self.reward_step_counter = 0
 
     def __reset(self):
         self.rewards = list()
@@ -131,6 +132,7 @@ class DebuggingRL:
         self.step_counter = 0
         self.ep_counter = 0
         self.residual_variance_counter = 0
+        self.reward_step_counter = 0
 
     def __get_logits(self, log_prob):
         return log_prob - np.log(1 - np.exp(log_prob))
@@ -141,7 +143,8 @@ class DebuggingRL:
         zeros = torch.zeros_like(logits)
         logits = logits.where(valid, zeros)
         probs = logits.exp().where(valid, zeros)
-        return (-(logits*probs).sum(-1).mean(), torch.log(valid.sum(-1).float()).mean())
+        print(logits, valid, valid.sum(-1))
+        return (-(logits*probs).sum(-1).mean())/(torch.log(valid.sum(-1).float()).mean())
 
     # Assumes Gaussian
     # Follows formula mentioned here: https://stats.stackexchange.com/a/7449
@@ -186,10 +189,8 @@ class DebuggingRL:
             self.get_summary_stats(self.value_targets, valtype="Target Values")
 
     # default None so you don't have to log all of them
-    def collect_reward_values_value_targets(self, reward, value=None, value_target=None):
+    def collect_values_value_targets(self, value=None, value_target=None):
         self.step_counter+=1
-        if(reward is not None):
-            self.rewards.append(reward)
         if(value is not None):
             self.values.append(value)
         if(value_target is not None):
@@ -199,6 +200,15 @@ class DebuggingRL:
             self.__get_stats()
             self.__reset()
     
+    def collect_rewards(self, reward=None):
+        self.reward_step_counter+=1
+        if(reward is not None):
+            self.rewards.append(reward)
+        
+        if(self.reward_step_counter > self.plot_after_steps):
+            self.__get_stats()
+            self.__reset()
+
     def collect_episode_lengths(self, ep_len):
         self.ep_counter+=1
         self.episode_lengths.append(ep_len)
@@ -212,12 +222,19 @@ class DebuggingRL:
     
 
     def step_stats(self, old_net_params, new_net_params, nettype="Policy"):
-        param_diff = new_net_params - old_net_params
-        abs_max = torch.max(torch.max(param_diff))
-        mse = torch.mean(torch.square(param_diff))
-        print(f"Abs Max for {nettype} network: ", abs_max)
-        print(f"Mean Square Error for {nettype} network: ", mse)
-        return abs_max, mse
+        param_diffs = list()
+        for old_net_param, new_net_param in zip(old_net_params.parameters(), new_net_params.parameters()):
+            param_diff = new_net_param - old_net_param
+            param_diffs.append(param_diff)
+
+        abs_maxs = list()
+        mses = list()
+        for param_diff in param_diffs:
+            abs_maxs.append(torch.max(torch.max(param_diff)))
+            mses.append(torch.mean(torch.square(param_diff)))
+        print(f"Abs Max for {nettype} network: ", abs_maxs)
+        print(f"Mean Square Error for {nettype} network: ", mses)
+        return abs_maxs, mses
 
     # We are currently using Adam so this is omitted 
     def gradient_stats(self):
