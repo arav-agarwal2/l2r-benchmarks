@@ -198,11 +198,13 @@ class SACAgent(BaseAgent):
             data (dict): Data from ReplayBuffer object.
         """
 
-        policy_params = self.actor_critic.policy.parameters()
-        q1_params = self.actor_critic.q1.parameters()
-        q2_params = self.actor_critic.q1.parameters()
+        policy_params = self.actor_critic_target.policy.parameters()
+        q1_params = self.actor_critic_target.q1.parameters()
+        q2_params = self.actor_critic_target.q1.parameters()
+        
         mu, log_std = self.actor_critic.pi(data["obs"])
-        #relpolent = self.debugger.relative_policy_entropy(log_std)
+        relpolent = self.debugger.relative_policy_entropy(log_std)
+        
         # Entropy loss
         #self.alpha = torch.exp(self.log_ent_coef.detach())
         #ent_coef_loss = -(self.log_ent_coef * (logp_pi + self.target_entropy).detach()).mean()
@@ -245,16 +247,16 @@ class SACAgent(BaseAgent):
         updated_mu, updated_log_std = self.actor_critic.pi(data["obs"])
         
         kl_div = self.debugger.KLdivergence((mu, log_std), (updated_mu, updated_log_std))
-        new_q1_params = self.actor_critic.q1.parameters()
-        new_q2_params = self.actor_critic.q1.parameters()
-        new_policy_params = self.actor_critic.policy.parameters()
+        new_q1_params = self.actor_critic_target.q1.parameters()
+        new_q2_params = self.actor_critic_target.q1.parameters()
+        new_policy_params = self.actor_critic_target.policy.parameters()
         q1_absmaxs, q1_mse = self.debugger.step_stats(old_net_params=q1_params, new_net_params=new_q1_params, nettype="Q1 Value Net")
         q2_absmaxs, q2_mse = self.debugger.step_stats(old_net_params=q2_params, new_net_params=new_q2_params, nettype="Q2 Value Net")
         policy_absmaxs, policy_mse  = self.debugger.step_stats(old_net_params=policy_params, new_net_params=new_policy_params, nettype="Policy Net")
         
         return {
             "KL.Divergence" : kl_div,
-            #"Relative.Policy.Entropy": relpolent,
+            "Relative.Policy.Entropy": relpolent,
             "Q1 Abs Max": q1_absmaxs,
             "Q1 MSE": q1_mse,
             "Q2 Abs Max": q2_absmaxs,

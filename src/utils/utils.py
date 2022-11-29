@@ -214,14 +214,14 @@ class DebuggingRL:
     def step_stats(self, old_net_params, new_net_params, nettype="Policy"):
         param_diffs = list()
         for old_net_param, new_net_param in zip(old_net_params, new_net_params):
-            param_diff = new_net_param - old_net_param
+            param_diff = new_net_param.data - old_net_param.data
             param_diffs.append(param_diff)
 
         abs_maxs = list()
         mses = list()
         for param_diff in param_diffs:
-            abs_maxs.append(torch.max(torch.max(param_diff)))
-            mses.append(torch.mean(torch.square(param_diff)))
+            abs_maxs.append(torch.max(torch.abs(param_diff)).item())
+            mses.append(torch.mean(torch.square(param_diff)).item())
         return abs_maxs, mses
 
     # We are currently using Adam so this is omitted 
