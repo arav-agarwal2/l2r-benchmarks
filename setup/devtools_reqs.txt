@@ -6,3 +6,14 @@ mypy
 types-PyYAML
 sphinx
 sphinx-rtd-theme
+torch
+strictyaml
+opencv-python
+matplotlib
+gym
+tqdm
+wandb
+typing-extensions
+scipy
+tensorboardX
+jsonpickle
