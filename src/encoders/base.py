@@ -7,12 +7,6 @@ import gym
 class BaseEncoder(ABC):
     @abstractmethod
     def encode(self, image):
-        pass
-
-    @abstractmethod
-    def decode(self, image):
-        pass
-
-    @abstractmethod
-    def update(self, batch_of_images):
+        # image: np.array (H, W, C)
+        # returns torch.Tensor(*) where * depends on the encoder
         pass

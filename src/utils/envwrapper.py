@@ -26,6 +26,9 @@ class EnvContainer:
             torch.Tensor: encoded image.
         """
         obs_camera = obs["images"]["CameraFrontRGB"]
+        assert np.any(
+            obs_camera != 0
+        ), "Camera obs should have a value != 0 (black screen)"
         obs_encoded = self.encoder.encode(obs_camera).to(DEVICE)
         speed = (
             torch.tensor(np.linalg.norm(obs["pose"][3:6], ord=2))

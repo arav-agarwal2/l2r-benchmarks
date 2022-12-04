@@ -131,6 +131,7 @@ class NameToSourcePath(Enum):
 
     buffer = "src.buffers"
     encoder = "src.encoders"
+    encoder_dataloader = "src.encoders.dataloaders"
     logger = "src.loggers"
     runner = "src.runners"
     agent = "src.agents"

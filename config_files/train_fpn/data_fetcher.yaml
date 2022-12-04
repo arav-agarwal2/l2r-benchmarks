@@ -1,0 +1,5 @@
+name: SegmDataFetcher
+config:
+  train_path: '/mnt/data/train'
+  val_path: '/mnt/data/val'
+  
