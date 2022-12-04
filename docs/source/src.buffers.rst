@@ -4,6 +4,14 @@ src.buffers package
 Submodules
 ----------
 
+src.buffers.PPOBuffer module
+----------------------------
+
+.. automodule:: src.buffers.PPOBuffer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 src.buffers.SimpleReplayBuffer module
 -------------------------------------
 

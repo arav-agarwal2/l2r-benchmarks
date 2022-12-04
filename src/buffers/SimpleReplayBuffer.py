@@ -27,6 +27,14 @@ class SimpleReplayBuffer:
         # pdb.set_trace()
 
         def convert(arraylike):
+            """Convert from tensor to nparray
+
+            Args:
+                arraylike (Torch.Tensor): Tensor to convert
+
+            Returns:
+                np.array: Converted numpyarray
+            """
             obs = arraylike
             if isinstance(obs, torch.Tensor):
                 if obs.requires_grad:
@@ -62,6 +70,11 @@ class SimpleReplayBuffer:
         return len(self.buffer)
 
     def sample_batch(self):
+        """Sample batch from self.
+
+        Returns:
+            dict: Dictionary of batched information.
+        """
 
         idxs = np.random.choice(
             len(self.buffer), size=min(self.batch_size, len(self.buffer)), replace=False

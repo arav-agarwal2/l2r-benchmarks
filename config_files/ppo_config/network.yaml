@@ -4,7 +4,7 @@ config:
   activation: ReLU
   critic_cfg:
     name:
-      Qfunction
+      Vfunction
     config:
       use_speed:
         True
