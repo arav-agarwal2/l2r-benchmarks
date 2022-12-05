@@ -12,4 +12,5 @@ class ActionSample:
 
     action = None
     value = None
+    cost_value = None
     logp = None

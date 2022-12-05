@@ -1,13 +1,16 @@
-name: SACAgent
+name: PCPOAgent
 config:
   make_random_actions: 0
   gamma: 0.99
   polyak: 0.995
   lr: 0.003
+  cost_limit: 25.0
+  target_kl: 0.01
+  cg_damping: 0.1
   alpha: 0.2
   steps_to_sample_randomly: 1000 # start_steps
-  checkpoint: '/mnt/SAC_VAE/best_SAC_VAE_episode_200.statedict'
-  actor_critic_cfg: './config_files/async_sac/network.yaml'
+  checkpoint: '/mnt/PCPO_VAE/best_PCPO_VAE_episode_1.statedict'
+  actor_critic_cfg: './config_files/pcpo_config/network.yaml'
   load_checkpoint: False
   model_save_path: '/mnt'
   record_dir: '/mnt'

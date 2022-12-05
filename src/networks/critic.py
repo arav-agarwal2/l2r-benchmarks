@@ -99,6 +99,86 @@ class SquashedGaussianMLPActor(nn.Module):
 
         return pi_action, logp_pi
 
+@yamlize
+class MLPGaussianActor(nn.Module):
+    """Squashed Gaussian MLP Actor."""
+
+    def __init__(self, obs_dim, act_dim, hidden_sizes, activation, act_limit):
+        """Initialize Squashed Gaussian Actor
+
+        Args:
+            obs_dim (int): Observation dimension
+            act_dim (int): Action dimension
+            hidden_sizes (list[int]): List of hidden sizes
+            activation (nn.Module): Activation function
+            act_limit (int): Action limit
+        """
+        super().__init__()
+        self.net = mlp([obs_dim] + list(hidden_sizes), activation, activation)
+        self.mu_layer = nn.Linear(hidden_sizes[-1], act_dim)
+        self.log_std_layer = nn.Linear(hidden_sizes[-1], act_dim)
+        self.act_limit = act_limit
+
+    def forward(self, obs, deterministic=False, with_logprob=True, act=None):
+        """Get action from obs.
+
+        Args:
+            obs (int): Observation
+            deterministic (bool, optional): Whether to use means instead of rsample. Defaults to False.
+            with_logprob (bool, optional): Whether to return log probability. Defaults to True.
+
+        Returns:
+            tuple: Tuple of action, logprob
+        """
+        pi = self.dist(obs)
+        logp_a = None
+        if with_logprob:
+            logp_a = self.log_prob_from_dist(pi, act)
+        return pi, logp_a
+
+    def dist(self, obs):
+        mu = self.net(obs)
+        return Normal(mu, self.std)
+    
+    def detach_dist(self, obs):
+        mu = self.net(obs).detach()
+        return Normal(mu, self.std.detach())
+    
+    def log_prob_from_dist(self, pi, act) -> torch.Tensor:
+        # Last axis sum needed for Torch Normal distribution
+        return pi.log_prob(act).sum(axis=-1)
+
+    def focops_return(self, obs, act):
+        mean = self.net(obs)
+        std = torch.exp(self.log_std)
+        std = std.expand_as(mean)
+        normal = Normal(mean, std)
+        return normal.log_prob(act).sum(-1, keepdim=True), mean, std
+
+    def sample(self, obs):
+        pi = self.dist(obs)
+        a = pi.sample()
+        logp_a = self.log_prob_from_dist(pi, a)
+
+        return a, logp_a
+
+    def set_log_std(self, frac):
+        """ To support annealing exploration noise.
+            frac is annealing from 1. to 0 over course of training"""
+        assert 0 <= frac <= 1
+        new_stddev = 0.499 * frac + 0.01  # annealing from 0.5 to 0.01
+        log_std = np.log(new_stddev) * np.ones(self.act_dim, dtype=np.float32)
+        self.log_std = torch.nn.Parameter(torch.as_tensor(log_std),
+                                          requires_grad=False)
+    
+    def predict(self, obs):
+        """ Predict action based on observation without exploration noise.
+            Use this method for evaluation purposes. """
+        action = self.net(obs)
+        log_p = torch.ones_like(action)  # avoid type conflicts at evaluation
+
+        return action, log_p
+
 
 @yamlize
 class Qfunction(nn.Module):
@@ -331,3 +411,104 @@ class ActorCritic(nn.Module):
             a, _ = self.policy(feat, deterministic, False)
             a = a.squeeze(0)
         return a.numpy() if a.device == "cpu" else a.cpu().numpy()
+
+
+@yamlize
+class ConstraintActorCritic(ActorCritic):
+    """
+    The constrained actor-critic class that inherits from the base actor critic class. Used for constrained PG algos like CPO and
+    PCPO.
+    """
+
+    def __init__(
+        self,
+        activation: str = "ReLU",
+        critic_cfg: ConfigurableDict = {
+            "name": "Qfunction",
+            "config": {"state_dim": 32},
+        },  ## Flag to indicate architecture for Safety_actor_critic
+        state_dim: int = 32,
+        action_dim: int = 2,
+        max_action_value: float = 1.0,
+        speed_encoder_hiddens: List[int] = [8, 8],
+        fusion_hiddens: List[int] = [32, 64, 64, 32, 32],
+        use_speed: bool = True,
+    ):
+        """
+        Initialize the observation dimension and action space dimensions, as well as the actor and critic networks.
+        """
+
+        super().__init__(
+            activation,
+            critic_cfg,
+            state_dim,
+            action_dim,
+            max_action_value,
+            speed_encoder_hiddens,
+            fusion_hiddens,
+            use_speed
+        )
+        
+        self.c  = create_configurable_from_dict(critic_cfg, NameToSourcePath.network)
+
+    def pi(self, obs_feat, deterministic=False):
+        """
+        Wrapper around the policy. Helps manage dimensions and add/remove features from the input space.
+        """
+
+        # if obs_feat.ndimension() == 1:
+        #    obs_feat = obs_feat.unsqueeze(0)
+        if self.use_speed:
+            img_embed = obs_feat[..., : self.state_dim]
+            speed = self.speed_encoder(obs_feat[..., self.state_dim :])
+            feat = torch.cat([img_embed, speed], dim=-1)
+
+        else:
+            img_embed = obs_feat[..., : self.state_dim]  # n x latent_dims
+            feat = torch.cat(
+                [
+                    img_embed,
+                ],
+                dim=-1,
+            )
+        
+        return self.policy(feat, deterministic, True)
+
+    def step(self, obs_feat, deterministic=False):
+        """
+        Uses the policy to get and return an action on the appropriate device in the right format.
+        """
+        # if obs_feat.ndimension() == 1:
+        #    obs_feat = obs_feat.unsqueeze(0)
+        with torch.no_grad():
+            if self.use_speed:
+                img_embed = obs_feat[..., : self.state_dim]
+                speed = self.speed_encoder(obs_feat[..., self.state_dim :])
+                feat = torch.cat([img_embed, speed], dim=-1)
+            else:
+                img_embed = obs_feat[..., : self.state_dim]  # n x latent_dims
+                feat = torch.cat(
+                    [
+                        img_embed,
+                    ],
+                    dim=-1,
+                )
+            a, logp_a = self.policy(feat, deterministic, False)
+            a = a.squeeze(0)
+
+        v = self.v(feat)
+        c = self.c(feat)
+
+        a = a.numpy() if a.device == "cpu" else a.cpu().numpy()
+        logp_a = logp_a.numpy() if logp_a.device == "cpu" else logp_a.cpu().numpy()
+        v =  v.numpy() if v.device == "cpu" else v.cpu().numpy()
+        c = c.numpy() if c.device == "cpu" else c.cpu().numpy()
+        return a, v, c, logp_a
+    
+    def act(self, obs_feat, deterministic = False):
+        return self.step(obs_feat)[0]
+    
+    def forward(self,
+                obs: torch.Tensor
+                ) -> tuple:
+        return self.step(obs)
