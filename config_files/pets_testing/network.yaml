@@ -1,0 +1,4 @@
+name: DynamicsNetwork
+config:
+  state_size: 33
+  action_size: 2
