@@ -1,4 +1,3 @@
-
 import torch
 from torch.utils.data import Dataset
 import numpy as np
@@ -13,7 +12,6 @@ from src.encoders.dataloaders.base import BaseDataFetcher
 from src.config.yamlize import yamlize
 
 
-
 class SegmDataset(Dataset):
     def __init__(self, data_path):
         # Data path should contain n demonstration subfolders, each with rgb_imgs and segm_imgs.
@@ -25,9 +23,9 @@ class SegmDataset(Dataset):
             if not os.path.isdir(folder):
                 continue
             self.data.extend(self.load_folder(folder))
-        
+
     def load_folder(self, folder):
-        rgb_img_path =  os.path.join(folder, "rgb_imgs")
+        rgb_img_path = os.path.join(folder, "rgb_imgs")
         segm_img_path = os.path.join(folder, "segm_imgs")
         out = []
         for i in os.listdir(rgb_img_path):
@@ -37,17 +35,17 @@ class SegmDataset(Dataset):
                 continue
             out.append((r, s))
         return out
-    
+
     def __len__(self):
         return len(self.data)
-    
+
     def prepare_rgb(self, img_path):
         img = cv2.imread(img_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         x = np.array(cv2.resize(img, (512, 384)))
         x = torch.Tensor(x.transpose(2, 0, 1)) / 255
         return x
-        
+
     def prepare_segm(self, img_path):
         img = cv2.imread(img_path)
         mask = np.where(img == (109, 80, 204), 1, 0).astype(np.uint8)
@@ -58,6 +56,7 @@ class SegmDataset(Dataset):
     def __getitem__(self, idx):
         rgb, label = self.data[idx]
         return self.prepare_rgb(rgb), self.prepare_segm(label)
+
 
 @yamlize
 class SegmDataFetcher(BaseDataFetcher):

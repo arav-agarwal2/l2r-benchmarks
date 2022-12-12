@@ -31,6 +31,7 @@ class ExpertDemoDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return self.imgs[idx]
 
+
 @yamlize
 class ExpertDemoDataFetcher(BaseDataFetcher):
     def __init__(self, train_path: str, val_path: str):
