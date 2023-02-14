@@ -104,6 +104,7 @@ class RecordExperience:
 
 # Ref https://andyljones.com/posts/rl-debugging.html for ideal values and meaning of metrics
 # https://github.com/andyljones/boardlaw/tree/master is a good reference also.
+# Relatively untested and unintegrated with the rest of the codebase
 class DebuggingRL:
     # If it stays close to 1 then you're not learning, 
     # if it is close to 0, you've learned some policy that's now stable and is no longer exploring
