@@ -1,6 +1,5 @@
 name: SACAgent
 config:
-  make_random_actions: 0
   gamma: 0.99
   polyak: 0.995
   lr: 0.003
