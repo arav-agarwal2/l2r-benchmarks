@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import itertools
 from src.constants import DEVICE
-import gym
 
 
 class EnvContainer(gym.Env):
@@ -16,7 +15,7 @@ class EnvContainer(gym.Env):
             encoder (nn.Module, optional): Encoder object to encoder inputs. Defaults to None.
         """
         self.encoder = encoder
-        self.env = None
+        self.env = env
 
     def _process_obs(self, obs: dict):
         """Process observation using encoder
@@ -49,8 +48,8 @@ class EnvContainer(gym.Env):
         """
         if env:
             self.env = env
-        obs, reward, terminated, info = self.env.step(action)
-        return self._process_obs(obs), reward, terminated, info
+        obs, reward, done, info = self.env.step(action)
+        return self._process_obs(obs), reward, done, info
 
     def reset(self, random_pos=False, env=None):
         """Reset env.

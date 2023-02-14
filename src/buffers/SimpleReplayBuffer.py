@@ -19,13 +19,17 @@ class SimpleReplayBuffer:
         self.obs_dim = obs_dim
         self.act_dim = act_dim
         self.batch_size = batch_size
-        self.buffer = collections.deque(maxlen=self.max_size)
+        self.weights = None
 
     def __len__(self):
         return len(self.buffer)
 
-    def store(self, values):
-        # pdb.set_trace()
+    def store(self, buffer_dict):
+        """Store data from buffer_dict
+
+        Args:
+            buffer_dict (_type_): Buffer dict
+        """
 
         def convert(arraylike):
             """Convert from tensor to nparray
@@ -40,35 +44,16 @@ class SimpleReplayBuffer:
             if isinstance(obs, torch.Tensor):
                 if obs.requires_grad:
                     obs = obs.detach()
-                obs = obs.cpu()
+                obs = obs.cpu().numpy()
             return obs
 
-        if type(values) is dict:
-            # convert to deque
-            obs = convert(values["obs"]).squeeze()
-            next_obs = convert(values["next_obs"]).squeeze()
-            action = torch.Tensor(values["act"].action) # .detach().cpu().numpy()
-            reward = values["rew"]
-            done = values["done"]
-            currdict = {
-                "obs": obs,
-                "obs2": next_obs,
-                "act": action,
-                "rew": reward,
-                "done": done,
-            }
-            self.buffer.append(currdict)
-
-        elif type(values) == self.__class__:
-            self.buffer.extend(values.buffer)
-        else:
-            print(type(values), self.__class__)
-            raise Exception(
-                "Sorry, invalid input type. Please input dict or buffer of same type"
-            )
-
-    def __len__(self):
-        return len(self.buffer)
+        self.obs_buf[self.ptr] = convert(buffer_dict["obs"])
+        self.obs2_buf[self.ptr] = convert(buffer_dict["next_obs"])
+        self.act_buf[self.ptr] = buffer_dict["act"].action  # .detach().cpu().numpy()
+        self.rew_buf[self.ptr] = buffer_dict["rew"]
+        self.done_buf[self.ptr] = buffer_dict["done"]
+        self.ptr = (self.ptr + 1) % self.max_size
+        self.size = min(self.size + 1, self.max_size)
 
     def sample_batch(self):
         """Sample batch from self.
@@ -78,28 +63,22 @@ class SimpleReplayBuffer:
         """
 
         idxs = np.random.choice(
-            len(self.buffer), size=min(self.batch_size, len(self.buffer)), replace=False
+            self.size, size=min(self.batch_size, self.size), replace=False
         )
-
-        batch = dict()
-        for idx in idxs:
-            currdict = self.buffer[idx]
-            for k, v in currdict.items():
-                if isinstance(v, float):
-                    v  = torch.Tensor([v])
-                if isinstance(v, bool):
-                    v  = torch.Tensor([v])
-                if k in batch:
-                    batch[k].append(v)
-                else:
-                    batch[k] = [v]
-
-        return  {
-            k: torch.stack(v).to(DEVICE)
+        batch = dict(
+            obs=self.obs_buf[idxs],
+            obs2=self.obs2_buf[idxs],
+            act=self.act_buf[idxs],
+            rew=self.rew_buf[idxs],
+            done=self.done_buf[idxs],
+        )
+        self.weights = torch.tensor(
+            np.zeros_like(idxs), dtype=torch.float32, device=DEVICE
+        )
+        return {
+            k: torch.tensor(v, dtype=torch.float32, device=DEVICE)
             for k, v in batch.items()
         }
-
-
 
     def finish_path(self, action_obj=None):
         """

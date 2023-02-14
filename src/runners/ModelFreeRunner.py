@@ -143,6 +143,7 @@ class ModelFreeRunner(BaseRunner):
                 api_key=api_key, project_name="test-project"
             )
         t = 0
+        t_old = 0
         start_idx = self.last_saved_episode
         for ep_number in range(start_idx + 1, self.num_run_episodes + 1):
 
@@ -155,6 +156,7 @@ class ModelFreeRunner(BaseRunner):
             ep_ret = 0
             total_reward = 0
             info = None
+            ep_debug_metrics = list()
             while not done:
                 t += 1
                 self.agent.deterministic = False
@@ -166,6 +168,7 @@ class ModelFreeRunner(BaseRunner):
                 else:
                     obs_encoded_new, reward, done, info = env.step(action_obj.action)
 
+                self.agent.debugger.collect_rewards(reward=reward)
                 ep_ret += reward
                 # self.file_logger.log(f"reward: {reward}")
                 self.replay_buffer.store(
@@ -186,7 +189,12 @@ class ModelFreeRunner(BaseRunner):
                 ):
                     for _ in range(self.update_model_every):
                         batch = self.replay_buffer.sample_batch()
-                        self.agent.update(data=batch)
+                        debug_metrics = self.agent.update(data=batch)
+                        ep_debug_metrics.append(debug_metrics)
+            
+            self.agent.debugger.collect_episode_lengths(t - t_old)
+            self.file_logger.log(ep_debug_metrics)
+            t_old = t
 
             if ep_number % self.eval_every == 0:
                 self.file_logger.log(f"Episode Number before eval: {ep_number}")

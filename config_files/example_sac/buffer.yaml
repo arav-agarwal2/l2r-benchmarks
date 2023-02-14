@@ -1,6 +1,6 @@
 name: SimpleReplayBuffer
 config:
   size: 250_000
-  batch_size: 256
+  batch_size: 2048 # Increase batch to reduce variance. More detailed tuning can be done using: https://arxiv.org/pdf/1812.06162.pdf
   obs_dim: 33
   act_dim: 2

@@ -1,7 +1,14 @@
 name:
   ActorCritic
 config:
-  activation: ReLU
+  activation: SELU
+  state_dim: 32
+  action_dim: 2
+  fusion_hiddens:
+    - 64
+    - 32
+    - 32
+    - 16
   critic_cfg:
     name:
       Qfunction
