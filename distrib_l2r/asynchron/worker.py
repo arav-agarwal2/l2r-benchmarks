@@ -5,8 +5,8 @@ from typing import Dict
 from typing import Optional
 from typing import Tuple
 
-import gym
 from gym import Wrapper
+import gym
 
 from tianshou.data import ReplayBuffer
 from tianshou.data import Collector
@@ -19,95 +19,12 @@ from distrib_l2r.api import EvalResultsMsg
 from distrib_l2r.api import InitMsg
 from distrib_l2r.utils import send_data
 
-from l2r.envs.env import RacingEnv
+from l2r import build_env
 
 from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
-from src.utils.envwrapper_aicrowd import EnvContainer
+from src.utils.envwrapper import EnvContainer
 import numpy as np
-
-class EnvConfig(object):
-    multimodal = True
-    eval_mode = True
-    n_eval_laps = 1
-    max_timesteps = 5000
-    obs_delay = 0.1
-    not_moving_timeout = 100
-    reward_pol = "custom"
-    provide_waypoints = False
-    reward_kwargs = {
-        "oob_penalty": 5.0,
-        "min_oob_penalty": 25.0,
-        "max_oob_penalty": 125.0,
-    }
-    controller_kwargs = {
-        "sim_version": "ArrivalSim-linux-0.7.1.188691",
-        "quiet": False,
-        "user": "ubuntu",
-        "start_container": False,
-        "sim_path": "/home/LinuxNoEditor",
-    }
-    action_if_kwargs = {
-        "max_accel": 6,
-        "min_accel": -16,
-        "max_steer": .3,
-        "min_steer": -.3,
-        "ip": "0.0.0.0",
-        "port": 7077,
-    }
-    pose_if_kwargs = {
-        "ip": "0.0.0.0",
-        "port": 7078,
-    }
-    camera_if_kwargs = {
-        "ip": "0.0.0.0",
-        "port": 8008,
-    }
-    segm_if_kwargs = {
-        "ip": 'tcp://127.0.0.1',
-        "port": 8009
-    }
-    birdseye_if_kwargs = {
-        "ip": 'tcp://127.0.0.1',
-        "port": 8010
-    }
-    birdseye_segm_if_kwargs = {
-        "ip": 'tcp://127.0.0.1',
-        "port": 8011
-    }
-    logger_kwargs = {
-        "default": True,
-    }
-    cameras = {
-        "CameraFrontRGB": {
-            "Addr": "tcp://0.0.0.0:8008",
-            "Format": "ColorBGR8",
-            "FOVAngle": 90,
-            "Width": 512,
-            "Height": 384,
-            "bAutoAdvertise": True,
-        }
-    }
-
-
-class SimulatorConfig(object):
-    racetrack = "Thruxton"
-    active_sensors = [
-        "CameraFrontRGB",
-        "ImuOxtsSensor",
-    ]
-    driver_params = {
-        "DriverAPIClass": "VApiUdp",
-        "DriverAPI_UDP_SendAddress": "0.0.0.0",
-    }
-    camera_params = {
-        "Format": "ColorBGR8",
-        "FOVAngle": 90,
-        "Width": 512,
-        "Height": 384,
-        "bAutoAdvertise": True,
-    }
-    vehicle_params = False
 
 
 class AsnycWorker:
@@ -125,11 +42,41 @@ class AsnycWorker:
         self.buffer_size = buffer_size
         self.mean_reward = 0.0
 
-        env_config = EnvConfig
-        sim_config = SimulatorConfig
-        self.env = RacingEnv(env_config.__dict__, sim_config.__dict__)
-        self.env.make()
-        
+        self.env = build_env(controller_kwargs={"quiet": True},
+           env_kwargs=
+                   {
+                       "multimodal": True,
+                       "eval_mode": True,
+                       "n_eval_laps": 5,
+                       "max_timesteps": 5000,
+                       "obs_delay": 0.1,
+                       "not_moving_timeout": 50000,
+                       "reward_pol": "custom",
+                       "provide_waypoints": False,
+                       "active_sensors": [
+                           "CameraFrontRGB"
+                       ],
+                       "vehicle_params":False,
+                   },
+           action_cfg=
+                   {
+                       "ip": "0.0.0.0",
+                       "port": 7077,
+                       "max_steer": 0.3,
+                       "min_steer": -0.3,
+                       "max_accel": 6.0,
+                       "min_accel": -1,
+                   },
+            camera_cfg=[
+                {
+                    "name": "CameraFrontRGB",
+                    "Addr": "tcp://0.0.0.0:8008",
+                    "Width": 512,
+                    "Height": 384,
+                    "sim_addr": "tcp://0.0.0.0:8008",
+                }
+            ]
+                   )
 
         self.encoder = create_configurable(
             "config_files/async_sac/encoder.yaml", NameToSourcePath.encoder
@@ -140,10 +87,10 @@ class AsnycWorker:
         self.env = EnvContainer(self.encoder, self.env)
 
         self.runner = create_configurable(
-        "config_files/async_sac/worker.yaml", NameToSourcePath.runner)
-        
-        
-        #print(self.env.action_space)
+            "config_files/async_sac/worker.yaml", NameToSourcePath.runner
+        )
+        # print(self.env.action_space)
+
     def work(self) -> None:
         """Continously collect data"""
 
@@ -179,6 +126,7 @@ class AsnycWorker:
         self, policy_weights: dict, is_train: bool = True
     ) -> Tuple[ReplayBuffer, Any]:
         """Collect 1 episode of data in the environment"""
+        
         buffer, result = self.runner.run(self.env, policy_weights, is_train)
-    
+
         return buffer, result
