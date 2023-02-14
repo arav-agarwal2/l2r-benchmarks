@@ -101,7 +101,6 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
     ) -> None:
 
         super().__init__(server_address, ThreadedTCPRequestHandler)
-
         self.update_steps = update_steps
         self.batch_size = batch_size
         self.epochs = epochs
@@ -119,7 +118,7 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         # The bytes of the policy to reply to requests with
 
-        self.updated_agent = {k: v.cpu() for k, v in self.agent.state_dict().items()}
+        self.agent_params = {k: v.cpu() for k, v in self.agent.state_dict().items()}
 
         # A thread-safe policy queue to avoid blocking while learning. This marginally
         # increases off-policy error in order to improve throughput.
@@ -138,18 +137,18 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
         """Get the most up-to-date version of the policy without blocking"""
         if not self.agent_queue.empty():
             try:
-                self.updated_agent = self.agent_queue.get_nowait()
+                self.agent_params = self.agent_queue.get_nowait()
             except queue.Empty:
                 # non-blocking
                 pass
 
         return {
             "policy_id": self.agent_id,
-            "policy": self.updated_agent,
+            "policy": self.agent_params,
             "is_train": random.random() >= self.eval_prob,
         }
 
-    def update_agent(self) -> None:
+    def update_agent_queue(self) -> None:
         """Update policy that will be sent to workers without blocking"""
         if not self.agent_queue.empty():
             try:
@@ -174,8 +173,10 @@ class AsyncLearningNode(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 batch = self.replay_buffer.sample_batch()
                 self.agent.update(data=batch)
 
+            print(f"Mean {sum((x.cpu().numpy()).mean() for x in self.agent.state_dict().values())} Std {sum((x.cpu().numpy()).std() for x in self.agent.state_dict().values())}")
+           
             # Update policy without blocking
-            self.update_agent()
+            self.update_agent_queue()
             # Optionally save
             if self.save_func and epoch % self.save_every == 0:
                 self.save_fn(epoch=epoch, policy=self.get_policy_dict())

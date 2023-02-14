@@ -4,6 +4,7 @@ from src.config.yamlize import create_configurable, NameToSourcePath, yamlize
 from src.constants import DEVICE
 
 from torch.optim import Adam
+import numpy as np
 
 @yamlize
 class WorkerRunner(BaseRunner):
@@ -38,17 +39,20 @@ class WorkerRunner(BaseRunner):
             is_train: Whether to collect data in train mode or eval mode
         """
         self.agent.load_model(agent_params)
+                   
+        self.agent.deterministic = not is_train
         t = 0
         done = False
         state_encoded = env.reset()
 
         ep_ret = 0
         self.replay_buffer = create_configurable(
-            self.buffer_config_path, NameToSourcePath.buffer
-        )
+                self.buffer_config_path, NameToSourcePath.buffer
+            )
+
         while not done:
             t += 1
-            self.agent.deterministic = not is_train
+            #print(f't:{t}')
             action_obj = self.agent.select_action(state_encoded)
             next_state_encoded, reward, done, info = env.step(action_obj.action)
             # print(f'info{info}')

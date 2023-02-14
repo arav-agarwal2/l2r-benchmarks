@@ -1,0 +1,13 @@
+loguru
+scipy
+gast
+h5py
+matplotlib
+numpy
+Pillow
+pyzmq
+requests
+ruamel.yaml
+websocket_client
+tqdm
+ipdb
