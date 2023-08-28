@@ -1,11 +1,13 @@
 import torch
 import torchvision
 from torch import nn
+import numpy as np
 import torch.nn.functional as F
 from collections import OrderedDict
 from src.encoders.base import BaseEncoder
 from src.config.yamlize import yamlize
 from src.constants import DEVICE
+import cv2
 
 
 class DiceLoss(nn.Module):
@@ -105,7 +107,7 @@ class FPNSegmentation(BaseEncoder, nn.Module):
             self.load_state_dict(torch.load(load_checkpoint_from))
 
     def forward(self, x):
-        x.to(DEVICE)
+        x = x.to(DEVICE)
         x = self.encoder(x)
         x = self.feature_pyramid(self.encoder.hiddens)
         x = self.segmentation_branch(list(x.values()))
@@ -115,11 +117,13 @@ class FPNSegmentation(BaseEncoder, nn.Module):
         # assume x is RGB image with shape (H, W, 3)
 
         # Code heavily inspired by https://gitlab.aicrowd.com/matthew_howe/aiml-l2r/-/blob/main/agents/MrMPC.py#L484
-
         x = torch.Tensor(x.transpose(2, 0, 1)) / 255
-        x.to(DEVICE)
+        x = x.to(DEVICE)
         segm = self.forward(x.unsqueeze(0))
         tmp_mask = 1 - segm.detach().cpu().numpy().astype(np.uint8)
+        assert tmp_mask.shape[0] == 1
+        tmp_mask = tmp_mask[0,:,:,:].transpose(1, 2, 0)
+        print(tmp_mask.shape)
         tmp_mask = cv2.resize(tmp_mask, (144, 144))[
             68:110
         ]  # Crop away sky and car hood
